@@ -154,6 +154,12 @@ export function decodeMetarToPlain(metar: string): string {
   const lines: string[] = []
   let remaining = metar
 
+  // CAVOK: Ceiling And Visibility OK (能见度≥10km，无云，无重要天气)
+  if (/\bCAVOK\b/.test(remaining)) {
+    lines.push('• 能见度良好，无云，无重要天气 (CAVOK)')
+    remaining = remaining.replace(/\bCAVOK\b/, '')
+  }
+
   // Wind: 22015KT, 22015G25KT, VRB05KT, VRB5G15KT
   const windMatch = remaining.match(/\b(\d{5}(?:G\d{2})?KT|VRB\d{1,3}(?:G\d{2})?KT)\b/)
   if (windMatch) {
@@ -203,6 +209,20 @@ export function decodeMetarToPlain(metar: string): string {
   const pressureMatch = remaining.match(/\b(Q\d{4}|A\d{4})\b/)
   if (pressureMatch) {
     lines.push('• ' + decodePressure(pressureMatch[1]))
+  }
+
+  // Remarks: TX18/0615Z (max temp), TN12/0420Z (min temp)
+  const txMatch = remaining.match(/\bTX(M?\d{2})\/(\d{4,6})Z\b/)
+  if (txMatch) {
+    const t = txMatch[1].startsWith('M') ? -parseInt(txMatch[1].slice(1), 10) : parseInt(txMatch[1], 10)
+    const time = txMatch[2].length === 4 ? `${txMatch[2].slice(0, 2)}:${txMatch[2].slice(2)}` : txMatch[2]
+    lines.push(`• 今日最高温 ${t}°C（观测于 ${time} UTC）`)
+  }
+  const tnMatch = remaining.match(/\bTN(M?\d{2})\/(\d{4,6})Z\b/)
+  if (tnMatch) {
+    const t = tnMatch[1].startsWith('M') ? -parseInt(tnMatch[1].slice(1), 10) : parseInt(tnMatch[1], 10)
+    const time = tnMatch[2].length === 4 ? `${tnMatch[2].slice(0, 2)}:${tnMatch[2].slice(2)}` : tnMatch[2]
+    lines.push(`• 今日最低温 ${t}°C（观测于 ${time} UTC）`)
   }
 
   return lines.length ? lines.join('\n') : metar
@@ -274,6 +294,22 @@ export function decodeTafToPlain(taf: string): string {
       const prob = trimmed.match(/PROB(\d{2})/)?.[1] ?? '30'
       lines.push(`\n【${prob}% 概率】`)
       lines.push(decodeMetarToPlain(trimmed.replace(/^PROB\d{2}\s+\d{4}\/\d{4}\s*/, '')))
+    } else if (/^TAF\s+/i.test(trimmed)) {
+      // TAF header + main body (no FM/BECMG/TEMPO/PROB groups)
+      // e.g. TAF LFPG 060500Z 0606/0712 12005KT CAVOK TX18/0615Z TN10/0706Z
+      const afterHeader = trimmed.replace(/^TAF\s+\S+\s+\d{6}Z\s*/i, '')
+      const validityMatch = afterHeader.match(/^(\d{4}\/\d{4})\s+(.*)/s)
+      if (validityMatch) {
+        const [, validity, body] = validityMatch
+        const d1 = validity.slice(0, 2)
+        const h1 = validity.slice(2, 4)
+        const d2 = validity.slice(5, 7)
+        const h2 = validity.slice(7, 9)
+        lines.push(`【有效时段 ${d1}日${h1}:00 - ${d2}日${h2}:00 UTC】`)
+        lines.push(decodeMetarToPlain(body.trim()))
+      } else {
+        lines.push(decodeMetarToPlain(afterHeader))
+      }
     } else if (!/^(METAR|TAF|KJFK|EGLL|etc)/i.test(trimmed)) {
       lines.push(decodeMetarToPlain(trimmed))
     }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchMetar, fetchTaf, fetchMetarHistory } from '../services/aviationWeather'
-import { parseMaxTempFromMetarHistoryLocalToday, parseMetarHistoryByDays } from '../utils/metarParser'
+import { parseMaxTempFromMetarHistoryLocalToday, parseMaxTempFromMetarRemarks, parseMetarHistoryByDays } from '../utils/metarParser'
 
 export function useAviationWeather(icao: string | null, timezone: string) {
   const [metar, setMetar] = useState<string | null>(null)
@@ -24,7 +24,9 @@ export function useAviationWeather(icao: string | null, timezone: string) {
       .then(([m, t, history]) => {
         setMetar(m)
         setTaf(t)
-        setMetarHistoryMaxTemp(parseMaxTempFromMetarHistoryLocalToday(history, timezone))
+        const txFromRemarks = parseMaxTempFromMetarRemarks(m)
+        const maxFromHistory = parseMaxTempFromMetarHistoryLocalToday(history, timezone)
+        setMetarHistoryMaxTemp(txFromRemarks ?? maxFromHistory)
         setMetarHistoryByDays(parseMetarHistoryByDays(history, timezone))
       })
       .catch((e) => {

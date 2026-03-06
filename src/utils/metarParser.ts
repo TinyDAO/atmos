@@ -26,6 +26,32 @@ export function parseTemperatureFromMetar(metar: string | null): number | null {
 }
 
 /**
+ * Parse maximum temperature from METAR remarks (TXnn/nnnnZ).
+ * Example: TX18/0615Z = max 18°C at 06:15 UTC
+ */
+export function parseMaxTempFromMetarRemarks(metar: string | null): number | null {
+  if (!metar) return null
+  const match = metar.match(/\bTX(M?\d{2})\/(\d{4,6})Z\b/)
+  if (!match) return null
+  const tempStr = match[1]
+  const temp = tempStr.startsWith('M') ? -parseInt(tempStr.slice(1), 10) : parseInt(tempStr, 10)
+  return isNaN(temp) ? null : temp
+}
+
+/**
+ * Parse minimum temperature from METAR remarks (TNnn/nnnnZ).
+ * Example: TN12/0420Z = min 12°C at 04:20 UTC
+ */
+export function parseMinTempFromMetarRemarks(metar: string | null): number | null {
+  if (!metar) return null
+  const match = metar.match(/\bTN(M?\d{2})\/(\d{4,6})Z\b/)
+  if (!match) return null
+  const tempStr = match[1]
+  const temp = tempStr.startsWith('M') ? -parseInt(tempStr.slice(1), 10) : parseInt(tempStr, 10)
+  return isNaN(temp) ? null : temp
+}
+
+/**
  * Parse dewpoint from METAR (second value in TT/TdTd).
  */
 export function parseDewpointFromMetar(metar: string | null): number | null {
