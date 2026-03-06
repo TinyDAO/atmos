@@ -147,6 +147,7 @@ function App() {
                 metar={metar}
                 taf={taf}
                 icao={selectedCity.icao}
+                timezone={selectedCity.timezone}
                 dayIndex={dayIndex}
                 forecastMaxTemp={dayMax}
                 metarHistoryMaxTemp={metarHistoryMaxTemp}

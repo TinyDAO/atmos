@@ -148,11 +148,28 @@ function decodePressure(match: string): string {
   return match
 }
 
-export function decodeMetarToPlain(metar: string): string {
+/** Get report/validity date from METAR/TAF for TX/TN 4-digit time context */
+function getReportDateFromText(text: string): Date {
+  const tsMatch = text.match(/\b(\d{2})(\d{2})(\d{2})Z\b/)
+  const validityMatch = text.match(/\b(\d{2})(\d{2})\/(\d{2})(\d{2})\b/)
+  const now = new Date()
+  if (validityMatch) {
+    const day = parseInt(validityMatch[1], 10)
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, 0, 0, 0))
+  }
+  if (tsMatch) {
+    const day = parseInt(tsMatch[1], 10)
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, 0, 0, 0))
+  }
+  return now
+}
+
+export function decodeMetarToPlain(metar: string, timezone?: string, referenceDate?: Date): string {
   if (!metar || metar.includes('No METAR')) return metar
 
   const lines: string[] = []
   let remaining = metar
+  const reportDate = referenceDate ?? getReportDateFromText(metar)
 
   // CAVOK: Ceiling And Visibility OK (能见度≥10km，无云，无重要天气)
   if (/\bCAVOK\b/.test(remaining)) {
@@ -212,17 +229,48 @@ export function decodeMetarToPlain(metar: string): string {
   }
 
   // Remarks: TX18/0615Z (max temp), TN12/0420Z (min temp)
+  // Time format: 4 digits DDHH (day, hour UTC), or 6 digits DDHHMM (day, hour, minute UTC)
+  // e.g. TX18/0615Z = max 18°C at 15:00 UTC on day 06 (afternoon)
+  // e.g. TN10/0706Z = min 10°C at 06:00 UTC on day 07 (early morning)
+  function formatTxTnTime(raw: string): string {
+    let utcDate: Date
+    if (raw.length === 4) {
+      const d = parseInt(raw.slice(0, 2), 10)
+      const h = parseInt(raw.slice(2, 4), 10)
+      utcDate = new Date(Date.UTC(reportDate.getUTCFullYear(), reportDate.getUTCMonth(), d, h, 0, 0))
+    } else if (raw.length === 6) {
+      const d = parseInt(raw.slice(0, 2), 10)
+      const h = parseInt(raw.slice(2, 4), 10)
+      const m = parseInt(raw.slice(4), 10)
+      utcDate = new Date(Date.UTC(reportDate.getUTCFullYear(), reportDate.getUTCMonth(), d, h, m, 0))
+    } else {
+      return raw + 'Z'
+    }
+    if (timezone) {
+      const utcStr = `${utcDate.getUTCDate()}日 ${String(utcDate.getUTCHours()).padStart(2, '0')}:${String(utcDate.getUTCMinutes()).padStart(2, '0')} UTC`
+      const localTimeFmt = new Intl.DateTimeFormat('zh-CN', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false })
+      const localDay = new Intl.DateTimeFormat('zh-CN', { timeZone: timezone, day: 'numeric' }).format(utcDate)
+      const localTime = localTimeFmt.format(utcDate)
+      return `${utcStr}（当地  ${localTime}）`
+    }
+    const h = utcDate.getUTCHours()
+    const m = utcDate.getUTCMinutes()
+    const d = utcDate.getUTCDate()
+    return raw.length === 4
+      ? `${d}日 ${String(h).padStart(2, '0')}:00 UTC`
+      : `${d}日 ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} UTC`
+  }
   const txMatch = remaining.match(/\bTX(M?\d{2})\/(\d{4,6})Z\b/)
   if (txMatch) {
     const t = txMatch[1].startsWith('M') ? -parseInt(txMatch[1].slice(1), 10) : parseInt(txMatch[1], 10)
-    const time = txMatch[2].length === 4 ? `${txMatch[2].slice(0, 2)}:${txMatch[2].slice(2)}` : txMatch[2]
-    lines.push(`• 今日最高温 ${t}°C（观测于 ${time} UTC）`)
+    const timeStr = formatTxTnTime(txMatch[2])
+    lines.push(`• 今日最高温 ${t}°C，出现时间 ${timeStr}`)
   }
   const tnMatch = remaining.match(/\bTN(M?\d{2})\/(\d{4,6})Z\b/)
   if (tnMatch) {
     const t = tnMatch[1].startsWith('M') ? -parseInt(tnMatch[1].slice(1), 10) : parseInt(tnMatch[1], 10)
-    const time = tnMatch[2].length === 4 ? `${tnMatch[2].slice(0, 2)}:${tnMatch[2].slice(2)}` : tnMatch[2]
-    lines.push(`• 今日最低温 ${t}°C（观测于 ${time} UTC）`)
+    const timeStr = formatTxTnTime(tnMatch[2])
+    lines.push(`• 今日最低温 ${t}°C，出现时间 ${timeStr}`)
   }
 
   return lines.length ? lines.join('\n') : metar
@@ -269,7 +317,7 @@ export function filterTafForTomorrow(taf: string): string {
   return filtered.length > 1 ? filtered.join(' ') : taf
 }
 
-export function decodeTafToPlain(taf: string): string {
+export function decodeTafToPlain(taf: string, timezone?: string): string {
   if (!taf || taf.includes('No TAF')) return taf
 
   const lines: string[] = []
@@ -283,17 +331,17 @@ export function decodeTafToPlain(taf: string): string {
       const time = trimmed.slice(2, 6)
       lines.push(`\n【从 ${time.slice(0, 2)}:${time.slice(2)} UTC 起】`)
       const rest = trimmed.slice(6).trim()
-      lines.push(decodeMetarToPlain(rest))
+      lines.push(decodeMetarToPlain(rest, timezone))
     } else if (/^BECMG/.test(trimmed)) {
       lines.push('\n【逐渐变化】')
-      lines.push(decodeMetarToPlain(trimmed.replace(/^BECMG\s+\d{4}\/\d{4}\s*/, '')))
+      lines.push(decodeMetarToPlain(trimmed.replace(/^BECMG\s+\d{4}\/\d{4}\s*/, ''), timezone))
     } else if (/^TEMPO/.test(trimmed)) {
       lines.push('\n【短暂】')
-      lines.push(decodeMetarToPlain(trimmed.replace(/^TEMPO\s+\d{4}\/\d{4}\s*/, '')))
+      lines.push(decodeMetarToPlain(trimmed.replace(/^TEMPO\s+\d{4}\/\d{4}\s*/, ''), timezone))
     } else if (/^PROB\d{2}/.test(trimmed)) {
       const prob = trimmed.match(/PROB(\d{2})/)?.[1] ?? '30'
       lines.push(`\n【${prob}% 概率】`)
-      lines.push(decodeMetarToPlain(trimmed.replace(/^PROB\d{2}\s+\d{4}\/\d{4}\s*/, '')))
+      lines.push(decodeMetarToPlain(trimmed.replace(/^PROB\d{2}\s+\d{4}\/\d{4}\s*/, ''), timezone))
     } else if (/^TAF\s+/i.test(trimmed)) {
       // TAF header + main body (no FM/BECMG/TEMPO/PROB groups)
       // e.g. TAF LFPG 060500Z 0606/0712 12005KT CAVOK TX18/0615Z TN10/0706Z
@@ -306,12 +354,15 @@ export function decodeTafToPlain(taf: string): string {
         const d2 = validity.slice(5, 7)
         const h2 = validity.slice(7, 9)
         lines.push(`【有效时段 ${d1}日${h1}:00 - ${d2}日${h2}:00 UTC】`)
-        lines.push(decodeMetarToPlain(body.trim()))
+        const refDay = parseInt(validity.slice(0, 2), 10)
+        const now = new Date()
+        const refDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), refDay, 0, 0, 0))
+        lines.push(decodeMetarToPlain(body.trim(), timezone, refDate))
       } else {
-        lines.push(decodeMetarToPlain(afterHeader))
+        lines.push(decodeMetarToPlain(afterHeader, timezone))
       }
     } else if (!/^(METAR|TAF|KJFK|EGLL|etc)/i.test(trimmed)) {
-      lines.push(decodeMetarToPlain(trimmed))
+      lines.push(decodeMetarToPlain(trimmed, timezone))
     }
   }
 

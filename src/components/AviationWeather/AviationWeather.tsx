@@ -8,6 +8,7 @@ interface AviationWeatherProps {
   metar: string | null
   taf: string | null
   icao: string
+  timezone: string
   dayIndex: number
   forecastMaxTemp: number | null
   metarHistoryMaxTemp: number | null
@@ -19,6 +20,7 @@ export function AviationWeather({
   metar,
   taf,
   icao,
+  timezone,
   dayIndex,
   forecastMaxTemp,
   metarHistoryMaxTemp,
@@ -26,9 +28,9 @@ export function AviationWeather({
   error,
 }: AviationWeatherProps) {
   const [showPlain, setShowPlain] = useState(true)
-  const metarPlain = metar ? decodeMetarToPlain(metar) : ''
+  const metarPlain = metar ? decodeMetarToPlain(metar, timezone) : ''
   const tafFiltered = dayIndex === 1 && taf ? filterTafForTomorrow(taf) : taf
-  const tafPlain = tafFiltered ? decodeTafToPlain(tafFiltered) : ''
+  const tafPlain = tafFiltered ? decodeTafToPlain(tafFiltered, timezone) : ''
   const metarTemp = parseTemperatureFromMetar(metar)
 
   if (loading) {
