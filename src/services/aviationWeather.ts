@@ -1,4 +1,4 @@
-const AVIATION_BASE = import.meta.env.DEV ? '/aviation-weather/api' : 'https://aviationweather.gov/api'
+const AVIATION_BASE = '/aviation-weather/api'
 
 export async function fetchMetar(icao: string): Promise<string> {
   const url = `${AVIATION_BASE}/data/metar?ids=${icao}&format=raw`

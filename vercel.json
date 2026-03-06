@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/aviation-weather/:path*",
+      "destination": "https://aviationweather.gov/:path*"
+    }
+  ]
+}
