@@ -1,45 +1,48 @@
-# Weather Forecast
+# Atmos
 
-A modern weather forecast site built with Vite + React + TypeScript. Features multi-source weather data, radar/satellite maps, and aviation weather.
+多城市天气应用，支持预报、航空气象、雷达卫星图与 Polymarket 预测市场跳转。
 
-## Features
+## 功能
 
-- **6 preset cities**: Sao Paulo, NYC, Seoul, Atlanta, Toronto, London
-- **Daily high temperature** from Open-Meteo (with optional multi-source: WeatherAPI, OpenWeatherMap)
-- **Wind, precipitation, cloud cover, cloud base** (wind from Open-Meteo, cloud base from METAR)
-- **Radar & satellite cloud map** – RainViewer radar + NASA GIBS satellite imagery
-- **Aviation weather** (METAR/TAF) from Aviation Weather Center
-- **Light/dark theme** toggle
-- Modern, minimal design (no Ant Design)
+### 城市与预报
+- **13 座城市**：Sao Paulo、NYC、Seoul、Atlanta、Toronto、London、Paris、Miami、Chicago、Seattle、Ankara、Dallas、Buenos Aires
+- **今日 / 明日切换**：查看当天或次日预报
+- **多数据源温度**：Open-Meteo 为主，可选 WeatherAPI、OpenWeatherMap 对比
+- **温度展示**：默认 °C，悬停显示 °F
 
-## Tech Stack
+### 天气详情
+- **风速与风向**
+- **降水量**
+- **云量与云底高度**（云底来自 METAR）
 
-- Vite 7 + React 19 + TypeScript
-- Tailwind CSS v4
-- Framer Motion
-- Leaflet + react-leaflet
+### 航空气象
+- **METAR / TAF**：来自 Aviation Weather Center
+- **METAR 历史温度图表**：机场观测最高温趋势
 
-## Development
+### 地图与跳转
+- **卫星云图**：NASA GIBS 全球云图
+- **雷达降水**：RainViewer
+- **跳转工具**：Windy、Ventusky、RainViewer、Aviation Weather、Meteoblue
+- **Polymarket**：跳转至当日最高温预测市场（如 Paris March 6）
+
+### 其他
+- **深色 / 浅色主题** 切换
+- **URL 参数**：`?city=paris` 直接打开指定城市
+
+## 技术栈
+
+Vite 7 · React 19 · TypeScript · Tailwind CSS v4 · Framer Motion · Leaflet
+
+## 开发
 
 ```bash
 npm install
 npm run dev
 ```
 
-The dev server proxies aviation weather API requests to avoid CORS. For production, aviation weather may require a backend proxy if CORS blocks direct requests.
-
-## Build
+## 构建
 
 ```bash
 npm run build
 npm run preview
 ```
-
-## Data Sources
-
-- [Open-Meteo](https://open-meteo.com/) – Weather forecast, wind, precipitation, cloud (no API key)
-- [RainViewer](https://www.rainviewer.com/) – Radar (no API key)
-- [NASA GIBS](https://earthdata.nasa.gov/gibs) – Satellite cloud imagery (no API key)
-- [Aviation Weather Center](https://aviationweather.gov/) – METAR/TAF, cloud base
-- [WeatherAPI.com](https://www.weatherapi.com/) – Optional multi-source (free tier, needs key)
-- [OpenWeatherMap](https://openweathermap.org/) – Optional multi-source (free tier, needs key)
