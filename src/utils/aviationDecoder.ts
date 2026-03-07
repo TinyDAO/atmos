@@ -249,7 +249,6 @@ export function decodeMetarToPlain(metar: string, timezone?: string, referenceDa
     if (timezone) {
       const utcStr = `${utcDate.getUTCDate()}日 ${String(utcDate.getUTCHours()).padStart(2, '0')}:${String(utcDate.getUTCMinutes()).padStart(2, '0')} UTC`
       const localTimeFmt = new Intl.DateTimeFormat('zh-CN', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false })
-      const localDay = new Intl.DateTimeFormat('zh-CN', { timeZone: timezone, day: 'numeric' }).format(utcDate)
       const localTime = localTimeFmt.format(utcDate)
       return `${utcStr}（当地  ${localTime}）`
     }
@@ -317,6 +316,18 @@ export function filterTafForTomorrow(taf: string): string {
   return filtered.length > 1 ? filtered.join(' ') : taf
 }
 
+function formatValidityLocal(startUtc: Date, endUtc: Date, timezone: string): string {
+  const fmt = new Intl.DateTimeFormat('zh-CN', { timeZone: timezone, day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+  const getDay = (date: Date) => fmt.formatToParts(date).find(p => p.type === 'day')?.value ?? ''
+  const getTime = (date: Date) => {
+    const parts = fmt.formatToParts(date)
+    const h = parts.find(p => p.type === 'hour')?.value ?? ''
+    const m = parts.find(p => p.type === 'minute')?.value ?? ''
+    return `${h}:${m}`
+  }
+  return `${getDay(startUtc)}日${getTime(startUtc)} - ${getDay(endUtc)}日${getTime(endUtc)}`
+}
+
 export function decodeTafToPlain(taf: string, timezone?: string): string {
   if (!taf || taf.includes('No TAF')) return taf
 
@@ -349,14 +360,19 @@ export function decodeTafToPlain(taf: string, timezone?: string): string {
       const validityMatch = afterHeader.match(/^(\d{4}\/\d{4})\s+(.*)/s)
       if (validityMatch) {
         const [, validity, body] = validityMatch
-        const d1 = validity.slice(0, 2)
-        const h1 = validity.slice(2, 4)
-        const d2 = validity.slice(5, 7)
-        const h2 = validity.slice(7, 9)
-        lines.push(`【有效时段 ${d1}日${h1}:00 - ${d2}日${h2}:00 UTC】`)
-        const refDay = parseInt(validity.slice(0, 2), 10)
+        const d1 = parseInt(validity.slice(0, 2), 10)
+        const h1 = parseInt(validity.slice(2, 4), 10)
+        const d2 = parseInt(validity.slice(5, 7), 10)
+        const h2 = parseInt(validity.slice(7, 9), 10)
         const now = new Date()
-        const refDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), refDay, 0, 0, 0))
+        const startUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), d1, h1, 0, 0))
+        const endUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), d2, h2, 0, 0))
+        const utcStr = `${d1}日${String(h1).padStart(2, '0')}:00 - ${d2}日${String(h2).padStart(2, '0')}:00 UTC`
+        const validityStr = timezone
+          ? `${utcStr}（当地 ${formatValidityLocal(startUtc, endUtc, timezone)}）`
+          : utcStr
+        lines.push(`【有效时段 ${validityStr}】`)
+        const refDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), d1, 0, 0, 0))
         lines.push(decodeMetarToPlain(body.trim(), timezone, refDate))
       } else {
         lines.push(decodeMetarToPlain(afterHeader, timezone))
