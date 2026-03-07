@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Analytics } from '@vercel/analytics/react'
 import { CitySelector } from './components/CitySelector'
 import { useTheme } from './hooks/useTheme'
 import { CityCard } from './components/CityCard'
@@ -184,6 +185,7 @@ function App() {
           </p>
         </footer>
       </div>
+      <Analytics />
     </div>
   )
 }
