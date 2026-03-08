@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { WundergroundEmbed } from '../WundergroundEmbed/WundergroundEmbed'
 
 interface City {
   id: string
@@ -44,7 +45,7 @@ const LINKS = [
     name: 'Aviation Weather',
     desc: 'METAR/TAF',
     logo: 'https://aviationweather.gov/assets/nws-BZtavOX9.svg',
-    href: (c: City) => `https://aviationweather.gov/gfa/#obs`,
+    href: (c: City) => `https://www.wunderground.com/weather/fr/mauregard/${c.icao}`,
     fallback: 'https://aviationweather.gov/',
   },
   {
@@ -67,10 +68,17 @@ const LINKS = [
 
 export function WeatherLinks({ city }: WeatherLinksProps) {
   const [expanded, setExpanded] = useState(false)
+  const [wundergroundEmbedOpen, setWundergroundEmbedOpen] = useState(false)
 
   if (!city) return null
 
   return (
+    <>
+      <WundergroundEmbed
+        city={city}
+        open={wundergroundEmbedOpen}
+        onClose={() => setWundergroundEmbedOpen(false)}
+      />
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -128,6 +136,29 @@ export function WeatherLinks({ city }: WeatherLinksProps) {
                   </div>
                 </a>
               ))}
+              <button
+                type="button"
+                onClick={() => setWundergroundEmbedOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm col-span-2
+                  bg-amber-100/80 dark:bg-amber-900/30 hover:bg-amber-200/80 dark:hover:bg-amber-800/40
+                  text-amber-800 dark:text-amber-200 border border-amber-300/50 dark:border-amber-600/50
+                  transition-colors"
+                title="在页面内嵌入查看 Wunderground"
+              >
+                <img
+                  src="https://www.wunderground.com/favicon.ico"
+                  alt=""
+                  className="w-6 h-6 rounded-md flex-shrink-0"
+                  aria-hidden
+                />
+                <div className="min-w-0 text-left">
+                  <span className="font-medium block">Wunderground 内嵌</span>
+                  <span className="text-xs text-amber-600 dark:text-amber-400 block">在页面内查看</span>
+                </div>
+                <svg className="w-4 h-4 ml-auto opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+              </button>
             </div>
           </motion.div>
         ) : null}
@@ -149,5 +180,6 @@ export function WeatherLinks({ city }: WeatherLinksProps) {
         <span className="font-medium text-sm">跳转工具</span>
       </button>
     </motion.div>
+    </>
   )
 }
