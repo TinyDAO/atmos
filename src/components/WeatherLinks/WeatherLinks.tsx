@@ -11,22 +11,6 @@ interface City {
 
 interface WeatherLinksProps {
   city: City | null
-  dayIndex: number
-}
-
-function getPolymarketSlug(cityId: string, dayIndex: number, timezone: string): string {
-  const d = new Date()
-  d.setTime(d.getTime() + dayIndex * 24 * 60 * 60 * 1000)
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).formatToParts(d)
-  const month = parts.find((p) => p.type === 'month')?.value?.toLowerCase() ?? ''
-  const day = parts.find((p) => p.type === 'day')?.value ?? ''
-  const year = parts.find((p) => p.type === 'year')?.value ?? ''
-  return `highest-temperature-in-${cityId}-on-${month}-${day}-${year}`
 }
 
 const LINKS = [
@@ -65,14 +49,16 @@ const LINKS = [
     href: (c: City) => `https://www.meteoblue.com/en/weather/maps#coords=8/${c.latitude}/${c.longitude}`,
     fallback: 'https://www.meteoblue.com/en/weather/maps',
   },
+  {
+    id: 'wunderground',
+    name: 'Wunderground',
+    desc: 'PWS 预报',
+    href: (c: City) => `https://www.wunderground.com/forecast/${c.latitude},${c.longitude}`,
+    fallback: 'https://www.wunderground.com/',
+  },
 ]
 
-function getPolymarketHref(city: City, dayIndex: number): string {
-  const slug = getPolymarketSlug(city.id, dayIndex, city.timezone)
-  return `https://polymarket.com/event/${slug}`
-}
-
-export function WeatherLinks({ city, dayIndex }: WeatherLinksProps) {
+export function WeatherLinks({ city }: WeatherLinksProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -84,21 +70,6 @@ export function WeatherLinks({ city, dayIndex }: WeatherLinksProps) {
         跳转工具
       </p>
       <div className="flex flex-wrap gap-2">
-        {city && (
-          <a
-            href={getPolymarketHref(city, dayIndex)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm
-              bg-zinc-200/60 dark:bg-zinc-800/60 hover:bg-zinc-300/60 dark:hover:bg-zinc-700/60
-              text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100
-              transition-colors border border-transparent hover:border-zinc-300/50 dark:hover:border-zinc-600/50"
-            title={`Polymarket ${city.name} 最高温预测市场`}
-          >
-            <span className="font-medium">Polymarket</span>
-            <span className="text-zinc-500 dark:text-zinc-400 text-xs">预测市场</span>
-          </a>
-        )}
         {LINKS.map((link) => (
           <a
             key={link.id}

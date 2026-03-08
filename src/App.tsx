@@ -10,6 +10,7 @@ import { SatelliteMap } from './components/SatelliteMap'
 import { AviationWeather } from './components/AviationWeather'
 import { MetarHistoryChart } from './components/MetarHistoryChart'
 import { WeatherLinks } from './components/WeatherLinks'
+import { PolymarketFloatingButton } from './components/PolymarketFloatingButton/PolymarketFloatingButton'
 import { CITIES } from './config/cities'
 import { useForecast } from './hooks/useForecast'
 import { useLocalTime } from './hooks/useLocalTime'
@@ -122,7 +123,7 @@ function App() {
                 gradient={selectedCity.gradient}
               />
 
-              <WeatherLinks city={selectedCity} dayIndex={dayIndex} />
+              <WeatherLinks city={selectedCity} />
 
               <div className="grid md:grid-cols-2 gap-6">
                 <WeatherForecast
@@ -185,6 +186,7 @@ function App() {
           </p>
         </footer>
       </div>
+      <PolymarketFloatingButton city={selectedCity} dayIndex={dayIndex} />
       <Analytics />
     </div>
   )

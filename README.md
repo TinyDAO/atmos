@@ -9,7 +9,7 @@
 ### 城市与预报
 - **13 座城市**：Sao Paulo、NYC、Seoul、Atlanta、Toronto、London、Paris、Miami、Chicago、Seattle、Ankara、Dallas、Buenos Aires
 - **今日 / 明日切换**：查看当天或次日预报
-- **多数据源温度**：Open-Meteo 为主，可选 WeatherAPI、OpenWeatherMap 对比
+- **多数据源温度**：Open-Meteo 为主，可选 WeatherAPI、OpenWeatherMap、Wunderground 对比
 - **温度展示**：默认 °C，悬停显示 °F
 
 ### 天气详情
@@ -24,7 +24,7 @@
 ### 地图与跳转
 - **卫星云图**：NASA GIBS 全球云图
 - **雷达降水**：RainViewer
-- **跳转工具**：Windy、Ventusky、RainViewer、Aviation Weather、Meteoblue
+- **跳转工具**：Windy、Ventusky、RainViewer、Aviation Weather、Meteoblue、Wunderground
 - **Polymarket**：跳转至当日最高温预测市场（如 Paris March 6）
 
 ### 其他

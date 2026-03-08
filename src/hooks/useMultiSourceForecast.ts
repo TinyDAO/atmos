@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { fetchForecast } from '../services/openMeteo'
 import { fetchWeatherApi } from '../services/weatherApi'
 import { fetchOpenWeather } from '../services/openWeatherMap'
+import { fetchWunderground } from '../services/wunderground'
 
 export interface SourceForecast {
   source: string
@@ -29,6 +30,7 @@ export function useMultiSourceForecast(
     setLoading(true)
     const openWeatherKey = import.meta.env.VITE_OPENWEATHER_API_KEY
     const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY
+    const wundergroundKey = import.meta.env.VITE_WUNDERGROUND_API_KEY
 
     const promises: Promise<{ source: string; maxTemp: (number | null)[]; minTemp: (number | null)[] }>[] = [
       fetchForecast(lat, lon).then((d) => ({
@@ -61,6 +63,21 @@ export function useMultiSourceForecast(
             minTemp: (d.daily ?? []).map((day) => day?.temp?.min ?? null),
           }))
           .catch(() => ({ source: 'OpenWeather', maxTemp: [], minTemp: [] }))
+      )
+    }
+    if (wundergroundKey) {
+      promises.push(
+        fetchWunderground(lat, lon, wundergroundKey)
+          .then((d) => {
+            const maxArr = d.temperatureMax ?? d.calendarDayTemperatureMax ?? []
+            const minArr = d.temperatureMin ?? d.calendarDayTemperatureMin ?? []
+            return {
+              source: 'Wunderground',
+              maxTemp: maxArr.map((v) => v ?? null),
+              minTemp: minArr.map((v) => v ?? null),
+            }
+          })
+          .catch(() => ({ source: 'Wunderground', maxTemp: [], minTemp: [] }))
       )
     }
 
