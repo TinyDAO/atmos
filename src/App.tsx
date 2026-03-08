@@ -123,8 +123,6 @@ function App() {
                 gradient={selectedCity.gradient}
               />
 
-              <WeatherLinks city={selectedCity} />
-
               <div className="grid md:grid-cols-2 gap-6">
                 <WeatherForecast
                   maxTemp={dayMax}
@@ -186,6 +184,7 @@ function App() {
           </p>
         </footer>
       </div>
+      <WeatherLinks city={selectedCity} />
       <PolymarketFloatingButton city={selectedCity} dayIndex={dayIndex} />
       <Analytics />
     </div>
