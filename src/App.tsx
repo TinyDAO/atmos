@@ -97,6 +97,7 @@ function App() {
           </h1>
         </motion.header>
 
+        <>
         <div className="mb-12">
           <CitySelector
             cities={CITIES}
@@ -183,6 +184,7 @@ function App() {
             Aviation: <a href="https://aviationweather.gov/" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-400 underline">Aviation Weather Center</a>
           </p>
         </footer>
+        </>
       </div>
       <WeatherLinks city={selectedCity} />
       <PolymarketFloatingButton city={selectedCity} dayIndex={dayIndex} />

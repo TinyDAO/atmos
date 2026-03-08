@@ -2,7 +2,7 @@
 
 多城市天气应用，支持预报、航空气象、雷达卫星图与 Polymarket 预测市场跳转。
 
-**在线访问：** [https://atmos-pi-six.vercel.app/](https://atmos-pi-six.vercel.app/)
+**在线访问：** [https://polyatmos.vercel.app/](https://polyatmos.vercel.app/)
 
 ## 功能
 
