@@ -26,6 +26,14 @@ const LINKS = [
     fallback: 'https://www.windy.com/',
   },
   {
+    id: 'webcams',
+    name: '网络摄影机',
+    desc: 'Webcams',
+    logo: 'https://www.windy.com/favicon.ico',
+    href: (c: City) => `https://www.windy.com/webcams?${c.latitude},${c.longitude},5`,
+    fallback: 'https://www.windy.com/webcams',
+  },
+  {
     id: 'ventusky',
     name: 'Ventusky',
     desc: 'Weather map',
