@@ -27,10 +27,10 @@ const LINKS = [
   },
   {
     id: 'webcams',
-    name: '网络摄影机',
-    desc: 'Webcams',
+    name: 'Webcams',
+    desc: 'Live webcams',
     logo: 'https://www.windy.com/favicon.ico',
-    href: (c: City) => `https://www.windy.com/webcams?${c.latitude},${c.longitude},12`,
+    href: (c: City) => `https://www.windy.com/webcams?${c.latitude},${c.longitude},10`,
     fallback: 'https://www.windy.com/webcams',
   },
   {
