@@ -27,7 +27,7 @@ export function AviationWeather({
   loading,
   error,
 }: AviationWeatherProps) {
-  const [showPlain, setShowPlain] = useState(true)
+  const [showPlain, setShowPlain] = useState(false)
   const metarPlain = metar ? decodeMetarToPlain(metar, timezone) : ''
   const tafFiltered = dayIndex === 1 && taf ? filterTafForTomorrow(taf) : taf
   const tafPlain = tafFiltered ? decodeTafToPlain(tafFiltered, timezone) : ''
@@ -127,14 +127,6 @@ export function AviationWeather({
           {dayIndex === 1 && (
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">METAR 为实时观测，无明日数据</p>
           )}
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            {metarTemp != null && 'METAR 为实时观测气温 · '}
-            {dayIndex === 0 ? (
-              <>今日最高温来自当地 00:00 至现在 METAR 观测{metarHistoryMaxTemp == null && '（无历史数据时用预报）'}</>
-            ) : (
-              '明日最高温来自天气预报'
-            )}
-          </p>
         </div>
         <div>
           <h4 className="text-xs font-medium text-zinc-600 dark:text-zinc-500 uppercase mb-2">
