@@ -190,5 +190,11 @@ export const CITIES: City[] = [
     description: 'Paris of South America. Tango, steak, and European elegance.',
     gradient: 'from-sky-600 via-blue-500 to-indigo-600',
     image: '/images/cities/buenos-aires.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1735938641/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1579385444/original.jpg',
+      'https://imgproxy.windy.com/_/preview/plain/current/1751040831/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1691337947/original.jpg',
+    ],
   },
 ]
