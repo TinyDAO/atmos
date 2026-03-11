@@ -97,7 +97,7 @@ export function SatelliteMap({ lat, lon }: SatelliteMapProps) {
           <div className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
         )}
       </div>
-      <div className="h-[320px] md:h-[400px] relative">
+      <div className="h-[280px] md:h-[360px] relative">
         <MapContainer
           center={[lat, lon]}
           zoom={5}

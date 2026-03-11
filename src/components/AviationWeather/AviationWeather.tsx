@@ -38,7 +38,7 @@ export function AviationWeather({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-2xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 p-6"
+        className="rounded-xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 p-4"
       >
         <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
           <div className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
@@ -53,7 +53,7 @@ export function AviationWeather({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-2xl bg-red-900/20 border border-red-800/50 p-6 text-red-300"
+        className="rounded-xl bg-red-900/20 border border-red-800/50 p-4 text-red-300"
       >
         {error}
       </motion.div>
@@ -65,9 +65,9 @@ export function AviationWeather({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="rounded-2xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 overflow-hidden"
+      className="rounded-xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 overflow-hidden"
     >
-      <div className="px-4 py-3 border-b border-zinc-300/50 dark:border-zinc-700/50 flex items-center justify-between gap-2">
+      <div className="px-4 py-2.5 border-b border-zinc-300/50 dark:border-zinc-700/50 flex items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
             Aviation Weather ({icao})

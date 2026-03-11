@@ -3,6 +3,10 @@ import { motion } from 'framer-motion'
 import { MetarHistoryChart } from '../MetarHistoryChart'
 import { HistoricalMonthChart } from '../HistoricalMonthChart/HistoricalMonthChart'
 import { PolymarketDashboard } from '../PolymarketDashboard/PolymarketDashboard'
+import { WeatherForecast } from '../WeatherForecast'
+import { WeatherDetails } from '../WeatherDetails'
+import { AviationWeather } from '../AviationWeather'
+import { SatelliteMap } from '../SatelliteMap'
 import { useHistoricalMonth } from '../../hooks/useHistoricalMonth'
 import type { City } from '../../config/cities'
 import type { MetarDayData } from '../../utils/metarParser'
@@ -12,9 +16,32 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
+interface SourceForecast {
+  source: string
+  maxTemp: number | null
+  minTemp: number | null
+}
+
 interface CityDashboardProps {
   city: City
   metarHistoryByDays: MetarDayData[]
+  dayIndex: number
+  onDayChange: (i: number) => void
+  dayMax: number | null
+  dayMin: number | null
+  windDir: number | null
+  windSpeed: number | null
+  precipitation: number | null
+  cloudCover: number | null
+  cloudBaseM: number | null
+  forecastLoading: boolean
+  forecastError: string | null
+  multiSources: SourceForecast[]
+  metar: string | null
+  taf: string | null
+  metarHistoryMaxTemp: number | null
+  aviationLoading: boolean
+  aviationError: string | null
 }
 
 function WebcamSlot({ url, city, index }: { url: string | null; city: City; index: number }) {
@@ -64,7 +91,27 @@ function WebcamGrid({ city }: { city: City }) {
   )
 }
 
-export function CityDashboard({ city, metarHistoryByDays }: CityDashboardProps) {
+export function CityDashboard({
+  city,
+  metarHistoryByDays,
+  dayIndex,
+  onDayChange,
+  dayMax,
+  dayMin,
+  windDir,
+  windSpeed,
+  precipitation,
+  cloudCover,
+  cloudBaseM,
+  forecastLoading,
+  forecastError,
+  multiSources,
+  metar,
+  taf,
+  metarHistoryMaxTemp,
+  aviationLoading,
+  aviationError,
+}: CityDashboardProps) {
   const currentMonth = new Date().getMonth()
   const monthName = MONTH_NAMES[currentMonth]
   const { data: historicalData, loading: historicalLoading, error: historicalError } = useHistoricalMonth(
@@ -79,73 +126,98 @@ export function CityDashboard({ city, metarHistoryByDays }: CityDashboardProps) 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="rounded-3xl p-6 md:p-8
+      className="rounded-2xl p-4 md:p-5
         bg-gradient-to-br from-zinc-100/90 to-zinc-50/90 dark:from-zinc-900/90 dark:to-zinc-950/90
         border border-zinc-200/60 dark:border-zinc-700/60
         shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.04)]
         dark:shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_4px_24px_rgba(0,0,0,0.3)]"
     >
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">
-            {city.name} Dashboard
-          </h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-            Charts · Historical · Live webcams
-          </p>
-        </div>
-      </div>
-
-      <div className="grid lg:grid-cols-5 gap-6 items-stretch">
-        {/* Left: Charts */}
-        <div className="lg:col-span-3 space-y-6">
-          <div className="rounded-2xl overflow-hidden shadow-sm">
-            <MetarHistoryChart
-              days={metarHistoryByDays}
-              icao={city.icao}
-              timezone={city.timezone}
-            />
-          </div>
-          <HistoricalMonthChart
-            data={historicalData}
-            monthName={monthName}
-            timezone={city.timezone}
-            loading={historicalLoading}
-            error={historicalError}
-          />
-        </div>
-
-        {/* Right: Webcams + Polymarket (stretch to match left column height) */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
+      {/* Row 1: Forecast, Details, Webcams (when configured) */}
+      <div
+        className={`grid grid-cols-1 gap-4 mb-4 ${city.webcams?.length ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}
+      >
+        <WeatherForecast
+          maxTemp={dayMax}
+          minTemp={dayMin}
+          dayIndex={dayIndex}
+          onDayChange={onDayChange}
+          sources={multiSources}
+          loading={forecastLoading}
+          error={forecastError}
+        />
+        <WeatherDetails
+          windDir={windDir}
+          windSpeed={windSpeed}
+          precipitation={precipitation}
+          cloudCover={cloudCover}
+          cloudBaseM={cloudBaseM}
+          loading={forecastLoading}
+        />
+        {city.webcams?.length ? (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="rounded-2xl bg-white/60 dark:bg-zinc-900/50 backdrop-blur-sm
+            transition={{ delay: 0.1 }}
+            className="rounded-xl bg-white/60 dark:bg-zinc-900/50 backdrop-blur-sm
               border border-zinc-200/60 dark:border-zinc-700/50 overflow-hidden
-              shadow-[0_0_0_1px_rgba(0,0,0,0.02)] shrink-0"
+              shadow-[0_0_0_1px_rgba(0,0,0,0.02)]"
           >
-            <div className="px-5 py-4 border-b border-zinc-200/80 dark:border-zinc-700/80">
+            <div className="px-4 py-3 border-b border-zinc-200/80 dark:border-zinc-700/80">
               <h4 className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
                 Live Webcams
               </h4>
-              <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
-                Real-time views · {city.name}
-              </p>
             </div>
-            <div className="p-4">
+            <div className="p-3">
               <WebcamGrid city={city} />
             </div>
           </motion.div>
+        ) : null}
+      </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex-1 min-h-0 flex flex-col"
-          >
+      {/* Row 2: Aviation Weather — full width */}
+      <div className="mb-4">
+        <AviationWeather
+          metar={metar}
+          taf={taf}
+          icao={city.icao}
+          timezone={city.timezone}
+          dayIndex={dayIndex}
+          forecastMaxTemp={dayMax}
+          metarHistoryMaxTemp={metarHistoryMaxTemp}
+          loading={aviationLoading}
+          error={aviationError}
+        />
+      </div>
+
+      {/* Row 3: MetarHistoryChart full width */}
+      <div className="rounded-xl overflow-hidden shadow-sm mb-4">
+        <MetarHistoryChart
+          days={metarHistoryByDays}
+          icao={city.icao}
+          timezone={city.timezone}
+        />
+      </div>
+
+      {/* Row 4: HistoricalMonthChart full width */}
+      <div className="mb-4">
+        <HistoricalMonthChart
+          data={historicalData}
+          monthName={monthName}
+          timezone={city.timezone}
+          loading={historicalLoading}
+          error={historicalError}
+        />
+      </div>
+
+      {/* Row 5: SatelliteMap | Polymarket */}
+      <div className="grid lg:grid-cols-5 gap-4 items-stretch">
+        <div className="lg:col-span-3 min-h-0">
+          <SatelliteMap lat={city.latitude} lon={city.longitude} />
+        </div>
+        <div className="lg:col-span-2 flex flex-col gap-4 min-h-0">
+          <div className="flex-1 min-h-0 flex flex-col">
             <PolymarketDashboard city={city} />
-          </motion.div>
+          </div>
         </div>
       </div>
     </motion.div>

@@ -4,11 +4,6 @@ import { Analytics } from '@vercel/analytics/react'
 import { CitySelector } from './components/CitySelector'
 import { useTheme } from './hooks/useTheme'
 import { CityCard } from './components/CityCard'
-import { WeatherForecast } from './components/WeatherForecast'
-import { WeatherDetails } from './components/WeatherDetails'
-import { SatelliteMap } from './components/SatelliteMap'
-import { AviationWeather } from './components/AviationWeather'
-import { MetarHistoryChart } from './components/MetarHistoryChart'
 import { CityDashboard } from './components/CityDashboard/CityDashboard'
 import { WeatherLinks } from './components/WeatherLinks'
 import { PolymarketFloatingButton } from './components/PolymarketFloatingButton/PolymarketFloatingButton'
@@ -26,14 +21,8 @@ function getCityFromUrl(): typeof CITIES[0] | null {
   return CITIES.find((c) => c.id === id) ?? null
 }
 
-function getViewFromUrl(): 'overview' | 'dashboard' {
-  const params = new URLSearchParams(window.location.search)
-  return params.get('view') === 'dashboard' ? 'dashboard' : 'overview'
-}
-
 function App() {
   const [selectedCity, setSelectedCity] = useState<typeof CITIES[0] | null>(() => getCityFromUrl())
-  const [view, setView] = useState<'overview' | 'dashboard'>(() => getViewFromUrl())
   const [dayIndex, setDayIndex] = useState(0)
   const { theme, toggleTheme } = useTheme()
 
@@ -44,18 +33,9 @@ function App() {
     window.history.replaceState(null, '', url.toString())
   }
 
-  const setViewAndUrl = (v: 'overview' | 'dashboard') => {
-    setView(v)
-    const url = new URL(window.location.href)
-    if (v === 'overview') url.searchParams.delete('view')
-    else url.searchParams.set('view', v)
-    window.history.replaceState(null, '', url.toString())
-  }
-
   useEffect(() => {
     const onPopState = () => {
       setSelectedCity(getCityFromUrl())
-      setView(getViewFromUrl())
     }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
@@ -88,11 +68,11 @@ function App() {
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 transition-colors">
-      <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
+      <div className="max-w-[90rem] mx-auto px-4 py-8 md:py-10">
         <motion.header
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center mb-12 relative"
+          className="text-center mb-8 relative"
         >
           <button
             onClick={toggleTheme}
@@ -116,7 +96,7 @@ function App() {
         </motion.header>
 
         <>
-        <div className="mb-12">
+        <div className="mb-6">
           <CitySelector
             cities={CITIES}
             selectedCity={selectedCity}
@@ -132,7 +112,7 @@ function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="space-y-8"
+              className="space-y-4"
             >
               <CityCard
                 name={selectedCity.name}
@@ -142,75 +122,27 @@ function App() {
                 gradient={selectedCity.gradient}
               />
 
-              <div className="flex gap-2 p-1 rounded-xl bg-zinc-200/60 dark:bg-zinc-800/60">
-                <button
-                  type="button"
-                  onClick={() => setViewAndUrl('overview')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    view === 'overview'
-                      ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-                  }`}
-                >
-                  Overview
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewAndUrl('dashboard')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    view === 'dashboard'
-                      ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-                  }`}
-                >
-                  Dashboard
-                </button>
-              </div>
-
-              {view === 'dashboard' ? (
-                <CityDashboard city={selectedCity} metarHistoryByDays={metarHistoryByDays} />
-              ) : (
-              <>
-              <div className="grid md:grid-cols-2 gap-6">
-                <WeatherForecast
-                  maxTemp={dayMax}
-                  minTemp={dayMin}
-                  dayIndex={dayIndex}
-                  onDayChange={setDayIndex}
-                  sources={multiSources}
-                  loading={forecastLoading}
-                  error={forecastError}
-                />
-                <WeatherDetails
-                  windDir={windDir}
-                  windSpeed={windSpeed}
-                  precipitation={precipitation}
-                  cloudCover={cloudCover}
-                  cloudBaseM={cloudBaseM}
-                  loading={forecastLoading}
-                />
-              </div>
-
-              <AviationWeather
+              <CityDashboard
+                city={selectedCity}
+                metarHistoryByDays={metarHistoryByDays}
+                dayIndex={dayIndex}
+                onDayChange={setDayIndex}
+                dayMax={dayMax}
+                dayMin={dayMin}
+                windDir={windDir}
+                windSpeed={windSpeed}
+                precipitation={precipitation}
+                cloudCover={cloudCover}
+                cloudBaseM={cloudBaseM}
+                forecastLoading={forecastLoading}
+                forecastError={forecastError}
+                multiSources={multiSources}
                 metar={metar}
                 taf={taf}
-                icao={selectedCity.icao}
-                timezone={selectedCity.timezone}
-                dayIndex={dayIndex}
-                forecastMaxTemp={dayMax}
                 metarHistoryMaxTemp={metarHistoryMaxTemp}
-                loading={aviationLoading}
-                error={aviationError}
+                aviationLoading={aviationLoading}
+                aviationError={aviationError}
               />
-
-              <MetarHistoryChart days={metarHistoryByDays} icao={selectedCity.icao} timezone={selectedCity.timezone} />
-
-              <SatelliteMap
-                lat={selectedCity.latitude}
-                lon={selectedCity.longitude}
-              />
-              </>
-              )}
             </motion.div>
           ) : (
             <motion.div
@@ -224,7 +156,7 @@ function App() {
           )}
         </AnimatePresence>
 
-        <footer className="mt-16 pt-8 border-t border-zinc-200 dark:border-zinc-800 text-center text-sm text-zinc-600 dark:text-zinc-600">
+        <footer className="mt-12 pt-6 border-t border-zinc-200 dark:border-zinc-800 text-center text-sm text-zinc-600 dark:text-zinc-600">
           <p>
             Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-400 underline">RainViewer</a>
             {' · '}

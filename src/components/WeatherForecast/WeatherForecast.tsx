@@ -25,7 +25,7 @@ export function WeatherForecast({ maxTemp, minTemp, dayIndex, onDayChange, sourc
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-2xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 p-8"
+        className="rounded-xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 p-4 md:p-5"
       >
         <div className="flex items-center justify-center gap-2 text-zinc-500 dark:text-zinc-400">
           <div className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
@@ -40,7 +40,7 @@ export function WeatherForecast({ maxTemp, minTemp, dayIndex, onDayChange, sourc
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-2xl bg-red-900/20 border border-red-800/50 p-8 text-red-300"
+        className="rounded-xl bg-red-900/20 border border-red-800/50 p-4 text-red-300"
       >
         {error}
       </motion.div>
@@ -54,9 +54,9 @@ export function WeatherForecast({ maxTemp, minTemp, dayIndex, onDayChange, sourc
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="rounded-2xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 p-8"
+      className="rounded-xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 p-4 md:p-5"
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-500 uppercase tracking-wider">
           {DAY_LABELS[dayIndex]}最高温
         </h3>

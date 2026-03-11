@@ -168,7 +168,8 @@ export function decodeMetarToPlain(metar: string, timezone?: string, referenceDa
   if (!metar || metar.includes('No METAR')) return metar
 
   const lines: string[] = []
-  let remaining = metar
+  // Strip PROB30/PROB40 etc. — already explained as 【30% 概率】 in TAF, don't show raw code
+  let remaining = metar.replace(/\bPROB\d{2}\s*(?:\d{4}\/\d{4})?\s*/gi, '').trim()
   const reportDate = referenceDate ?? getReportDateFromText(metar)
 
   // CAVOK: Ceiling And Visibility OK (能见度≥10km，无云，无重要天气)
@@ -272,7 +273,7 @@ export function decodeMetarToPlain(metar: string, timezone?: string, referenceDa
     lines.push(`• 今日最低温 ${t}°C，出现时间 ${timeStr}`)
   }
 
-  return lines.length ? lines.join('\n') : metar
+  return lines.length ? lines.join('\n') : remaining
 }
 
 /**
