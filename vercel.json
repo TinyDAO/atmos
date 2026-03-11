@@ -3,6 +3,14 @@
     {
       "source": "/aviation-weather/:path*",
       "destination": "https://aviationweather.gov/:path*"
+    },
+    {
+      "source": "/polymarket-gamma/:path*",
+      "destination": "https://gamma-api.polymarket.com/:path*"
+    },
+    {
+      "source": "/polymarket-clob/:path*",
+      "destination": "https://clob.polymarket.com/:path*"
     }
   ]
 }

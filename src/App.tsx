@@ -9,6 +9,7 @@ import { WeatherDetails } from './components/WeatherDetails'
 import { SatelliteMap } from './components/SatelliteMap'
 import { AviationWeather } from './components/AviationWeather'
 import { MetarHistoryChart } from './components/MetarHistoryChart'
+import { CityDashboard } from './components/CityDashboard/CityDashboard'
 import { WeatherLinks } from './components/WeatherLinks'
 import { PolymarketFloatingButton } from './components/PolymarketFloatingButton/PolymarketFloatingButton'
 import { CITIES } from './config/cities'
@@ -25,8 +26,14 @@ function getCityFromUrl(): typeof CITIES[0] | null {
   return CITIES.find((c) => c.id === id) ?? null
 }
 
+function getViewFromUrl(): 'overview' | 'dashboard' {
+  const params = new URLSearchParams(window.location.search)
+  return params.get('view') === 'dashboard' ? 'dashboard' : 'overview'
+}
+
 function App() {
   const [selectedCity, setSelectedCity] = useState<typeof CITIES[0] | null>(() => getCityFromUrl())
+  const [view, setView] = useState<'overview' | 'dashboard'>(() => getViewFromUrl())
   const [dayIndex, setDayIndex] = useState(0)
   const { theme, toggleTheme } = useTheme()
 
@@ -37,8 +44,19 @@ function App() {
     window.history.replaceState(null, '', url.toString())
   }
 
+  const setViewAndUrl = (v: 'overview' | 'dashboard') => {
+    setView(v)
+    const url = new URL(window.location.href)
+    if (v === 'overview') url.searchParams.delete('view')
+    else url.searchParams.set('view', v)
+    window.history.replaceState(null, '', url.toString())
+  }
+
   useEffect(() => {
-    const onPopState = () => setSelectedCity(getCityFromUrl())
+    const onPopState = () => {
+      setSelectedCity(getCityFromUrl())
+      setView(getViewFromUrl())
+    }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
@@ -124,6 +142,35 @@ function App() {
                 gradient={selectedCity.gradient}
               />
 
+              <div className="flex gap-2 p-1 rounded-xl bg-zinc-200/60 dark:bg-zinc-800/60">
+                <button
+                  type="button"
+                  onClick={() => setViewAndUrl('overview')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    view === 'overview'
+                      ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  }`}
+                >
+                  Overview
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewAndUrl('dashboard')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    view === 'dashboard'
+                      ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  }`}
+                >
+                  Dashboard
+                </button>
+              </div>
+
+              {view === 'dashboard' ? (
+                <CityDashboard city={selectedCity} metarHistoryByDays={metarHistoryByDays} />
+              ) : (
+              <>
               <div className="grid md:grid-cols-2 gap-6">
                 <WeatherForecast
                   maxTemp={dayMax}
@@ -162,6 +209,8 @@ function App() {
                 lat={selectedCity.latitude}
                 lon={selectedCity.longitude}
               />
+              </>
+              )}
             </motion.div>
           ) : (
             <motion.div

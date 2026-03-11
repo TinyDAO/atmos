@@ -11,6 +11,8 @@ export interface City {
   description: string
   gradient: string
   image: string
+  /** Webcam image URLs for dashboard. Default 4 slots, add URLs to override. */
+  webcams?: string[]
 }
 
 export const CITIES: City[] = [
@@ -104,6 +106,12 @@ export const CITIES: City[] = [
     description: 'The City of Light. Art, fashion, gastronomy, and culture at the heart of Europe.',
     gradient: 'from-rose-600 via-pink-500 to-indigo-600',
     image: '/images/cities/paris.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/preview/plain/current/1706118429/original.jpg',
+      'https://imgproxy.windy.com/_/preview/plain/current/1721599175/original.jpg',
+      'https://imgproxy.windy.com/_/preview/plain/current/1207755799/original.jpg',
+      'https://imgproxy.windy.com/_/preview/plain/current/1758303408/original.jpg',
+    ],
   },
   {
     id: 'miami',

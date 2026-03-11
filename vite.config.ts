@@ -12,6 +12,16 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/aviation-weather/, ''),
       },
+      '/polymarket-gamma': {
+        target: 'https://gamma-api.polymarket.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/polymarket-gamma/, ''),
+      },
+      '/polymarket-clob': {
+        target: 'https://clob.polymarket.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/polymarket-clob/, ''),
+      },
     },
   },
 })
