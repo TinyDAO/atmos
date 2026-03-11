@@ -67,6 +67,12 @@ export const CITIES: City[] = [
     description: 'The capital of the South. Birthplace of civil rights and home to the world\'s busiest airport.',
     gradient: 'from-emerald-600 via-teal-500 to-cyan-600',
     image: '/images/cities/atlanta.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1755892004/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1431036439/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1793873847/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1610467066/original.jpg',
+    ],
   },
   {
     id: 'toronto',

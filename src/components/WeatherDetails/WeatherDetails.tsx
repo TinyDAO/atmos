@@ -28,7 +28,7 @@ export function WeatherDetails({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 p-4"
+        className="rounded-xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 p-4 h-full flex items-center justify-center min-h-[140px]"
       >
         <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
           <div className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
@@ -85,18 +85,18 @@ export function WeatherDetails({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="rounded-xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 p-4"
+      className="rounded-xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 p-4 h-full flex flex-col min-h-0"
     >
-      <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-500 uppercase tracking-wider mb-3">
+      <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-500 uppercase tracking-wider mb-3 shrink-0">
         Wind · Rain · Cloud
       </h3>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex-1 grid grid-cols-2 gap-3 min-h-0">
         {items.map((item) => (
           <div
             key={item.label}
-            className="flex items-start gap-3 p-3 rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50"
+            className="flex items-center gap-3 p-3 rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50"
           >
-            <span className="text-zinc-500 dark:text-zinc-400 mt-0.5">{item.icon}</span>
+            <span className="text-zinc-500 dark:text-zinc-400 shrink-0">{item.icon}</span>
             <div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">{item.label}</p>
               <p className="text-sm font-medium text-zinc-900 dark:text-zinc-200">

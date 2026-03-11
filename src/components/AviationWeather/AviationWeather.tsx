@@ -79,7 +79,7 @@ export function AviationWeather({
         <button
           type="button"
           onClick={() => setShowPlain(!showPlain)}
-          title={showPlain ? '切换为原文' : '切换为白话解释'}
+          title={showPlain ? 'Show raw' : 'Show plain'}
           className="p-1.5 rounded-md text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-700/50 transition-colors"
         >
           {showPlain ? (
@@ -102,17 +102,17 @@ export function AviationWeather({
             {(metarTemp != null || forecastMaxTemp != null || (dayIndex === 0 && metarHistoryMaxTemp != null)) && (
               <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 {metarTemp != null && (
-                  <TempDisplay value={metarTemp} prefix="当前 " className="cursor-help" />
+                  <TempDisplay value={metarTemp} prefix="Current " className="cursor-help" />
                 )}
                 {(metarTemp != null && (forecastMaxTemp != null || (dayIndex === 0 && metarHistoryMaxTemp != null))) && ' · '}
                 {dayIndex === 0 && metarHistoryMaxTemp != null && (
-                  <TempDisplay value={metarHistoryMaxTemp} prefix="今日最高 " suffix=" (航空气象)" className="cursor-help" />
+                  <TempDisplay value={metarHistoryMaxTemp} prefix="Today max " suffix=" (METAR)" className="cursor-help" />
                 )}
                 {dayIndex === 0 && metarHistoryMaxTemp == null && forecastMaxTemp != null && (
-                  <TempDisplay value={forecastMaxTemp} prefix="今日最高 " suffix=" (预报)" className="cursor-help" />
+                  <TempDisplay value={forecastMaxTemp} prefix="Today max " suffix=" (forecast)" className="cursor-help" />
                 )}
                 {dayIndex === 1 && forecastMaxTemp != null && (
-                  <TempDisplay value={forecastMaxTemp} prefix="明日最高 " className="cursor-help" />
+                  <TempDisplay value={forecastMaxTemp} prefix="Tomorrow max " className="cursor-help" />
                 )}
               </span>
             )}
@@ -125,12 +125,12 @@ export function AviationWeather({
             {showPlain ? (metarPlain || metar || '—') : (metar ?? '—')}
           </pre>
           {dayIndex === 1 && (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">METAR 为实时观测，无明日数据</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">METAR is real-time; no tomorrow data</p>
           )}
         </div>
         <div>
           <h4 className="text-xs font-medium text-zinc-600 dark:text-zinc-500 uppercase mb-2">
-            TAF {dayIndex === 1 && '(明日预报)'}
+            TAF {dayIndex === 1 && '(tomorrow)'}
           </h4>
           <pre className={`text-sm rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-words ${
             showPlain
@@ -140,7 +140,7 @@ export function AviationWeather({
             {showPlain ? (tafPlain || tafFiltered || '—') : (tafFiltered ?? '—')}
           </pre>
           {dayIndex === 1 && (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">已筛选出明日时段的预报</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Filtered to tomorrow period</p>
           )}
         </div>
       </div>

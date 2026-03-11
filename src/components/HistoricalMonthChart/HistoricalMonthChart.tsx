@@ -62,14 +62,22 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
     [data]
   )
 
+  const monthAvg = useMemo(() => {
+    const valid = chartData.filter((d) => !Number.isNaN(d.avgMax) && d.years > 0)
+    if (valid.length === 0) return null
+    const sum = valid.reduce((s, d) => s + d.avgMax, 0)
+    return sum / valid.length
+  }, [chartData])
+
   const tempRange = useMemo(() => {
     const temps = chartData.map((d) => d.avgMax).filter((t) => !Number.isNaN(t))
-    if (temps.length === 0) return { min: 0, max: 30 }
-    const min = Math.min(...temps)
-    const max = Math.max(...temps)
+    const values = monthAvg != null ? [...temps, monthAvg] : temps
+    if (values.length === 0) return { min: 0, max: 30 }
+    const min = Math.min(...values)
+    const max = Math.max(...values)
     const padding = Math.max(2, Math.ceil((max - min) * 0.15))
     return { min: min - padding, max: max + padding }
-  }, [chartData])
+  }, [chartData, monthAvg])
 
   if (loading) {
     return (
@@ -160,6 +168,21 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
                 width={32}
               />
               <Tooltip content={<CustomTooltip todayDay={todayDay} />} />
+              {monthAvg != null && (
+                <ReferenceLine
+                  y={monthAvg}
+                  stroke="#94a3b8"
+                  strokeWidth={1.5}
+                  strokeDasharray="4 4"
+                  label={{
+                    value: `Avg ${monthAvg.toFixed(1)}°`,
+                    position: 'insideTopRight',
+                    fontSize: 10,
+                    fill: 'currentColor',
+                    offset: 4,
+                  }}
+                />
+              )}
               {chartData.some((d) => d.day >= highlightRange.start && d.day <= highlightRange.end) && (
                 <>
                   <ReferenceArea

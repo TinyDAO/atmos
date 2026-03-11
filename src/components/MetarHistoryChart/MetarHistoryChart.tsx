@@ -19,6 +19,7 @@ interface MetarHistoryChartProps {
   days: MetarDayData[]
   icao: string
   timezone: string
+  loading?: boolean
 }
 
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value?: number; dataKey?: string }>; label?: string }) {
@@ -79,7 +80,7 @@ function buildDayChartData(
   return slots
 }
 
-export function MetarHistoryChart({ days, icao, timezone }: MetarHistoryChartProps) {
+export function MetarHistoryChart({ days, icao, timezone, loading = false }: MetarHistoryChartProps) {
   const { theme } = useTheme()
   const [dayIndex, setDayIndex] = useState(0)
   const selectedDay = days[dayIndex] ?? days[0]
@@ -98,6 +99,20 @@ export function MetarHistoryChart({ days, icao, timezone }: MetarHistoryChartPro
   }, [chartData])
 
   const hasData = days.length > 0 && chartData.some((d) => d.temp != null)
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50 p-6 flex items-center justify-center min-h-[280px]"
+      >
+        <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+          <div className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">加载中...</span>
+        </div>
+      </motion.div>
+    )
+  }
   if (!hasData || chartData.length < 2) {
     return (
       <motion.div
@@ -119,31 +134,40 @@ export function MetarHistoryChart({ days, icao, timezone }: MetarHistoryChartPro
       transition={{ delay: 0.15 }}
       className="rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50 overflow-hidden"
     >
-      <div className="px-4 py-3 border-b border-zinc-200/60 dark:border-zinc-700/50">
-        <h4 className="text-xs font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
-          航空气温 · {icao}
-        </h4>
-        <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-0.5">
-          METAR 观测 · 过去 15 天
-        </p>
-        <div className="flex flex-wrap gap-1.5 mt-2">
-          {days.map((d, i) => (
-            <button
-              key={d.dateStr}
-              type="button"
-              onClick={() => setDayIndex(i)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                i === dayIndex
-                  ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-700/50'
-              }`}
-            >
-              {d.label}
-              {d.maxTemp != null && (
-                <TempDisplay value={d.maxTemp} prefix=" " className="cursor-help" />
-              )}
-            </button>
-          ))}
+      <div className="px-4 py-3 border-b border-zinc-200/60 dark:border-zinc-700/50 flex items-start justify-between gap-3">
+        <div>
+          <h4 className="text-xs font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+            Aviation Temp · {icao}
+          </h4>
+          <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-0.5">
+            METAR observations · Past 15 days
+          </p>
+        </div>
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 rounded bg-amber-500" />
+              Temp
+            </span>
+            {chartData.some((d) => d.dewpoint != null) && (
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-0.5 rounded border border-dashed border-cyan-500" />
+                Dewpoint
+              </span>
+            )}
+          </div>
+          <select
+            value={dayIndex}
+            onChange={(e) => setDayIndex(Number(e.target.value))}
+            className="text-xs font-medium rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          >
+            {days.map((d, i) => (
+              <option key={d.dateStr} value={i}>
+                {d.label}
+                {d.maxTemp != null ? ` ${d.maxTemp.toFixed(1)}°` : ''}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
       <div className="p-4">
@@ -210,18 +234,6 @@ export function MetarHistoryChart({ days, icao, timezone }: MetarHistoryChartPro
               )}
             </ComposedChart>
           </ResponsiveContainer>
-        </div>
-        <div className="flex items-center justify-center gap-6 mt-3 text-xs text-zinc-500 dark:text-zinc-400">
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-0.5 rounded bg-amber-500" />
-            气温
-          </span>
-          {chartData.some((d) => d.dewpoint != null) && (
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-0.5 rounded border border-dashed border-cyan-500" />
-              露点
-            </span>
-          )}
         </div>
       </div>
     </motion.div>

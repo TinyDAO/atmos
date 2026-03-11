@@ -134,7 +134,7 @@ export function CityDashboard({
     >
       {/* Row 1: Forecast, Details, Webcams (when configured) */}
       <div
-        className={`grid grid-cols-1 gap-4 mb-4 ${city.webcams?.length ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}
+        className={`grid grid-cols-1 gap-4 mb-4 items-stretch ${city.webcams?.length ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}
       >
         <WeatherForecast
           maxTemp={dayMax}
@@ -189,17 +189,16 @@ export function CityDashboard({
         />
       </div>
 
-      {/* Row 3: MetarHistoryChart full width */}
-      <div className="rounded-xl overflow-hidden shadow-sm mb-4">
-        <MetarHistoryChart
-          days={metarHistoryByDays}
-          icao={city.icao}
-          timezone={city.timezone}
-        />
-      </div>
-
-      {/* Row 4: HistoricalMonthChart full width */}
-      <div className="mb-4">
+      {/* Row 3: MetarHistoryChart | Historical chart */}
+      <div className="grid lg:grid-cols-2 gap-4 mb-4">
+        <div className="rounded-xl overflow-hidden shadow-sm">
+          <MetarHistoryChart
+            days={metarHistoryByDays}
+            icao={city.icao}
+            timezone={city.timezone}
+            loading={aviationLoading}
+          />
+        </div>
         <HistoricalMonthChart
           data={historicalData}
           monthName={monthName}
