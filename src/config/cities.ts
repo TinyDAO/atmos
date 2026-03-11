@@ -69,9 +69,9 @@ export const CITIES: City[] = [
     image: '/images/cities/atlanta.jpg',
     webcams: [
       'https://imgproxy.windy.com/_/full/plain/current/1755892004/original.jpg',
-      'https://imgproxy.windy.com/_/full/plain/current/1431036439/original.jpg',
-      'https://imgproxy.windy.com/_/full/plain/current/1793873847/original.jpg',
-      'https://imgproxy.windy.com/_/full/plain/current/1610467066/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1755898629/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1793873553/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1793873555/original.jpg',
     ],
   },
   {
