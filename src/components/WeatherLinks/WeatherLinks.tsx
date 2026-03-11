@@ -65,14 +65,6 @@ const LINKS = [
     href: (c: City) => `https://www.meteoblue.com/en/weather/maps#coords=8/${c.latitude}/${c.longitude}`,
     fallback: 'https://www.meteoblue.com/en/weather/maps',
   },
-  {
-    id: 'wunderground',
-    name: 'Wunderground',
-    desc: 'PWS forecast',
-    logo: 'https://www.wunderground.com/favicon.ico',
-    href: (c: City) => `https://www.wunderground.com/forecast/${c.latitude},${c.longitude}`,
-    fallback: 'https://www.wunderground.com/',
-  },
 ]
 
 export function WeatherLinks({ city }: WeatherLinksProps) {
