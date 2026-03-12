@@ -28,6 +28,12 @@ export const CITIES: City[] = [
     description: 'The largest city in the Southern Hemisphere, a vibrant metropolis of culture and commerce.',
     gradient: 'from-amber-600 via-orange-500 to-rose-500',
     image: '/images/cities/sao-paulo.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1249392511/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1356224219/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1580415336/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1356224219/original.jpg'
+    ]
   },
   {
     id: 'nyc',
@@ -148,6 +154,13 @@ export const CITIES: City[] = [
     description: 'The White City. Mediterranean beaches, Bauhaus architecture, and a thriving tech scene.',
     gradient: 'from-sky-500 via-blue-500 to-indigo-600',
     image: '/images/cities/tel-aviv.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1748254982/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1793900793/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1793900794/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1639421838/original.jpg'
+
+    ]
   },
   {
     id: 'wellington',
@@ -220,10 +233,10 @@ export const CITIES: City[] = [
     gradient: 'from-rose-600 via-pink-500 to-indigo-600',
     image: '/images/cities/paris.jpg',
     webcams: [
-      'https://imgproxy.windy.com/_/preview/plain/current/1706118429/original.jpg',
-      'https://imgproxy.windy.com/_/preview/plain/current/1721599175/original.jpg',
-      'https://imgproxy.windy.com/_/preview/plain/current/1207755799/original.jpg',
-      'https://imgproxy.windy.com/_/preview/plain/current/1758303408/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1706118429/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1721599175/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1207755799/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1758303408/original.jpg',
     ],
   },
   {
@@ -277,6 +290,10 @@ export const CITIES: City[] = [
     description: 'Capital of Turkey. Ancient Anatolia meets modern government.',
     gradient: 'from-amber-700 via-orange-600 to-red-600',
     image: '/images/cities/ankara.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1759873524/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1760176982/original.jpg',
+    ]
   },
   {
     id: 'dallas',
@@ -306,7 +323,7 @@ export const CITIES: City[] = [
     webcams: [
       'https://imgproxy.windy.com/_/full/plain/current/1735938641/original.jpg',
       'https://imgproxy.windy.com/_/full/plain/current/1579385444/original.jpg',
-      'https://imgproxy.windy.com/_/preview/plain/current/1751040831/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1751040831/original.jpg',
       'https://imgproxy.windy.com/_/full/plain/current/1691337947/original.jpg',
     ],
   },
