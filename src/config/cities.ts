@@ -128,6 +128,9 @@ export const CITIES: City[] = [
     description: 'A global financial hub where cultures converge. Gardens, skyscrapers, and world-class cuisine.',
     gradient: 'from-emerald-600 via-teal-500 to-cyan-600',
     image: '/images/cities/singapore.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1369190454/original.jpg'
+    ]
   },
   {
     id: 'lucknow',
@@ -176,7 +179,7 @@ export const CITIES: City[] = [
     image: '/images/cities/wellington.jpg',
     webcams: [
       'https://imgproxy.windy.com/_/full/plain/current/1533848823/original.jpg',
-      
+
     ]
   },
   {
