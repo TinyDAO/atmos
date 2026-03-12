@@ -38,7 +38,7 @@ export function PolymarketFloatingButton({ city, dayIndex }: PolymarketFloatingB
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-      className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl
+      className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-3 py-2 md:gap-3 md:px-4 md:py-3 rounded-xl md:rounded-2xl
         bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500
         text-white shadow-lg shadow-violet-500/30 hover:shadow-xl hover:shadow-violet-500/40
         border border-violet-500/30 hover:scale-[1.02] active:scale-[0.98]
@@ -48,16 +48,16 @@ export function PolymarketFloatingButton({ city, dayIndex }: PolymarketFloatingB
       <img
         src="https://polymarket.com/favicon.ico"
         alt=""
-        className="w-8 h-8"
+        className="w-6 h-6 md:w-8 md:h-8"
         aria-hidden
       />
       <div className="flex flex-col min-w-0">
-        <span className="font-semibold text-sm whitespace-nowrap">Polymarket</span>
-        <span className="text-xs text-violet-200" title={slug}>
+        <span className="font-semibold text-xs md:text-sm whitespace-nowrap">Polymarket</span>
+        <span className="hidden md:block text-xs text-violet-200" title={slug}>
           {shortDisplay}
         </span>
       </div>
-      <svg className="w-4 h-4 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
       </svg>
     </motion.a>

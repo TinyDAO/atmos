@@ -1,3 +1,5 @@
+import { m } from "framer-motion"
+
 export interface City {
   id: string
   name: string
@@ -258,6 +260,12 @@ export const CITIES: City[] = [
     description: 'Gateway to the Americas. Beaches, art deco, and Latin culture.',
     gradient: 'from-sky-500 via-cyan-500 to-teal-600',
     image: '/images/cities/miami.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1642561701/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1736342847/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1621689267/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1588249493/original.jpg'
+    ]
   },
   {
     id: 'chicago',
