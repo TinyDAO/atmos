@@ -174,6 +174,10 @@ export const CITIES: City[] = [
     description: 'The capital of New Zealand. Windy hills, craft beer, and film culture.',
     gradient: 'from-slate-600 via-blue-600 to-indigo-700',
     image: '/images/cities/wellington.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1533848823/original.jpg',
+      
+    ]
   },
   {
     id: 'atlanta',
