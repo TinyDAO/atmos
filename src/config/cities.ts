@@ -264,6 +264,12 @@ export const CITIES: City[] = [
     description: 'The Windy City. Architecture, deep-dish pizza, and blues.',
     gradient: 'from-slate-600 via-blue-700 to-indigo-800',
     image: '/images/cities/chicago.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1499764260/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1624255665/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1643653572/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1624250933/original.jpg'
+    ]
   },
   {
     id: 'seattle',
