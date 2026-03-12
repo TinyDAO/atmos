@@ -70,7 +70,7 @@ function WebcamSlot({ url, city, index }: { url: string | null; city: City; inde
           <svg className="w-8 h-8 text-zinc-400 dark:text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">Configure webcam</span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400"></span>
         </div>
       )}
     </motion.div>

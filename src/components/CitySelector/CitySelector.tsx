@@ -51,7 +51,7 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
               border-b border-zinc-200 dark:border-zinc-800
               shadow-[0_4px_20px_-4px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]"
           >
-            <div className="max-w-6xl mx-auto flex items-center gap-2 overflow-x-auto pb-1">
+            <div className="max-w-[90rem] mx-auto flex items-center gap-2 overflow-x-auto pb-1">
               {sortedCities.map((city) => (
                 <button
                   key={city.id}
@@ -75,12 +75,12 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
           </motion.div>
         )}
       </AnimatePresence>
-      <div ref={wrapperRef} className="w-full max-w-5xl mx-auto">
+      <div ref={wrapperRef} className="w-full max-w-[90rem] mx-auto">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="grid grid-cols-7 gap-3"
+        className="grid grid-cols-8 gap-3"
       >
         {sortedCities.map((city, i) => (
           <motion.button

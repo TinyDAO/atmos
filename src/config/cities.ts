@@ -56,6 +56,42 @@ export const CITIES: City[] = [
     image: '/images/cities/seoul.jpg',
   },
   {
+    id: 'shanghai',
+    name: 'Shanghai',
+    country: 'China',
+    latitude: 31.23,
+    longitude: 121.47,
+    icao: 'ZSPD',
+    timezone: 'Asia/Shanghai',
+    utcOffsetMinutes: 480,
+    description: 'China\'s largest city. A global financial hub where East meets West.',
+    gradient: 'from-rose-500 via-pink-500 to-fuchsia-600',
+    image: '/images/cities/shanghai.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1762629711/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1793897678/original.jpg'
+    ]
+  },
+  {
+    id: 'hong-kong',
+    name: 'Hong Kong',
+    country: 'China',
+    latitude: 22.32,
+    longitude: 114.17,
+    icao: 'VHHH',
+    timezone: 'Asia/Hong_Kong',
+    utcOffsetMinutes: 480,
+    description: 'A vibrant metropolis where skyscrapers meet traditional temples.',
+    gradient: 'from-amber-500 via-orange-500 to-red-600',
+    image: '/images/cities/hong-kong.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1166267733/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1526831849/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1592304269/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1627525317/original.jpg'
+    ]
+  },
+  {
     id: 'atlanta',
     name: 'Atlanta',
     country: 'USA',
