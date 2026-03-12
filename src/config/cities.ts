@@ -307,6 +307,12 @@ export const CITIES: City[] = [
     description: 'Big D. Oil, tech, and the heart of North Texas.',
     gradient: 'from-slate-500 via-blue-600 to-indigo-600',
     image: '/images/cities/dallas.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1666664505/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1666641464/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1693849189/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1666648673/original.jpg'
+    ]
   },
   {
     id: 'buenos-aires',

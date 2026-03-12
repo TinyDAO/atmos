@@ -106,7 +106,7 @@ export function AviationWeather({
                 )}
                 {(metarTemp != null && (forecastMaxTemp != null || (dayIndex === 0 && metarHistoryMaxTemp != null))) && ' · '}
                 {dayIndex === 0 && metarHistoryMaxTemp != null && (
-                  <TempDisplay value={metarHistoryMaxTemp} prefix="Today max " suffix=" (METAR)" className="cursor-help" />
+                  <TempDisplay value={metarHistoryMaxTemp} prefix="Today max so far " suffix=" (METAR)" className="cursor-help" />
                 )}
                 {dayIndex === 0 && metarHistoryMaxTemp == null && forecastMaxTemp != null && (
                   <TempDisplay value={forecastMaxTemp} prefix="Today max " suffix=" (forecast)" className="cursor-help" />

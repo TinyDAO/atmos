@@ -14,6 +14,7 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
   const [sticky, setSticky] = useState(false)
   const [mobilePickerOpen, setMobilePickerOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const stickyButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
   const sortedCities = useMemo(
     () => [...cities].sort((a, b) => (b.utcOffsetMinutes ?? 0) - (a.utcOffsetMinutes ?? 0)),
     [cities]
@@ -38,6 +39,14 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
     return () => observer.disconnect()
   }, [])
 
+  useEffect(() => {
+    if (!sticky || !selectedCity) return
+    const btn = stickyButtonRefs.current.get(selectedCity.id)
+    if (btn) {
+      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    }
+  }, [sticky, selectedCity?.id])
+
   return (
     <>
       <AnimatePresence>
@@ -52,10 +61,14 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
               border-b border-zinc-200 dark:border-zinc-800
               shadow-[0_4px_20px_-4px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]"
           >
-            <div className="max-w-[90rem] mx-auto flex items-center gap-2 overflow-x-auto pb-1">
+            <div className="max-w-[90rem] mx-auto flex items-center gap-2 overflow-x-auto pb-1 scroll-smooth">
               {sortedCities.map((city) => (
                 <button
                   key={city.id}
+                  ref={(el) => {
+                    if (el) stickyButtonRefs.current.set(city.id, el)
+                    else stickyButtonRefs.current.delete(city.id)
+                  }}
                   onClick={() => {
                     onSelect(city)
                     wrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
