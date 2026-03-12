@@ -67,6 +67,12 @@ export const CITIES: City[] = [
     description: 'A megacity where ancient temples stand alongside neon-lit skyscrapers.',
     gradient: 'from-rose-600 via-pink-500 to-violet-600',
     image: '/images/cities/tokyo.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1567938478/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1647579411/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1570808041/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1658398652/original.jpg'
+    ]
   },
   {
     id: 'shanghai',
