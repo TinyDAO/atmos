@@ -93,6 +93,9 @@ function App() {
             <img src="/favicon.svg" alt="" className="w-10 h-10 md:w-12 md:h-12" aria-hidden />
             Atmos
           </h1>
+          <p className="mt-2 text-sm md:text-base text-zinc-500 dark:text-zinc-400 font-normal">
+            Your one-stop weather forecast platform
+          </p>
         </motion.header>
 
         <>

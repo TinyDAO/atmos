@@ -100,14 +100,14 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
           <button
             type="button"
             onClick={() => setMobilePickerOpen(true)}
-            className="w-full flex items-center justify-between gap-3 px-4 py-4 rounded-2xl
+            className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl
               bg-zinc-100 dark:bg-zinc-800/80 border-2 border-zinc-200 dark:border-zinc-700
               hover:border-amber-500/50 dark:hover:border-amber-500/50
               active:scale-[0.99] transition-all duration-200"
           >
             <div className="flex items-center gap-3 min-w-0">
               {selectedCity && (
-                <div className="shrink-0 w-10 h-10 rounded-xl overflow-hidden ring-2 ring-amber-500/30">
+                <div className="shrink-0 w-8 h-8 rounded-lg overflow-hidden ring-2 ring-amber-500/30">
                   <img
                     src={selectedCity.image}
                     alt=""
@@ -121,7 +121,7 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
                 </div>
               )}
               <div className="text-left min-w-0">
-                <span className="block text-base font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                   {selectedCity?.name ?? 'Select city'}
                 </span>
                 {selectedCity && (
@@ -196,7 +196,7 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
                           }}
                         />
                         <div className={`absolute inset-0 bg-gradient-to-br ${city.gradient} opacity-90 opacity-0`} aria-hidden />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                         <div className="absolute inset-0 flex flex-col justify-end p-3">
                           <span className="block text-sm font-semibold text-white drop-shadow-lg truncate">
                             {city.name}
@@ -224,7 +224,7 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="hidden md:grid grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3"
+          className="hidden md:grid grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"
         >
         {sortedCities.map((city, i) => (
           <motion.button
@@ -234,7 +234,7 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
             transition={{ delay: 0.03 * Math.min(i, 8) }}
             onClick={() => onSelect(city)}
             className={`
-              group relative overflow-hidden rounded-2xl aspect-[4/3]
+              group relative overflow-hidden rounded-xl aspect-[3/2]
               transition-all duration-300 ease-out border-2
               ${selectedCity?.id === city.id
                 ? 'border-amber-500/80 dark:border-amber-400/80 shadow-xl shadow-amber-500/20 dark:shadow-amber-400/20 ring-2 ring-amber-500/30 dark:ring-amber-400/30'
@@ -253,20 +253,19 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
               }}
             />
             <div className={`absolute inset-0 bg-gradient-to-br ${city.gradient} opacity-90 opacity-0`} aria-hidden />
-            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent`} />
-            <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/30" />
-            <div className="absolute inset-0 flex flex-col justify-end p-4 text-left">
-              <span className="block text-base font-semibold text-white drop-shadow-lg truncate">
+            <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent`} />
+            <div className="absolute inset-0 flex flex-col justify-center p-3 text-left">
+              <span className="block text-sm font-semibold text-white drop-shadow-md truncate">
                 {city.name}
               </span>
               <span className="block text-xs text-white/90 truncate">{city.country}</span>
-              <span className="block text-xs text-white/80 mt-0.5">
+              <span className="block text-xs text-white/80 mt-0.5 truncate">
                 {formatLocalDate(city.timezone, now)} {formatLocalTime(city.timezone, now)}
               </span>
             </div>
             {selectedCity?.id === city.id && (
-              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center">
-                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center">
+                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </div>
