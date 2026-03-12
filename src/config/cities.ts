@@ -68,8 +68,8 @@ export const CITIES: City[] = [
     gradient: 'from-rose-500 via-pink-500 to-fuchsia-600',
     image: '/images/cities/shanghai.jpg',
     webcams: [
-      'https://imgproxy.windy.com/_/full/plain/current/1762629711/original.jpg',
-      'https://imgproxy.windy.com/_/full/plain/current/1793897678/original.jpg'
+      // 'https://imgproxy.windy.com/_/full/plain/current/1762629711/original.jpg',
+      // 'https://imgproxy.windy.com/_/full/plain/current/1793897678/original.jpg'
     ]
   },
   {
