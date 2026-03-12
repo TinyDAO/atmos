@@ -228,6 +228,12 @@ export const CITIES: City[] = [
     description: 'A historic capital spanning two millennia. Royal palaces, world-class museums, and global finance.',
     gradient: 'from-slate-800 via-blue-800 to-slate-700',
     image: '/images/cities/london.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1508415526/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1508413710/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1793884687/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1624953543/original.jpg'
+    ]
   },
   {
     id: 'paris',
