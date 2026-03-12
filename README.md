@@ -4,6 +4,8 @@
 
 **在线访问：** [https://polyatmos.vercel.app/](https://polyatmos.vercel.app/)
 
+**Site URL 配置：** 修改 `src/config/site.ts` 中的 `SITE_URL` 可更换域名，用于 SEO meta 与 Open Graph。
+
 ## 功能
 
 ### 城市与预报
