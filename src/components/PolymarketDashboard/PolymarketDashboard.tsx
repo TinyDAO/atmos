@@ -47,8 +47,16 @@ function MarketRow({
 
   const volume = market.volumeNum ?? (market.volume ? parseFloat(market.volume) : 0)
   const ob = market.orderBook
-  const topBids = ob?.bids?.slice(0, ORDER_BOOK_DEPTH) ?? []
-  const topAsks = ob?.asks?.slice(0, ORDER_BOOK_DEPTH) ?? []
+  const topBids =
+    ob?.bids
+      ?.slice()
+      .sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
+      .slice(0, ORDER_BOOK_DEPTH) ?? []
+  const topAsks =
+    ob?.asks
+      ?.slice()
+      .sort((a, b) => parseFloat(a.price) - parseFloat(b.price))
+      .slice(0, ORDER_BOOK_DEPTH) ?? []
 
   return (
     <div className="border-b border-zinc-200/80 dark:border-zinc-700/80 last:border-0">
