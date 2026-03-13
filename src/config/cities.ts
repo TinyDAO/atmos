@@ -49,6 +49,12 @@ export const CITIES: City[] = [
     description: 'The city that never sleeps. A global hub of finance, culture, and innovation.',
     gradient: 'from-slate-700 via-blue-600 to-indigo-700',
     image: '/images/cities/nyc.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1793878209/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1793897151/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1793872300/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1793897126/original.jpg'
+    ]
   },
   {
     id: 'seoul',
