@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
+import Hls from 'hls.js'
 import { MetarHistoryChart } from '../MetarHistoryChart'
 import { HistoricalMonthChart } from '../HistoricalMonthChart/HistoricalMonthChart'
 import { PolymarketDashboard } from '../PolymarketDashboard/PolymarketDashboard'
@@ -44,9 +45,79 @@ interface CityDashboardProps {
   aviationError: string | null
 }
 
-function WebcamSlot({ url, city, index }: { url: string | null; city: City; index: number }) {
+type WebcamItem =
+  | string
+  | { type: 'iframe'; url: string }
+  | { type: 'video'; url: string; poster?: string }
+  | { type: 'link'; url: string; poster?: string }
+  | null
+
+function VideoWebcam({
+  url,
+  poster,
+  title,
+  onError,
+}: {
+  url: string
+  poster?: string
+  title: string
+  onError: () => void
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const onErrorRef = useRef(onError)
+  onErrorRef.current = onError
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !url) return
+
+    const isHls = url.includes('.m3u8')
+
+    if (isHls && Hls.isSupported()) {
+      const hls = new Hls({ enableWorker: true, lowLatencyMode: true })
+      hls.loadSource(url)
+      hls.attachMedia(video)
+      hls.on(Hls.Events.ERROR, (_, data) => {
+        if (data.fatal) onErrorRef.current()
+      })
+      return () => hls.destroy()
+    }
+
+    const handleError = () => onErrorRef.current()
+    if (isHls && video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url
+      video.addEventListener('error', handleError)
+      return () => video.removeEventListener('error', handleError)
+    }
+
+    if (!isHls) {
+      video.src = url
+      video.addEventListener('error', handleError)
+      return () => video.removeEventListener('error', handleError)
+    }
+  }, [url])
+
+  return (
+    <video
+      ref={videoRef}
+      className="w-full h-full object-cover"
+      poster={poster}
+      playsInline
+      autoPlay
+      muted
+      loop
+      title={title}
+    />
+  )
+}
+
+function WebcamSlot({ item, city, index }: { item: WebcamItem; city: City; index: number }) {
   const [error, setError] = useState(false)
-  const showPlaceholder = !url || error
+  const isImage = typeof item === 'string'
+  const isIframe = item && typeof item === 'object' && item.type === 'iframe'
+  const isVideo = item && typeof item === 'object' && item.type === 'video'
+  const isLink = item && typeof item === 'object' && item.type === 'link'
+  const showPlaceholder = !item || (isImage && error) || (isVideo && error)
 
   return (
     <motion.div
@@ -56,14 +127,54 @@ function WebcamSlot({ url, city, index }: { url: string | null; city: City; inde
       className="aspect-video rounded-xl overflow-hidden bg-zinc-200/80 dark:bg-zinc-800/60
         border border-zinc-200/60 dark:border-zinc-700/50 relative"
     >
-      {url && !error ? (
+      {isImage && item && !error ? (
         <img
-          src={url}
+          src={item}
           alt={`${city.name} webcam ${index + 1}`}
           className="w-full h-full object-cover"
           loading="lazy"
           onError={() => setError(true)}
         />
+      ) : isIframe && item ? (
+        <iframe
+          src={item.url}
+          title={`${city.name} webcam ${index + 1}`}
+          className="w-full h-full border-0"
+          allow="autoplay; fullscreen"
+          allowFullScreen
+          sandbox="allow-scripts allow-same-origin allow-popups"
+        />
+      ) : isVideo && item && !error ? (
+        <VideoWebcam
+          url={item.url}
+          poster={item.poster}
+          title={`${city.name} webcam ${index + 1}`}
+          onError={() => setError(true)}
+        />
+      ) : isLink && item ? (
+        <a
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full h-full relative group"
+        >
+          {item.poster ? (
+            <img
+              src={item.poster}
+              alt={`${city.name} webcam ${index + 1}`}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-zinc-300/80 dark:bg-zinc-700/60" />
+          )}
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 group-hover:bg-black/50 transition-colors">
+            <svg className="w-10 h-10 text-white/90" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            <span className="text-sm font-medium text-white drop-shadow">观看直播</span>
+          </div>
+        </a>
       ) : null}
       {showPlaceholder && (
         <div className="absolute inset-0 flex items-center justify-center gap-2">
@@ -80,12 +191,12 @@ function WebcamSlot({ url, city, index }: { url: string | null; city: City; inde
 function WebcamGrid({ city }: { city: City }) {
   const slots = 4
   const webcams = city.webcams ?? []
-  const items = Array.from({ length: slots }, (_, i) => webcams[i] ?? null)
+  const items: WebcamItem[] = Array.from({ length: slots }, (_, i) => webcams[i] ?? null)
 
   return (
     <div className="grid grid-cols-2 gap-3">
-      {items.map((url, i) => (
-        <WebcamSlot key={i} url={url} city={city} index={i} />
+      {items.map((item, i) => (
+        <WebcamSlot key={i} item={item} city={city} index={i} />
       ))}
     </div>
   )
