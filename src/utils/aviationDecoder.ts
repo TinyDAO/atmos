@@ -1,152 +1,9 @@
 /**
- * Decode METAR/TAF aviation codes to plain language (白话)
+ * Decode METAR/TAF aviation codes to plain language
+ * Supports multi-language via getAviationStrings(lang)
  */
 
-const CLOUD_COVER: Record<string, string> = {
-  SKC: '晴空',
-  FEW: '少云 (1-2成)',
-  SCT: '疏云 (3-4成)',
-  BKN: '多云 (5-7成)',
-  OVC: '阴天 (8成)',
-}
-
-const WEATHER_CODES: Record<string, string> = {
-  // Intensity
-  '-': '轻',
-  '+': '强',
-  VC: '附近',
-  // Descriptors
-  MI: '浅',
-  BC: '碎片状',
-  BL: '吹',
-  SH: '阵性',
-  TS: '雷暴',
-  FZ: '冻',
-  PR: '部分',
-  DR: '低吹',
-  // Precipitation
-  DZ: '毛毛雨',
-  RA: '雨',
-  SN: '雪',
-  SG: '米雪',
-  IC: '冰晶',
-  PL: '冰粒',
-  GR: '冰雹',
-  GS: '小冰雹',
-  UP: '未知降水',
-  // Obscuration
-  BR: '轻雾',
-  FG: '雾',
-  FU: '烟',
-  VA: '火山灰',
-  DU: '尘',
-  SA: '沙',
-  HZ: '霾',
-  PY: '喷雾',
-}
-
-function decodeCloudLayer(match: string): string {
-  const coverCode = match.slice(0, 3)
-  const cover = CLOUD_COVER[coverCode] ?? coverCode
-  const heightMatch = match.slice(3).match(/^(\d{3})/)
-  if (!heightMatch) return cover
-  const ft = parseInt(heightMatch[1], 10) * 100
-  const m = Math.round(ft * 0.3048)
-  const suffix = match.includes('CB') ? ' (积雨云)' : match.includes('TCU') ? ' (塔状积云)' : ''
-  return `${cover}，云底高 ${ft} 英尺 (约 ${m} 米)${suffix}`
-}
-
-function decodeWind(match: string): string {
-  if (match.startsWith('VRB')) {
-    const speedMatch = match.match(/VRB(\d+)(?:G(\d+))?KT/)
-    const speed = speedMatch?.[1] ?? match.match(/\d+/)?.[0] ?? '?'
-    const gust = speedMatch?.[2]
-    return gust
-      ? `风向不定，风速 ${speed} 节，阵风 ${gust} 节`
-      : `风向不定，风速 ${speed} 节`
-  }
-  const dir = match.slice(0, 3)
-  const dirDeg = parseInt(dir, 10)
-  if (isNaN(dirDeg)) return match
-  const dirNames = ['北', '东北偏北', '东北', '东北偏东', '东', '东南偏东', '东南', '东南偏南', '南', '西南偏南', '西南', '西南偏西', '西', '西北偏西', '西北', '西北偏北']
-  const dirName = dirNames[Math.round(dirDeg / 22.5) % 16]
-  const speedPart = match.slice(3)
-  const gustMatch = speedPart.match(/^(\d+)G(\d+)KT/)
-  if (gustMatch) {
-    return `风向 ${dirName} (${dirDeg}°)，风速 ${gustMatch[1]} 节，阵风 ${gustMatch[2]} 节`
-  }
-  const speedMatch = speedPart.match(/^(\d+)KT/)
-  if (speedMatch) {
-    return `风向 ${dirName} (${dirDeg}°)，风速 ${speedMatch[1]} 节`
-  }
-  return match
-}
-
-function decodeVisibility(match: string): string {
-  if (match.endsWith('SM')) {
-    const mi = parseFloat(match.replace('SM', ''))
-    if (!isNaN(mi)) return `能见度 ${mi} 英里 (约 ${(mi * 1.609).toFixed(1)} 公里)`
-  }
-  if (match === '9999' || match === '9999M') {
-    return '能见度 10 公里以上'
-  }
-  if (match === '0000') {
-    return '能见度不足 50 米'
-  }
-  if (/^\d{4}$/.test(match)) {
-    const m = parseInt(match, 10)
-    return `能见度 ${m} 米`
-  }
-  if (match.startsWith('P')) {
-    const mi = parseFloat(match.slice(1).replace('SM', ''))
-    if (!isNaN(mi)) return `能见度大于 ${mi} 英里`
-  }
-  return match
-}
-
-function decodeWeatherPhenomenon(code: string): string {
-  const parts: string[] = []
-  let i = 0
-  if (code[i] === '-' || code[i] === '+') {
-    parts.push(WEATHER_CODES[code[i]] ?? '')
-    i++
-  }
-  while (i < code.length) {
-    const two = code.slice(i, i + 2)
-    const one = code[i]
-    if (WEATHER_CODES[two]) {
-      parts.push(WEATHER_CODES[two])
-      i += 2
-    } else if (WEATHER_CODES[one]) {
-      parts.push(WEATHER_CODES[one])
-      i += 1
-    } else {
-      i++
-    }
-  }
-  return parts.filter(Boolean).join('') || code
-}
-
-function decodeTempDewpoint(match: string): string {
-  const [temp, dew] = match.split('/')
-  const t = parseInt(temp, 10)
-  const d = dew ? parseInt(dew, 10) : null
-  let s = `气温 ${t}°C`
-  if (d !== null && !isNaN(d)) s += `，露点 ${d}°C`
-  return s
-}
-
-function decodePressure(match: string): string {
-  if (match.startsWith('Q')) {
-    const hpa = parseInt(match.slice(1), 10)
-    return `气压 ${hpa} hPa`
-  }
-  if (match.startsWith('A')) {
-    const inHg = parseInt(match.slice(1), 10) / 100
-    return `气压 ${inHg.toFixed(2)} inHg (约 ${Math.round(inHg * 33.86)} hPa)`
-  }
-  return match
-}
+import { getAviationStrings, type Lang } from '../i18n/aviation'
 
 /** Get report/validity date from METAR/TAF for TX/TN 4-digit time context */
 function getReportDateFromText(text: string): Date {
@@ -164,75 +21,135 @@ function getReportDateFromText(text: string): Date {
   return now
 }
 
-export function decodeMetarToPlain(metar: string, timezone?: string, referenceDate?: Date): string {
+export function decodeMetarToPlain(
+  metar: string,
+  timezone?: string,
+  referenceDate?: Date,
+  lang: Lang = 'en'
+): string {
   if (!metar || metar.includes('No METAR')) return metar
 
+  const s = getAviationStrings(lang)
   const lines: string[] = []
-  // Strip PROB30/PROB40 etc. — already explained as 【30% 概率】 in TAF, don't show raw code
   let remaining = metar.replace(/\bPROB\d{2}\s*(?:\d{4}\/\d{4})?\s*/gi, '').trim()
   const reportDate = referenceDate ?? getReportDateFromText(metar)
 
-  // CAVOK: Ceiling And Visibility OK (能见度≥10km，无云，无重要天气)
   if (/\bCAVOK\b/.test(remaining)) {
-    lines.push('• 能见度良好，无云，无重要天气 (CAVOK)')
+    lines.push('• ' + s.cavok)
     remaining = remaining.replace(/\bCAVOK\b/, '')
   }
 
-  // Wind: 22015KT, 22015G25KT, VRB05KT, VRB5G15KT
   const windMatch = remaining.match(/\b(\d{5}(?:G\d{2})?KT|VRB\d{1,3}(?:G\d{2})?KT)\b/)
   if (windMatch) {
-    lines.push('• ' + decodeWind(windMatch[1]))
+    if (windMatch[1].startsWith('VRB')) {
+      const speedMatch = windMatch[1].match(/VRB(\d+)(?:G(\d+))?KT/)
+      const speed = speedMatch?.[1] ?? windMatch[1].match(/\d+/)?.[0] ?? '?'
+      const gust = speedMatch?.[2]
+      lines.push('• ' + s.wind.variable(speed, gust))
+    } else {
+      const dir = windMatch[1].slice(0, 3)
+      const dirDeg = parseInt(dir, 10)
+      if (!isNaN(dirDeg)) {
+        const dirName = s.wind.dirNames[Math.round(dirDeg / 22.5) % 16]
+        const speedPart = windMatch[1].slice(3)
+        const gustMatch = speedPart.match(/^(\d+)G(\d+)KT/)
+        if (gustMatch) {
+          lines.push('• ' + s.wind.withGust(dirName, dirDeg, gustMatch[1], gustMatch[2]))
+        } else {
+          const speedMatch = speedPart.match(/^(\d+)KT/)
+          if (speedMatch) lines.push('• ' + s.wind.noGust(dirName, dirDeg, speedMatch[1]))
+        }
+      }
+    }
     remaining = remaining.replace(windMatch[0], '')
   }
 
-  // Visibility: 10SM, 9999, P6SM
   const visMatch = remaining.match(/\b(\d{4}(?:M)?|(?:\d+)?(?:\s?\d\/\d)?SM|P\d+SM)\b/)
   if (visMatch) {
-    lines.push('• ' + decodeVisibility(visMatch[1].replace(/\s/g, '')))
+    const v = visMatch[1].replace(/\s/g, '')
+    if (v.endsWith('SM')) {
+      const mi = parseFloat(v.replace('SM', ''))
+      if (!isNaN(mi)) lines.push('• ' + s.visibility.miles(mi, (mi * 1.609).toFixed(1)))
+    } else if (v === '9999' || v === '9999M') {
+      lines.push('• ' + s.visibility.above10km)
+    } else if (v === '0000') {
+      lines.push('• ' + s.visibility.below50m)
+    } else if (/^\d{4}$/.test(v)) {
+      lines.push('• ' + s.visibility.meters(parseInt(v, 10)))
+    } else if (v.startsWith('P')) {
+      const mi = parseFloat(v.slice(1).replace('SM', ''))
+      if (!isNaN(mi)) lines.push('• ' + s.visibility.greaterMiles(mi))
+    }
     remaining = remaining.replace(visMatch[0], '')
   }
 
-  // Clouds: FEW020, SCT035, BKN060CB, OVC080
   const cloudRegex = /\b(FEW|SCT|BKN|OVC|SKC)(\d{3})?(CB|TCU)?\b/g
   const clouds: string[] = []
   let cm
   while ((cm = cloudRegex.exec(remaining)) !== null) {
-    clouds.push(decodeCloudLayer(cm[0]))
+    const coverCode = cm[0].slice(0, 3)
+    const cover = s.cloudCover[coverCode] ?? coverCode
+    const heightMatch = cm[0].slice(3).match(/^(\d{3})/)
+    if (!heightMatch) {
+      clouds.push(cover)
+    } else {
+      const ft = parseInt(heightMatch[1], 10) * 100
+      const m = Math.round(ft * 0.3048)
+      const suffix = cm[0].includes('CB') ? s.cloudSuffix.cb : cm[0].includes('TCU') ? s.cloudSuffix.tcu : ''
+      clouds.push(s.cloudLayer(cover, ft, m, suffix))
+    }
   }
-  if (clouds.length) {
-    lines.push('• 云: ' + clouds.join('；'))
-  }
+  if (clouds.length) lines.push('• ' + s.clouds + ': ' + clouds.join(lang === 'zh' ? '；' : '; '))
 
-  // Weather phenomena: -RA, TSRA, BR, FG
   const wxRegex = /\b([+-]?(?:VC)?(?:MI|BC|BL|SH|TS|FZ|PR|DR)?(?:DZ|RA|SN|SG|IC|PL|GR|GS|UP|BR|FG|FU|VA|DU|SA|HZ|PY)+)\b/g
   const wx: string[] = []
   let wm
   while ((wm = wxRegex.exec(remaining)) !== null) {
-    wx.push(decodeWeatherPhenomenon(wm[1]))
+    const parts: string[] = []
+    let i = 0
+    const code = wm[1]
+    if (code[i] === '-' || code[i] === '+') {
+      parts.push(s.weatherCodes[code[i]] ?? '')
+      i++
+    }
+    while (i < code.length) {
+      const two = code.slice(i, i + 2)
+      const one = code[i]
+      if (s.weatherCodes[two]) {
+        parts.push(s.weatherCodes[two])
+        i += 2
+      } else if (s.weatherCodes[one]) {
+        parts.push(s.weatherCodes[one])
+        i += 1
+      } else {
+        i++
+      }
+    }
+    const decoded = parts.filter(Boolean).join('') || code
+    if (decoded) wx.push(decoded)
   }
-  if (wx.length) {
-    lines.push('• 天气: ' + wx.join('，'))
-  }
+  if (wx.length) lines.push('• ' + s.weather + ': ' + wx.join(lang === 'zh' ? '，' : ', '))
 
-  // Temp/Dewpoint: 18/16, M05/M07
   const tempMatch = remaining.match(/\b(M?\d{2})\/(M?\d{2})\b/)
   if (tempMatch) {
     const t = tempMatch[1].startsWith('M') ? -parseInt(tempMatch[1].slice(1), 10) : parseInt(tempMatch[1], 10)
     const d = tempMatch[2].startsWith('M') ? -parseInt(tempMatch[2].slice(1), 10) : parseInt(tempMatch[2], 10)
-    lines.push('• ' + decodeTempDewpoint(`${t}/${d}`))
+    lines.push('• ' + s.tempDewpoint(t, d))
     remaining = remaining.replace(tempMatch[0], '')
   }
 
-  // Pressure: Q1013, A2992
   const pressureMatch = remaining.match(/\b(Q\d{4}|A\d{4})\b/)
   if (pressureMatch) {
-    lines.push('• ' + decodePressure(pressureMatch[1]))
+    const p = pressureMatch[1]
+    if (p.startsWith('Q')) {
+      lines.push('• ' + s.pressure.hpa(parseInt(p.slice(1), 10)))
+    } else {
+      const inHg = parseInt(p.slice(1), 10) / 100
+      lines.push('• ' + s.pressure.inHg(inHg.toFixed(2), Math.round(inHg * 33.86)))
+    }
   }
 
-  // Remarks: TX18/0615Z (max temp), TN12/0420Z (min temp)
-  // Time format: 4 digits DDHH (day, hour UTC), or 6 digits DDHHMM (day, hour, minute UTC)
-  // e.g. TX18/0615Z = max 18°C at 15:00 UTC on day 06 (afternoon)
-  // e.g. TN10/0706Z = min 10°C at 06:00 UTC on day 07 (early morning)
+  const locale = lang === 'zh' ? 'zh-CN' : 'en-US'
   function formatTxTnTime(raw: string): string {
     let utcDate: Date
     if (raw.length === 4) {
@@ -248,37 +165,36 @@ export function decodeMetarToPlain(metar: string, timezone?: string, referenceDa
       return raw + 'Z'
     }
     if (timezone) {
-      const utcStr = `${utcDate.getUTCDate()}日 ${String(utcDate.getUTCHours()).padStart(2, '0')}:${String(utcDate.getUTCMinutes()).padStart(2, '0')} UTC`
-      const localTimeFmt = new Intl.DateTimeFormat('zh-CN', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false })
+      const utcStr = s.txTnFormat.utc(
+        utcDate.getUTCDate(),
+        String(utcDate.getUTCHours()).padStart(2, '0'),
+        String(utcDate.getUTCMinutes()).padStart(2, '0')
+      )
+      const localTimeFmt = new Intl.DateTimeFormat(locale, { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false })
       const localTime = localTimeFmt.format(utcDate)
-      return `${utcStr}（当地  ${localTime}）`
+      return `${utcStr}（${s.txTnFormat.local} ${localTime}）`
     }
-    const h = utcDate.getUTCHours()
-    const m = utcDate.getUTCMinutes()
-    const d = utcDate.getUTCDate()
-    return raw.length === 4
-      ? `${d}日 ${String(h).padStart(2, '0')}:00 UTC`
-      : `${d}日 ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} UTC`
+    return s.txTnFormat.utc(
+      utcDate.getUTCDate(),
+      String(utcDate.getUTCHours()).padStart(2, '0'),
+      raw.length === 6 ? String(utcDate.getUTCMinutes()).padStart(2, '0') : undefined
+    )
   }
+
   const txMatch = remaining.match(/\bTX(M?\d{2})\/(\d{4,6})Z\b/)
   if (txMatch) {
     const t = txMatch[1].startsWith('M') ? -parseInt(txMatch[1].slice(1), 10) : parseInt(txMatch[1], 10)
-    const timeStr = formatTxTnTime(txMatch[2])
-    lines.push(`• 今日最高温 ${t}°C，出现时间 ${timeStr}`)
+    lines.push('• ' + s.txTime(t, formatTxTnTime(txMatch[2])))
   }
   const tnMatch = remaining.match(/\bTN(M?\d{2})\/(\d{4,6})Z\b/)
   if (tnMatch) {
     const t = tnMatch[1].startsWith('M') ? -parseInt(tnMatch[1].slice(1), 10) : parseInt(tnMatch[1], 10)
-    const timeStr = formatTxTnTime(tnMatch[2])
-    lines.push(`• 今日最低温 ${t}°C，出现时间 ${timeStr}`)
+    lines.push('• ' + s.tnTime(t, formatTxTnTime(tnMatch[2])))
   }
 
   return lines.length ? lines.join('\n') : remaining
 }
 
-/**
- * Extract day (DD) from TAF time group. FM011700 -> 01, BECMG 0120/0122 -> 01
- */
 function getTafGroupDay(part: string): string | null {
   const fmMatch = part.match(/^FM(\d{2})\d{2}/i)
   if (fmMatch) return fmMatch[1]
@@ -291,9 +207,6 @@ function getTafGroupDay(part: string): string | null {
   return null
 }
 
-/**
- * Filter TAF to show only forecast groups for tomorrow (UTC)
- */
 export function filterTafForTomorrow(taf: string): string {
   if (!taf || taf.includes('No TAF')) return taf
 
@@ -309,16 +222,15 @@ export function filterTafForTomorrow(taf: string): string {
     const part = parts[i].trim()
     if (!part) continue
     const day = getTafGroupDay(part)
-    if (day === tomorrowDay) {
-      filtered.push(part)
-    }
+    if (day === tomorrowDay) filtered.push(part)
   }
 
   return filtered.length > 1 ? filtered.join(' ') : taf
 }
 
-function formatValidityLocal(startUtc: Date, endUtc: Date, timezone: string): string {
-  const fmt = new Intl.DateTimeFormat('zh-CN', { timeZone: timezone, day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+function formatValidityLocal(startUtc: Date, endUtc: Date, timezone: string, lang: Lang): string {
+  const locale = lang === 'zh' ? 'zh-CN' : 'en-US'
+  const fmt = new Intl.DateTimeFormat(locale, { timeZone: timezone, day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
   const getDay = (date: Date) => fmt.formatToParts(date).find(p => p.type === 'day')?.value ?? ''
   const getTime = (date: Date) => {
     const parts = fmt.formatToParts(date)
@@ -326,12 +238,14 @@ function formatValidityLocal(startUtc: Date, endUtc: Date, timezone: string): st
     const m = parts.find(p => p.type === 'minute')?.value ?? ''
     return `${h}:${m}`
   }
-  return `${getDay(startUtc)}日${getTime(startUtc)} - ${getDay(endUtc)}日${getTime(endUtc)}`
+  const dayLabel = lang === 'zh' ? '日' : ' '
+  return `${getDay(startUtc)}${dayLabel}${getTime(startUtc)} - ${getDay(endUtc)}${dayLabel}${getTime(endUtc)}`
 }
 
-export function decodeTafToPlain(taf: string, timezone?: string): string {
+export function decodeTafToPlain(taf: string, timezone?: string, lang: Lang = 'en'): string {
   if (!taf || taf.includes('No TAF')) return taf
 
+  const s = getAviationStrings(lang)
   const lines: string[] = []
   const parts = taf.split(/\s+(?=FM|BECMG|TEMPO|PROB\d{2})/i)
 
@@ -341,22 +255,19 @@ export function decodeTafToPlain(taf: string, timezone?: string): string {
 
     if (/^FM\d{4}/.test(trimmed)) {
       const time = trimmed.slice(2, 6)
-      lines.push(`\n【从 ${time.slice(0, 2)}:${time.slice(2)} UTC 起】`)
-      const rest = trimmed.slice(6).trim()
-      lines.push(decodeMetarToPlain(rest, timezone))
+      lines.push('\n' + s.taf.from(time.slice(0, 2), time.slice(2)))
+      lines.push(decodeMetarToPlain(trimmed.slice(6).trim(), timezone, undefined, lang))
     } else if (/^BECMG/.test(trimmed)) {
-      lines.push('\n【逐渐变化】')
-      lines.push(decodeMetarToPlain(trimmed.replace(/^BECMG\s+\d{4}\/\d{4}\s*/, ''), timezone))
+      lines.push('\n' + s.taf.becmg)
+      lines.push(decodeMetarToPlain(trimmed.replace(/^BECMG\s+\d{4}\/\d{4}\s*/, ''), timezone, undefined, lang))
     } else if (/^TEMPO/.test(trimmed)) {
-      lines.push('\n【短暂】')
-      lines.push(decodeMetarToPlain(trimmed.replace(/^TEMPO\s+\d{4}\/\d{4}\s*/, ''), timezone))
+      lines.push('\n' + s.taf.tempo)
+      lines.push(decodeMetarToPlain(trimmed.replace(/^TEMPO\s+\d{4}\/\d{4}\s*/, ''), timezone, undefined, lang))
     } else if (/^PROB\d{2}/.test(trimmed)) {
       const prob = trimmed.match(/PROB(\d{2})/)?.[1] ?? '30'
-      lines.push(`\n【${prob}% 概率】`)
-      lines.push(decodeMetarToPlain(trimmed.replace(/^PROB\d{2}\s+\d{4}\/\d{4}\s*/, ''), timezone))
+      lines.push('\n' + s.taf.prob(prob))
+      lines.push(decodeMetarToPlain(trimmed.replace(/^PROB\d{2}\s+\d{4}\/\d{4}\s*/, ''), timezone, undefined, lang))
     } else if (/^TAF\s+/i.test(trimmed)) {
-      // TAF header + main body (no FM/BECMG/TEMPO/PROB groups)
-      // e.g. TAF LFPG 060500Z 0606/0712 12005KT CAVOK TX18/0615Z TN10/0706Z
       const afterHeader = trimmed.replace(/^TAF\s+\S+\s+\d{6}Z\s*/i, '')
       const validityMatch = afterHeader.match(/^(\d{4}\/\d{4})\s+(.*)/s)
       if (validityMatch) {
@@ -368,18 +279,17 @@ export function decodeTafToPlain(taf: string, timezone?: string): string {
         const now = new Date()
         const startUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), d1, h1, 0, 0))
         const endUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), d2, h2, 0, 0))
-        const utcStr = `${d1}日${String(h1).padStart(2, '0')}:00 - ${d2}日${String(h2).padStart(2, '0')}:00 UTC`
-        const validityStr = timezone
-          ? `${utcStr}（当地 ${formatValidityLocal(startUtc, endUtc, timezone)}）`
-          : utcStr
-        lines.push(`【有效时段 ${validityStr}】`)
+        const dayLabel = lang === 'zh' ? '日' : ' '
+        const utcStr = `${d1}${dayLabel}${String(h1).padStart(2, '0')}:00 - ${d2}${dayLabel}${String(h2).padStart(2, '0')}:00 UTC`
+        const localStr = timezone ? formatValidityLocal(startUtc, endUtc, timezone, lang) : undefined
+        lines.push(s.taf.validity(utcStr, localStr))
         const refDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), d1, 0, 0, 0))
-        lines.push(decodeMetarToPlain(body.trim(), timezone, refDate))
+        lines.push(decodeMetarToPlain(body.trim(), timezone, refDate, lang))
       } else {
-        lines.push(decodeMetarToPlain(afterHeader, timezone))
+        lines.push(decodeMetarToPlain(afterHeader, timezone, undefined, lang))
       }
     } else if (!/^(METAR|TAF|KJFK|EGLL|etc)/i.test(trimmed)) {
-      lines.push(decodeMetarToPlain(trimmed, timezone))
+      lines.push(decodeMetarToPlain(trimmed, timezone, undefined, lang))
     }
   }
 

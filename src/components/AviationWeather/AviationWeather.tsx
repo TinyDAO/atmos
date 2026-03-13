@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { decodeMetarToPlain, decodeTafToPlain, filterTafForTomorrow } from '../../utils/aviationDecoder'
 import { TempDisplay } from '../TempDisplay'
 import { parseTemperatureFromMetar } from '../../utils/metarParser'
+import { useLanguage } from '../../hooks/useLanguage'
 
 interface AviationWeatherProps {
   metar: string | null
@@ -27,10 +28,11 @@ export function AviationWeather({
   loading,
   error,
 }: AviationWeatherProps) {
+  const { lang, setLang } = useLanguage()
   const [showPlain, setShowPlain] = useState(false)
-  const metarPlain = metar ? decodeMetarToPlain(metar, timezone) : ''
+  const metarPlain = metar ? decodeMetarToPlain(metar, timezone, undefined, lang) : ''
   const tafFiltered = dayIndex === 1 && taf ? filterTafForTomorrow(taf) : taf
-  const tafPlain = tafFiltered ? decodeTafToPlain(tafFiltered, timezone) : ''
+  const tafPlain = tafFiltered ? decodeTafToPlain(tafFiltered, timezone, lang) : ''
   const metarTemp = parseTemperatureFromMetar(metar)
 
   if (loading) {
@@ -76,7 +78,26 @@ export function AviationWeather({
             METAR & TAF from Aviation Weather Center
           </p>
         </div>
-        <button
+        <div className="flex items-center gap-1 shrink-0">
+          {showPlain && (
+            <div className="flex rounded-lg overflow-hidden border border-zinc-300 dark:border-zinc-600">
+              {(['en', 'zh'] as const).map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => setLang(l)}
+                  className={`px-2.5 py-1 text-xs font-medium transition-colors ${
+                    lang === l
+                      ? 'bg-amber-500 dark:bg-amber-500 text-white'
+                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  {l === 'zh' ? '中文' : 'EN'}
+                </button>
+              ))}
+            </div>
+          )}
+          <button
           type="button"
           onClick={() => setShowPlain(!showPlain)}
           title={showPlain ? 'Show raw' : 'Show plain'}
@@ -92,6 +113,7 @@ export function AviationWeather({
             </svg>
           )}
         </button>
+        </div>
       </div>
       <div className="p-4 space-y-4">
         <div>
