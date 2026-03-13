@@ -62,6 +62,12 @@ export const CITIES: City[] = [
     description: 'Where ancient palaces meet cutting-edge technology. A dynamic blend of tradition and futurism.',
     gradient: 'from-violet-600 via-purple-500 to-fuchsia-600',
     image: '/images/cities/seoul.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1608954944/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1701618298/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1647579305/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1685571630/original.jpg'
+    ]
   },
   {
     id: 'tokyo',
