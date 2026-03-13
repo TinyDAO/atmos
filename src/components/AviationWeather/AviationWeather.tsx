@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { decodeMetarToPlain, decodeTafToPlain, filterTafForTomorrow } from '../../utils/aviationDecoder'
 import { TempDisplay } from '../TempDisplay'
-import { parseTemperatureFromMetar } from '../../utils/metarParser'
+import { parseTemperatureFromMetar, parseTimestampFromMetar } from '../../utils/metarParser'
 import { useLanguage } from '../../hooks/useLanguage'
 
 interface AviationWeatherProps {
@@ -34,6 +34,7 @@ export function AviationWeather({
   const tafFiltered = dayIndex === 1 && taf ? filterTafForTomorrow(taf) : taf
   const tafPlain = tafFiltered ? decodeTafToPlain(tafFiltered, timezone, lang) : ''
   const metarTemp = parseTemperatureFromMetar(metar)
+  const metarObservedAt = parseTimestampFromMetar(metar)
 
   if (loading) {
     return (
@@ -117,10 +118,34 @@ export function AviationWeather({
       </div>
       <div className="p-4 space-y-4">
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-xs font-medium text-zinc-600 dark:text-zinc-500 uppercase">
-              METAR {dayIndex === 1 && '(当前实况)'}
-            </h4>
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div>
+              <h4 className="text-xs font-medium text-zinc-600 dark:text-zinc-500 uppercase">
+                METAR {dayIndex === 1 && '(当前实况)'}
+              </h4>
+              {metarObservedAt && (
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  Observed {new Intl.DateTimeFormat('en-US', {
+                    timeZone: timezone,
+                    month: 'numeric',
+                    day: 'numeric',
+                  }).format(metarObservedAt)}, {new Intl.DateTimeFormat('en-US', {
+                    timeZone: timezone,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                  }).format(metarObservedAt)} local · {new Intl.DateTimeFormat('en-US', {
+                    timeZone: 'UTC',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                  }).format(metarObservedAt)}Z
+                </p>
+              )}
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Airport weather stations typically report every 30 minutes.
+              </p>
+            </div>
             {(metarTemp != null || forecastMaxTemp != null || (dayIndex === 0 && metarHistoryMaxTemp != null)) && (
               <div className="flex flex-col items-end gap-0.5">
                 <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">

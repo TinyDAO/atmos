@@ -13,7 +13,6 @@ import {
 import { motion } from 'framer-motion'
 import { useTheme } from '../../hooks/useTheme'
 import type { MetarChartPoint, MetarDayData } from '../../utils/metarParser'
-import { TempDisplay } from '../TempDisplay'
 
 interface MetarHistoryChartProps {
   days: MetarDayData[]
@@ -30,23 +29,28 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
     <div className="rounded-lg border border-zinc-300/60 dark:border-zinc-600/60 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm px-3 py-2 shadow-lg text-sm">
       <div className="font-medium text-zinc-700 dark:text-zinc-200">{label}</div>
       <div className="flex gap-3 mt-1 text-zinc-600 dark:text-zinc-400">
-        {temp != null && <TempDisplay value={temp} prefix="气温 " className="cursor-help" />}
-        {dewpoint != null && <TempDisplay value={dewpoint} prefix="露点 " className="cursor-help" />}
+        {temp != null && <span>气温 {temp.toFixed(1)}°C</span>}
+        {dewpoint != null && <span>露点 {dewpoint.toFixed(1)}°C</span>}
       </div>
     </div>
   )
 }
 
-/** Build chart data for a day: 00:00-24:00. For today, future hours are empty. */
+/** Slot index for 30-min intervals: 0=00:00, 1=00:30, 2=01:00, ... 47=23:30 */
+function toSlotIndex(hour: number, minute: number): number {
+  return hour * 2 + (minute >= 30 ? 1 : 0)
+}
+
+/** Build chart data for a day: 30-min slots 00:00–24:00. METAR typically reports every 30 minutes. */
 function buildDayChartData(
   rawData: MetarChartPoint[],
   timezone: string,
   isToday: boolean
-): Array<{ label: string; hour: number; temp: number | null; dewpoint: number | null }> {
+): Array<{ label: string; slot: number; temp: number | null; dewpoint: number | null }> {
   const timeFmt = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false })
   const nowStr = timeFmt.format(new Date())
 
-  const byHour = new Map<number, { temp: number; dewpoint: number | null; ts: number }>()
+  const bySlot = new Map<number, { temp: number; dewpoint: number | null; ts: number }>()
   for (const p of rawData) {
     const tStr = timeFmt.format(p.time)
     if (isToday && tStr > nowStr) continue
@@ -57,22 +61,28 @@ function buildDayChartData(
       hour12: false,
     }).formatToParts(p.time)
     const hour = parseInt(parts.find((x) => x.type === 'hour')!.value, 10)
-    const existing = byHour.get(hour)
+    const minute = parseInt(parts.find((x) => x.type === 'minute')!.value, 10)
+    const slot = toSlotIndex(hour, minute)
+    const existing = bySlot.get(slot)
     if (!existing || p.time.getTime() > existing.ts) {
-      byHour.set(hour, { temp: p.temp, dewpoint: p.dewpoint, ts: p.time.getTime() })
+      bySlot.set(slot, { temp: p.temp, dewpoint: p.dewpoint, ts: p.time.getTime() })
     }
   }
 
-  const nowParts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, hour: 'numeric', hour12: false }).formatToParts(new Date())
+  const nowParts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, hour: 'numeric', minute: 'numeric', hour12: false }).formatToParts(new Date())
   const currentHour = parseInt(nowParts.find((x) => x.type === 'hour')!.value, 10)
+  const currentMin = parseInt(nowParts.find((x) => x.type === 'minute')!.value, 10)
+  const currentSlot = toSlotIndex(currentHour, currentMin)
   const pad = (n: number) => String(n).padStart(2, '0')
-  const slots: Array<{ label: string; hour: number; temp: number | null; dewpoint: number | null }> = []
-  for (let h = 0; h <= 24; h++) {
-    const isFuture = isToday && h > currentHour
-    const pt = !isFuture && byHour.has(h) ? byHour.get(h)! : null
+  const slots: Array<{ label: string; slot: number; temp: number | null; dewpoint: number | null }> = []
+  for (let s = 0; s <= 48; s++) {
+    const isFuture = isToday && s > currentSlot
+    const pt = !isFuture && bySlot.has(s) ? bySlot.get(s)! : null
+    const h = Math.floor(s / 2)
+    const m = (s % 2) * 30
     slots.push({
-      label: h === 24 ? '24:00' : `${pad(h)}:00`,
-      hour: h,
+      label: s === 48 ? '24:00' : `${pad(h)}:${pad(m)}`,
+      slot: s,
       temp: pt ? pt.temp : null,
       dewpoint: pt ? pt.dewpoint : null,
     })
@@ -134,7 +144,7 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
       transition={{ delay: 0.15 }}
       className="rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50 overflow-hidden"
     >
-      <div className="px-4 py-3 border-b border-zinc-200/60 dark:border-zinc-700/50 flex items-end justify-between gap-3">
+      <div className="px-4 py-2.5 border-b border-zinc-200/60 dark:border-zinc-700/50 flex items-center justify-between gap-3">
         <div>
           <h4 className="text-xs font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
             Aviation Temp · {icao}
@@ -143,7 +153,7 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
             METAR observations · Past 15 days
           </p>
         </div>
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
             <span className="flex items-center gap-1.5">
               <span className="w-3 h-0.5 rounded bg-amber-500" />
@@ -159,7 +169,7 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
           <select
             value={dayIndex}
             onChange={(e) => setDayIndex(Number(e.target.value))}
-            className="text-xs font-medium rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+            className="text-xs font-medium rounded-md border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-1 min-h-0 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
           >
             {days.map((d, i) => (
               <option key={d.dateStr} value={i}>
@@ -195,7 +205,7 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
                 className="text-zinc-500 dark:text-zinc-500"
                 tickLine={false}
                 axisLine={{ stroke: 'currentColor', opacity: 0.3 }}
-                interval={3}
+                interval={5}
               />
               <YAxis
                 domain={[tempRange.min, tempRange.max]}
@@ -203,8 +213,8 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
                 className="text-zinc-500 dark:text-zinc-500"
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(v) => `${v}°`}
-                width={32}
+                tickFormatter={(v) => `${Number(v).toFixed(1)}°`}
+                width={36}
               />
               <Tooltip content={<CustomTooltip />} />
               <ReferenceLine

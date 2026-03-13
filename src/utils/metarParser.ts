@@ -155,13 +155,30 @@ export function parseMetarHistoryByDays(metars: string[], timezone: string): Met
   const [y, m, d] = todayStr.split('-').map(Number)
   const yesterdayStr = dateFmt.format(new Date(Date.UTC(y, m - 1, d - 1)))
   const sortedDates = Array.from(byDate.keys()).sort().reverse()
+  const nowParts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, hour: 'numeric', minute: 'numeric', hour12: false }).formatToParts(new Date())
+  const currentHour = parseInt(nowParts.find((x) => x.type === 'hour')!.value, 10)
+  const currentMin = parseInt(nowParts.find((x) => x.type === 'minute')!.value, 10)
+  const toSlot = (h: number, m: number) => h * 2 + (m >= 30 ? 1 : 0)
+  const currentSlot = toSlot(currentHour, currentMin)
   const result: MetarDayData[] = []
   sortedDates.forEach((dateStr) => {
     const [, mo, da] = dateStr.split('-').map(Number)
     const label = dateStr === todayStr ? '今日' : dateStr === yesterdayStr ? '昨日' : `${mo}月${da}日`
 
     const points = (byDate.get(dateStr) ?? []).sort((a, b) => a.time.getTime() - b.time.getTime())
-    const temps = points.map((p) => p.temp).filter((t) => !Number.isNaN(t))
+    const bySlot = new Map<number, { temp: number; ts: number }>()
+    for (const p of points) {
+      const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, hour: 'numeric', minute: 'numeric', hour12: false }).formatToParts(p.time)
+      const hour = parseInt(parts.find((x) => x.type === 'hour')!.value, 10)
+      const minute = parseInt(parts.find((x) => x.type === 'minute')!.value, 10)
+      const slot = toSlot(hour, minute)
+      if (dateStr === todayStr && slot > currentSlot) continue
+      const existing = bySlot.get(slot)
+      if (!existing || p.time.getTime() > existing.ts) {
+        bySlot.set(slot, { temp: p.temp, ts: p.time.getTime() })
+      }
+    }
+    const temps = Array.from(bySlot.values()).map((v) => v.temp).filter((t) => !Number.isNaN(t))
     const maxTemp = temps.length ? Math.max(...temps) : null
     const minTemp = temps.length ? Math.min(...temps) : null
     result.push({

@@ -28,11 +28,19 @@ export function WeatherDetails({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 p-4 h-full flex items-center justify-center min-h-[140px]"
+        className="rounded-xl bg-zinc-200/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-300/50 dark:border-zinc-700/50 p-4 h-full flex flex-col min-h-0"
       >
-        <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
-          <div className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
-          <span>Loading details...</span>
+        <div className="h-4 w-32 rounded bg-zinc-300/60 dark:bg-zinc-600/50 mb-3 shrink-0" />
+        <div className="flex-1 grid grid-cols-2 gap-3 min-h-0">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50">
+              <div className="w-5 h-5 rounded bg-zinc-300/60 dark:bg-zinc-600/50 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="h-3 w-12 rounded bg-zinc-300/60 dark:bg-zinc-600/50 mb-1.5" />
+                <div className="h-4 w-16 rounded bg-zinc-300/60 dark:bg-zinc-600/50" />
+              </div>
+            </div>
+          ))}
         </div>
       </motion.div>
     )
