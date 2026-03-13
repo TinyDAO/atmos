@@ -157,7 +157,8 @@ export function parseMetarHistoryByDays(metars: string[], timezone: string): Met
   const sortedDates = Array.from(byDate.keys()).sort().reverse()
   const nowParts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, hour: 'numeric', minute: 'numeric', hour12: false }).formatToParts(new Date())
   const currentHour = parseInt(nowParts.find((x) => x.type === 'hour')!.value, 10)
-  const currentMin = parseInt(nowParts.find((x) => x.type === 'minute')!.value, 10)
+  const currentMinPart = nowParts.find((x) => x.type === 'minute')
+  const currentMin = currentMinPart ? parseInt(currentMinPart.value, 10) : 0
   const toSlot = (h: number, m: number) => h * 2 + (m >= 30 ? 1 : 0)
   const currentSlot = toSlot(currentHour, currentMin)
   const result: MetarDayData[] = []
@@ -170,7 +171,8 @@ export function parseMetarHistoryByDays(metars: string[], timezone: string): Met
     for (const p of points) {
       const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, hour: 'numeric', minute: 'numeric', hour12: false }).formatToParts(p.time)
       const hour = parseInt(parts.find((x) => x.type === 'hour')!.value, 10)
-      const minute = parseInt(parts.find((x) => x.type === 'minute')!.value, 10)
+      const minutePart = parts.find((x) => x.type === 'minute')
+      const minute = minutePart ? parseInt(minutePart.value, 10) : 0
       const slot = toSlot(hour, minute)
       if (dateStr === todayStr && slot > currentSlot) continue
       const existing = bySlot.get(slot)

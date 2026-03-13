@@ -61,7 +61,8 @@ function buildDayChartData(
       hour12: false,
     }).formatToParts(p.time)
     const hour = parseInt(parts.find((x) => x.type === 'hour')!.value, 10)
-    const minute = parseInt(parts.find((x) => x.type === 'minute')!.value, 10)
+    const minutePart = parts.find((x) => x.type === 'minute')
+    const minute = minutePart ? parseInt(minutePart.value, 10) : 0
     const slot = toSlotIndex(hour, minute)
     const existing = bySlot.get(slot)
     if (!existing || p.time.getTime() > existing.ts) {
@@ -71,7 +72,8 @@ function buildDayChartData(
 
   const nowParts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, hour: 'numeric', minute: 'numeric', hour12: false }).formatToParts(new Date())
   const currentHour = parseInt(nowParts.find((x) => x.type === 'hour')!.value, 10)
-  const currentMin = parseInt(nowParts.find((x) => x.type === 'minute')!.value, 10)
+  const currentMinPart = nowParts.find((x) => x.type === 'minute')
+  const currentMin = currentMinPart ? parseInt(currentMinPart.value, 10) : 0
   const currentSlot = toSlotIndex(currentHour, currentMin)
   const pad = (n: number) => String(n).padStart(2, '0')
   const slots: Array<{ label: string; slot: number; temp: number | null; dewpoint: number | null }> = []
@@ -229,7 +231,7 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
                 stroke="#f59e0b"
                 strokeWidth={2}
                 fill="url(#tempGradient)"
-                connectNulls={false}
+                connectNulls
               />
               {chartData.some((d) => d.dewpoint != null) && (
                 <Line
@@ -239,7 +241,7 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
                   strokeWidth={1.5}
                   strokeDasharray="4 3"
                   dot={false}
-                  connectNulls={false}
+                  connectNulls
                 />
               )}
             </ComposedChart>
