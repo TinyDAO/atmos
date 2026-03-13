@@ -103,9 +103,14 @@ export function WeatherForecast({ maxTemp, minTemp, dayIndex, onDayChange, sourc
           </div>
         </div>
       )}
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-500">
-        Primary: Open-Meteo
-      </p>
+      <div className="mt-3 pt-3 border-t border-zinc-300/50 dark:border-zinc-600/50 flex flex-col gap-0.5">
+        <span className="text-[10px] font-medium text-amber-600 dark:text-amber-500">
+          Primary: Open-Meteo
+        </span>
+        <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
+          Data display only, not analysis
+        </span>
+      </div>
     </motion.div>
   )
 }

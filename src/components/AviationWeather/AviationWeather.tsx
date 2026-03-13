@@ -100,21 +100,33 @@ export function AviationWeather({
               METAR {dayIndex === 1 && '(当前实况)'}
             </h4>
             {(metarTemp != null || forecastMaxTemp != null || (dayIndex === 0 && metarHistoryMaxTemp != null)) && (
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                {metarTemp != null && (
-                  <TempDisplay value={metarTemp} prefix="Current " className="cursor-help" />
+              <div className="flex flex-col items-end gap-0.5">
+                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  {metarTemp != null && (
+                    <TempDisplay value={metarTemp} prefix="Current " className="cursor-help" />
+                  )}
+                  {(metarTemp != null && (forecastMaxTemp != null || (dayIndex === 0 && metarHistoryMaxTemp != null))) && ' · '}
+                  {dayIndex === 0 && metarHistoryMaxTemp != null && (
+                    <TempDisplay value={metarHistoryMaxTemp} prefix="Today max so far " suffix="" className="cursor-help" />
+                  )}
+                  {dayIndex === 0 && metarHistoryMaxTemp == null && forecastMaxTemp != null && (
+                    <TempDisplay value={forecastMaxTemp} prefix="Today max " suffix="" className="cursor-help" />
+                  )}
+                  {dayIndex === 1 && forecastMaxTemp != null && (
+                    <TempDisplay value={forecastMaxTemp} prefix="Tomorrow max " className="cursor-help" />
+                  )}
+                </span>
+                {((dayIndex === 0 && (metarHistoryMaxTemp != null || forecastMaxTemp != null)) || (dayIndex === 1 && forecastMaxTemp != null)) && (
+                  <>
+                    <span className="text-[10px] text-amber-600 dark:text-amber-500 font-medium">
+                      {dayIndex === 0 && metarHistoryMaxTemp != null ? 'Source: METAR' : 'Source: TAF forecast'}
+                    </span>
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                      Data display only, not analysis
+                    </span>
+                  </>
                 )}
-                {(metarTemp != null && (forecastMaxTemp != null || (dayIndex === 0 && metarHistoryMaxTemp != null))) && ' · '}
-                {dayIndex === 0 && metarHistoryMaxTemp != null && (
-                  <TempDisplay value={metarHistoryMaxTemp} prefix="Today max so far " suffix=" (METAR)" className="cursor-help" />
-                )}
-                {dayIndex === 0 && metarHistoryMaxTemp == null && forecastMaxTemp != null && (
-                  <TempDisplay value={forecastMaxTemp} prefix="Today max " suffix=" (forecast)" className="cursor-help" />
-                )}
-                {dayIndex === 1 && forecastMaxTemp != null && (
-                  <TempDisplay value={forecastMaxTemp} prefix="Tomorrow max " className="cursor-help" />
-                )}
-              </span>
+              </div>
             )}
           </div>
           <pre className={`text-sm rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-words ${

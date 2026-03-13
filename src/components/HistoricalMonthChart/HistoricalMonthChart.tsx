@@ -127,7 +127,7 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
         </p>
       </div>
       <div className="p-4">
-        <div className="h-[220px] w-full">
+        <div className="h-[280px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
               <defs>

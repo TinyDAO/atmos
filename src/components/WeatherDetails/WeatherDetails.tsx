@@ -109,9 +109,6 @@ export function WeatherDetails({
           </div>
         ))}
       </div>
-      <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-        Wind/precip/cloud: Open-Meteo · Cloud base: METAR
-      </p>
     </motion.div>
   )
 }

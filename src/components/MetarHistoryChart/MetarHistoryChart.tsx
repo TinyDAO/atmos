@@ -134,7 +134,7 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
       transition={{ delay: 0.15 }}
       className="rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50 overflow-hidden"
     >
-      <div className="px-4 py-3 border-b border-zinc-200/60 dark:border-zinc-700/50 flex items-start justify-between gap-3">
+      <div className="px-4 py-3 border-b border-zinc-200/60 dark:border-zinc-700/50 flex items-end justify-between gap-3">
         <div>
           <h4 className="text-xs font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
             Aviation Temp · {icao}
@@ -171,7 +171,7 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
         </div>
       </div>
       <div className="p-4">
-        <div className="h-[220px] w-full">
+        <div className="h-[280px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={chartData}
