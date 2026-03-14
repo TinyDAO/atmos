@@ -30,6 +30,25 @@ export function parseWindFromMetar(metar: string | null): {
 }
 
 /**
+ * Parse TAF issuance time (DDHHmmZ format).
+ * Example: TAF KJFK 141200Z -> 14th 12:00 UTC
+ */
+export function parseTafIssuanceTime(taf: string | null): Date | null {
+  if (!taf || taf.includes('No TAF')) return null
+  const match = taf.match(/\bTAF\s+(?:\S+\s+)*(\d{2})(\d{2})(\d{2})Z\b/)
+  if (!match) return null
+  const day = parseInt(match[1], 10)
+  const hour = parseInt(match[2], 10)
+  const min = parseInt(match[3], 10)
+  const now = new Date()
+  let d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, hour, min, 0))
+  if (d.getTime() > now.getTime() + 15 * 24 * 60 * 60 * 1000) {
+    d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, day, hour, min, 0))
+  }
+  return d
+}
+
+/**
  * Parse cloud layers from METAR string.
  * Examples: FEW020, SCT035, BKN060, OVC080
  * Numbers are cloud base height in hundreds of feet (e.g. 060 = 6000 ft)

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { decodeMetarToPlain, decodeTafToPlain, filterTafForTomorrow } from '../../utils/aviationDecoder'
 import { TempDisplay } from '../TempDisplay'
-import { parseTemperatureFromMetar, parseTimestampFromMetar, parseWindFromMetar } from '../../utils/metarParser'
+import { parseTemperatureFromMetar, parseTimestampFromMetar, parseWindFromMetar, parseTafIssuanceTime } from '../../utils/metarParser'
 import { analyzeWind } from '../../utils/windAnalysis'
 import { useLanguage } from '../../hooks/useLanguage'
 
@@ -40,6 +40,7 @@ export function AviationWeather({
   const tafPlain = tafFiltered ? decodeTafToPlain(tafFiltered, timezone, lang) : ''
   const metarTemp = parseTemperatureFromMetar(metar)
   const metarObservedAt = parseTimestampFromMetar(metar)
+  const tafIssuedAt = parseTafIssuanceTime(taf)
   const metarWind = metar ? parseWindFromMetar(metar) : null
   const windAnalysis =
     metarWind && (metarWind.speedKt != null || metarWind.variable)
@@ -249,9 +250,30 @@ export function AviationWeather({
           )}
         </div>
         <div>
-          <h4 className="text-xs font-medium text-zinc-600 dark:text-zinc-500 uppercase mb-2">
-            TAF {dayIndex === 1 && '(tomorrow)'}
-          </h4>
+          <div className="mb-2">
+            <h4 className="text-xs font-medium text-zinc-600 dark:text-zinc-500 uppercase">
+              TAF {dayIndex === 1 && '(tomorrow)'}
+            </h4>
+            {tafIssuedAt && (
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Issued {new Intl.DateTimeFormat('en-US', {
+                  timeZone: timezone,
+                  month: 'numeric',
+                  day: 'numeric',
+                }).format(tafIssuedAt)}, {new Intl.DateTimeFormat('en-US', {
+                  timeZone: timezone,
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false,
+                }).format(tafIssuedAt)} local · {new Intl.DateTimeFormat('en-US', {
+                  timeZone: 'UTC',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false,
+                }).format(tafIssuedAt)}Z
+              </p>
+            )}
+          </div>
           <pre className={`text-sm rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-words ${
             showPlain
               ? 'text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-900/50'
