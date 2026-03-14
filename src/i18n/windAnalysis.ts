@@ -59,7 +59,7 @@ const ZH: WindAnalysisStrings = {
     southerly: '南风带来暖空气。',
   },
   turbulence: {
-    moderateSevere: '可能出现中到强乱流，VFR 需谨慎。',
+    moderateSevere: '可能出现中到强乱流。',
     moderatePossible: '可能出现中度乱流。',
     lightPossible: '可能出现轻度乱流。',
     gustyConditions: '阵风明显，低空可能颠簸。',
@@ -71,7 +71,7 @@ const ZH: WindAnalysisStrings = {
     origin: '风向来源',
     characteristics: '特征',
     weatherImpact: '天气影响',
-    vfrTurbulence: 'VFR / 乱流',
+    vfrTurbulence: '乱流',
   },
 }
 
@@ -97,7 +97,7 @@ const EN: WindAnalysisStrings = {
     southerly: 'Southerly winds bring warmer air.',
   },
   turbulence: {
-    moderateSevere: 'Moderate to severe turbulence likely. Caution for VFR.',
+    moderateSevere: 'Moderate to severe turbulence likely.',
     moderatePossible: 'Moderate turbulence possible.',
     lightPossible: 'Light turbulence possible.',
     gustyConditions: 'Gusty conditions — expect bumpy ride in low levels.',
@@ -109,7 +109,7 @@ const EN: WindAnalysisStrings = {
     origin: 'Origin',
     characteristics: 'Characteristics',
     weatherImpact: 'Weather impact',
-    vfrTurbulence: 'VFR / Turbulence',
+    vfrTurbulence: 'Turbulence',
   },
 }
 
