@@ -3,23 +3,28 @@ import html2canvas from 'html2canvas-pro'
 import { MetarHistoryChart } from '../MetarHistoryChart'
 import type { City } from '../../config/cities'
 import type { MetarDayData } from '../../utils/metarParser'
+import type { WindAnalysis } from '../../utils/windAnalysis'
 import { SITE_NAME, SITE_URL, SITE_LOGO } from '../../config/site'
 
 interface AviationShareModalProps {
   city: City
+  metar: string | null
   metarHistoryByDays: MetarDayData[]
   metarObservedAt: Date | null
   metarTemp: number | null
   metarHistoryMaxTemp: number | null
+  windAnalysis: WindAnalysis | null
   onClose: () => void
 }
 
 export function AviationShareModal({
   city,
+  metar,
   metarHistoryByDays,
   metarObservedAt,
   metarTemp,
   metarHistoryMaxTemp,
+  windAnalysis,
   onClose,
 }: AviationShareModalProps) {
   const cardRef = useRef<HTMLDivElement>(null)
@@ -135,35 +140,49 @@ export function AviationShareModal({
           {/* Share card - rendered with light theme for clean image */}
           <div
             ref={cardRef}
-            className="w-full bg-white p-4 text-zinc-800"
+            className="w-full bg-white p-3 text-zinc-800"
           >
-            <div className="flex items-center justify-between mb-3 pb-3 border-b border-zinc-200">
-              <div className="flex items-center gap-2">
-                <img src={SITE_LOGO} alt="" className="w-8 h-8 shrink-0" />
-                <span className="text-lg font-semibold text-zinc-900">{SITE_NAME}</span>
+            <div className="flex items-center justify-between mb-2 pb-2 border-b border-zinc-200">
+              <div className="flex items-center gap-1.5">
+                <img src={SITE_LOGO} alt="" className="w-6 h-6 shrink-0" />
+                <span className="text-base font-semibold text-zinc-900">{SITE_NAME}</span>
               </div>
-              <span className="text-xs text-zinc-500">{SITE_URL.replace(/^https?:\/\//, '')}</span>
+              <span className="text-[10px] text-zinc-500">{SITE_URL.replace(/^https?:\/\//, '')}</span>
             </div>
-            <div className="mb-3">
-              <h2 className="text-lg font-semibold text-zinc-900">
-                {city.name}, {city.country}
-              </h2>
-              <p className="text-sm text-zinc-500 mt-0.5">
-                Aviation Weather · {city.icao}
-              </p>
+            <div className="flex items-baseline justify-between gap-2 mb-2">
+              <div>
+                <h2 className="text-base font-semibold text-zinc-900">
+                  {city.name}, {city.country} · {city.icao}
+                </h2>
+              </div>
+              <div className="flex gap-3 text-xs shrink-0">
+                {metarTemp != null && <span className="font-medium">{metarTemp}°C</span>}
+                {metarHistoryMaxTemp != null && (
+                  <span className="text-zinc-600">Max {metarHistoryMaxTemp.toFixed(1)}°C</span>
+                )}
+              </div>
             </div>
-            <div className="flex gap-4 mb-3 text-sm">
-              {metarTemp != null && (
-                <span className="font-medium">
-                  Current {metarTemp}°C
-                </span>
-              )}
-              {metarHistoryMaxTemp != null && (
-                <span className="text-zinc-600">
-                  Today max so far {metarHistoryMaxTemp.toFixed(1)}°C
-                </span>
-              )}
-            </div>
+            {metar && (
+              <div className="mb-2 py-1.5 px-2 bg-zinc-50 rounded border border-zinc-100">
+                <p className="text-[10px] text-zinc-500 mb-0.5 font-medium">METAR</p>
+                <p className="text-[11px] font-mono text-zinc-700 leading-tight break-all">{metar}</p>
+              </div>
+            )}
+            {windAnalysis && (
+              <div className="mb-2 py-1.5 px-2 bg-zinc-50 rounded border border-zinc-100">
+                <p className="text-[10px] text-zinc-500 mb-0.5 font-medium">Wind</p>
+                <div className="text-[10px] text-zinc-600 leading-tight space-y-0.5">
+                  {windAnalysis.origin && <p>{windAnalysis.origin}</p>}
+                  {windAnalysis.characteristics.length > 0 && (
+                    <p>{windAnalysis.characteristics.join('; ')}</p>
+                  )}
+                  {windAnalysis.weatherImpact && <p>{windAnalysis.weatherImpact}</p>}
+                  {windAnalysis.turbulenceWarnings.length > 0 && (
+                    <p>{windAnalysis.turbulenceWarnings.join(' ')}</p>
+                  )}
+                </div>
+              </div>
+            )}
             <div className="overflow-hidden">
               <MetarHistoryChart
                 days={metarHistoryByDays}
@@ -174,7 +193,7 @@ export function AviationShareModal({
               />
             </div>
             {metarObservedAt && (
-              <p className="text-xs text-zinc-500 mt-3">
+              <p className="text-[10px] text-zinc-500 mt-2">
                 Observed {formatTime(metarObservedAt)} local
               </p>
             )}

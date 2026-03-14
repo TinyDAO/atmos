@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { decodeMetarToPlain, decodeTafToPlain, filterTafForTomorrow } from '../../utils/aviationDecoder'
 import { TempDisplay } from '../TempDisplay'
-import { parseTemperatureFromMetar, parseTimestampFromMetar } from '../../utils/metarParser'
+import { parseTemperatureFromMetar, parseTimestampFromMetar, parseWindFromMetar } from '../../utils/metarParser'
+import { analyzeWind } from '../../utils/windAnalysis'
 import { useLanguage } from '../../hooks/useLanguage'
 
 interface AviationWeatherProps {
@@ -10,6 +11,7 @@ interface AviationWeatherProps {
   taf: string | null
   icao: string
   timezone: string
+  latitude: number
   dayIndex: number
   forecastMaxTemp: number | null
   metarHistoryMaxTemp: number | null
@@ -23,6 +25,7 @@ export function AviationWeather({
   taf,
   icao,
   timezone,
+  latitude,
   dayIndex,
   forecastMaxTemp,
   metarHistoryMaxTemp,
@@ -37,6 +40,19 @@ export function AviationWeather({
   const tafPlain = tafFiltered ? decodeTafToPlain(tafFiltered, timezone, lang) : ''
   const metarTemp = parseTemperatureFromMetar(metar)
   const metarObservedAt = parseTimestampFromMetar(metar)
+  const metarWind = metar ? parseWindFromMetar(metar) : null
+  const windAnalysis =
+    metarWind && (metarWind.speedKt != null || metarWind.variable)
+      ? analyzeWind({
+          dirDeg: metarWind.dirDeg,
+          variable: metarWind.variable,
+          speedKt: metarWind.speedKt,
+          gustKt: metarWind.gustKt,
+          timezone,
+          latitude,
+          lang: showPlain ? lang : 'en',
+        })
+      : null
 
   if (loading) {
     return (
@@ -197,6 +213,37 @@ export function AviationWeather({
           }`}>
             {showPlain ? (metarPlain || metar || '—') : (metar ?? '—')}
           </pre>
+          {windAnalysis && (
+            <div className="mt-3 p-3 rounded-lg bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50 space-y-2 text-xs">
+              {windAnalysis.origin && (
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  <span className="font-medium text-zinc-700 dark:text-zinc-300">{windAnalysis.labels.origin}:</span> {windAnalysis.origin}
+                </p>
+              )}
+              {windAnalysis.characteristics.length > 0 && (
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  <span className="font-medium text-zinc-700 dark:text-zinc-300">{windAnalysis.labels.characteristics}:</span>{' '}
+                  {windAnalysis.characteristics.join('; ')}
+                </p>
+              )}
+              {windAnalysis.weatherImpact && (
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  <span className="font-medium text-zinc-700 dark:text-zinc-300">{windAnalysis.labels.weatherImpact}:</span>{' '}
+                  {windAnalysis.weatherImpact}
+                </p>
+              )}
+              {windAnalysis.turbulenceWarnings.length > 0 && (
+                <div>
+                  <p className="font-medium text-zinc-700 dark:text-zinc-300 mb-1">{windAnalysis.labels.vfrTurbulence}:</p>
+                  <ul className="list-disc list-inside space-y-0.5 text-zinc-600 dark:text-zinc-400">
+                    {windAnalysis.turbulenceWarnings.map((w, i) => (
+                      <li key={i}>{w}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
           {dayIndex === 1 && (
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">METAR is real-time; no tomorrow data</p>
           )}

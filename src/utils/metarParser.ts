@@ -1,4 +1,35 @@
 /**
+ * Parse wind from METAR.
+ * Format: dddssKT, dddssGggKT, or VRBssKT (variable)
+ * Returns direction (degrees), variable flag, speed (kt), gust (kt)
+ */
+export function parseWindFromMetar(metar: string | null): {
+  dirDeg: number | null
+  variable: boolean
+  speedKt: number | null
+  gustKt: number | null
+} {
+  if (!metar) return { dirDeg: null, variable: false, speedKt: null, gustKt: null }
+  const vrbMatch = metar.match(/\bVRB(\d{1,3})(?:G(\d{2}))?KT\b/)
+  if (vrbMatch) {
+    const speed = parseInt(vrbMatch[1], 10)
+    const gust = vrbMatch[2] ? parseInt(vrbMatch[2], 10) : null
+    return { dirDeg: null, variable: true, speedKt: isNaN(speed) ? null : speed, gustKt: gust }
+  }
+  const match = metar.match(/\b(\d{3})(\d{2,3})(?:G(\d{2}))?KT\b/)
+  if (!match) return { dirDeg: null, variable: false, speedKt: null, gustKt: null }
+  const dirDeg = parseInt(match[1], 10)
+  const speed = parseInt(match[2], 10)
+  const gust = match[3] ? parseInt(match[3], 10) : null
+  return {
+    dirDeg: isNaN(dirDeg) ? null : dirDeg,
+    variable: false,
+    speedKt: isNaN(speed) ? null : speed,
+    gustKt: gust,
+  }
+}
+
+/**
  * Parse cloud layers from METAR string.
  * Examples: FEW020, SCT035, BKN060, OVC080
  * Numbers are cloud base height in hundreds of feet (e.g. 060 = 6000 ft)

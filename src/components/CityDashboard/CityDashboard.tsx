@@ -10,7 +10,8 @@ import { AviationWeather } from '../AviationWeather'
 import { AviationShareModal } from '../AviationShareModal'
 import { SatelliteMap } from '../SatelliteMap'
 import { useHistoricalMonth } from '../../hooks/useHistoricalMonth'
-import { parseTimestampFromMetar, parseTemperatureFromMetar } from '../../utils/metarParser'
+import { parseTimestampFromMetar, parseTemperatureFromMetar, parseWindFromMetar } from '../../utils/metarParser'
+import { analyzeWind } from '../../utils/windAnalysis'
 import type { City } from '../../config/cities'
 import type { MetarDayData } from '../../utils/metarParser'
 
@@ -226,6 +227,19 @@ export function CityDashboard({
   aviationError,
 }: CityDashboardProps) {
   const [showShareModal, setShowShareModal] = useState(false)
+  const metarWind = metar ? parseWindFromMetar(metar) : null
+  const shareWindAnalysis =
+    metarWind && (metarWind.speedKt != null || metarWind.variable)
+      ? analyzeWind({
+          dirDeg: metarWind.dirDeg,
+          variable: metarWind.variable,
+          speedKt: metarWind.speedKt,
+          gustKt: metarWind.gustKt,
+          timezone: city.timezone,
+          latitude: city.latitude,
+          lang: 'en',
+        })
+      : null
   const currentMonth = new Date().getMonth()
   const monthName = MONTH_NAMES[currentMonth]
   const { data: historicalData, loading: historicalLoading, error: historicalError } = useHistoricalMonth(
@@ -295,6 +309,7 @@ export function CityDashboard({
           taf={taf}
           icao={city.icao}
           timezone={city.timezone}
+          latitude={city.latitude}
           dayIndex={dayIndex}
           forecastMaxTemp={dayMax}
           metarHistoryMaxTemp={metarHistoryMaxTemp}
@@ -306,10 +321,12 @@ export function CityDashboard({
       {showShareModal && (
         <AviationShareModal
           city={city}
+          metar={metar}
           metarHistoryByDays={metarHistoryByDays}
           metarObservedAt={parseTimestampFromMetar(metar)}
           metarTemp={parseTemperatureFromMetar(metar)}
           metarHistoryMaxTemp={metarHistoryMaxTemp}
+          windAnalysis={shareWindAnalysis}
           onClose={() => setShowShareModal(false)}
         />
       )}
