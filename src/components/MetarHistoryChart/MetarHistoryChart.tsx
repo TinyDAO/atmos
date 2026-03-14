@@ -19,6 +19,8 @@ interface MetarHistoryChartProps {
   icao: string
   timezone: string
   loading?: boolean
+  /** Compact mode for share card: hide day selector, use white background */
+  compact?: boolean
 }
 
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value?: number; dataKey?: string }>; label?: string }) {
@@ -92,10 +94,11 @@ function buildDayChartData(
   return slots
 }
 
-export function MetarHistoryChart({ days, icao, timezone, loading = false }: MetarHistoryChartProps) {
+export function MetarHistoryChart({ days, icao, timezone, loading = false, compact = false }: MetarHistoryChartProps) {
   const { theme } = useTheme()
   const [dayIndex, setDayIndex] = useState(0)
   const selectedDay = days[dayIndex] ?? days[0]
+  const chartTheme = compact ? 'light' : theme
   const chartData = useMemo(
     () => selectedDay ? buildDayChartData(selectedDay.points, timezone, selectedDay.isToday) : [],
     [selectedDay, timezone]
@@ -116,7 +119,11 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50 p-6 flex items-center justify-center min-h-[280px]"
+        className={`flex items-center justify-center ${
+          compact ? 'p-4 min-h-[200px]' : 'p-6 min-h-[280px]'
+        } ${
+          compact ? 'bg-white' : 'rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50'
+        }`}
       >
         <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
           <div className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
@@ -130,7 +137,9 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50 p-6 text-center"
+        className={`text-center ${
+          compact ? 'p-4 bg-white' : 'p-6 rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50'
+        }`}
       >
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           过去 15 天 METAR 数据不足，无法绘制图表
@@ -143,20 +152,50 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.15 }}
-      className="rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50 overflow-hidden"
+      transition={{ delay: compact ? 0 : 0.15 }}
+      className={`overflow-hidden ${
+        compact ? 'bg-white' : 'rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50'
+      }`}
     >
-      <div className="px-4 py-2.5 border-b border-zinc-200/60 dark:border-zinc-700/50 flex items-center justify-between gap-3">
+      <div className={`border-b flex items-center justify-between gap-3 ${compact ? 'px-3 py-2 border-zinc-200' : 'px-4 py-2.5 border-zinc-200/60 dark:border-zinc-700/50'}`}>
         <div>
-          <h4 className="text-xs font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+          <h4 className={`text-xs font-medium uppercase tracking-wider ${compact ? 'text-zinc-700' : 'text-zinc-600 dark:text-zinc-400'}`}>
             Aviation Temp · {icao}
           </h4>
-          <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-0.5">
+          <p className="text-xs text-zinc-500 mt-0.5">
             METAR observations · Past 15 days
           </p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+        {!compact && (
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-0.5 rounded bg-amber-500" />
+                Temp
+              </span>
+              {chartData.some((d) => d.dewpoint != null) && (
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-0.5 rounded border border-dashed border-cyan-500" />
+                  Dewpoint
+                </span>
+              )}
+            </div>
+            <select
+              value={dayIndex}
+              onChange={(e) => setDayIndex(Number(e.target.value))}
+              className="text-xs font-medium rounded-md border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-1 min-h-0 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+            >
+              {days.map((d, i) => (
+                <option key={d.dateStr} value={i}>
+                  {d.label}
+                  {d.maxTemp != null ? ` ${d.maxTemp.toFixed(1)}°` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {compact && (
+          <div className="flex items-center gap-3 text-xs text-zinc-500">
             <span className="flex items-center gap-1.5">
               <span className="w-3 h-0.5 rounded bg-amber-500" />
               Temp
@@ -168,22 +207,10 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
               </span>
             )}
           </div>
-          <select
-            value={dayIndex}
-            onChange={(e) => setDayIndex(Number(e.target.value))}
-            className="text-xs font-medium rounded-md border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-1 min-h-0 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-          >
-            {days.map((d, i) => (
-              <option key={d.dateStr} value={i}>
-                {d.label}
-                {d.maxTemp != null ? ` ${d.maxTemp.toFixed(1)}°` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
+        )}
       </div>
-      <div className="p-4">
-        <div className="h-[280px] w-full">
+      <div className={compact ? 'p-3' : 'p-4'}>
+        <div className={`w-full ${compact ? 'h-[200px]' : 'h-[280px]'}`}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={chartData}
@@ -191,14 +218,14 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false }: Met
             >
               <defs>
                 <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={theme === 'dark' ? '#fbbf24' : '#f59e0b'} stopOpacity={theme === 'dark' ? 0.35 : 0.4} />
-                  <stop offset="100%" stopColor={theme === 'dark' ? '#fbbf24' : '#f59e0b'} stopOpacity={theme === 'dark' ? 0.02 : 0.05} />
+                  <stop offset="0%" stopColor={chartTheme === 'dark' ? '#fbbf24' : '#f59e0b'} stopOpacity={chartTheme === 'dark' ? 0.35 : 0.4} />
+                  <stop offset="100%" stopColor={chartTheme === 'dark' ? '#fbbf24' : '#f59e0b'} stopOpacity={chartTheme === 'dark' ? 0.02 : 0.05} />
                 </linearGradient>
               </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="currentColor"
-                className="text-zinc-200/80 dark:text-zinc-700/60"
+                className={compact ? 'text-zinc-200' : 'text-zinc-200/80 dark:text-zinc-700/60'}
                 vertical={false}
               />
               <XAxis

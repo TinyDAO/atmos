@@ -3,6 +3,8 @@
  */
 export const SITE_URL = 'https://polyatmos.vercel.app'
 export const SITE_NAME = 'Atmos'
+/** Logo URL for share cards (e.g. /favicon.svg) */
+export const SITE_LOGO = '/favicon.svg'
 
 export const SEO = {
   title: 'Atmos – Weather Forecast, Aviation Weather & Polymarket Temperature',

@@ -7,8 +7,10 @@ import { PolymarketDashboard } from '../PolymarketDashboard/PolymarketDashboard'
 import { WeatherForecast } from '../WeatherForecast'
 import { WeatherDetails } from '../WeatherDetails'
 import { AviationWeather } from '../AviationWeather'
+import { AviationShareModal } from '../AviationShareModal'
 import { SatelliteMap } from '../SatelliteMap'
 import { useHistoricalMonth } from '../../hooks/useHistoricalMonth'
+import { parseTimestampFromMetar, parseTemperatureFromMetar } from '../../utils/metarParser'
 import type { City } from '../../config/cities'
 import type { MetarDayData } from '../../utils/metarParser'
 
@@ -223,6 +225,7 @@ export function CityDashboard({
   aviationLoading,
   aviationError,
 }: CityDashboardProps) {
+  const [showShareModal, setShowShareModal] = useState(false)
   const currentMonth = new Date().getMonth()
   const monthName = MONTH_NAMES[currentMonth]
   const { data: historicalData, loading: historicalLoading, error: historicalError } = useHistoricalMonth(
@@ -297,8 +300,19 @@ export function CityDashboard({
           metarHistoryMaxTemp={metarHistoryMaxTemp}
           loading={aviationLoading}
           error={aviationError}
+          onShare={() => setShowShareModal(true)}
         />
       </div>
+      {showShareModal && (
+        <AviationShareModal
+          city={city}
+          metarHistoryByDays={metarHistoryByDays}
+          metarObservedAt={parseTimestampFromMetar(metar)}
+          metarTemp={parseTemperatureFromMetar(metar)}
+          metarHistoryMaxTemp={metarHistoryMaxTemp}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
 
       {/* Row 3: MetarHistoryChart | Historical chart */}
       <div className="grid lg:grid-cols-2 gap-4 mb-4">
