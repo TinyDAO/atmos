@@ -8,7 +8,6 @@ const ORDER_BOOK_DEPTH = 5
 
 interface PolymarketDashboardProps {
   city: City
-  dayIndex?: number
 }
 
 function formatPrice(p: number | string): string {
@@ -150,26 +149,50 @@ function MarketRow({
   )
 }
 
-export function PolymarketDashboard({ city, dayIndex = 0 }: PolymarketDashboardProps) {
+function buildDayOptions(timezone: string): Array<{ value: number; label: string }> {
+  const fmt = new Intl.DateTimeFormat('en-US', { timeZone: timezone, month: 'short', day: 'numeric' })
+  return Array.from({ length: 5 }, (_, i) => {
+    const d = new Date()
+    d.setTime(d.getTime() + i * 24 * 60 * 60 * 1000)
+    return { value: i, label: i === 0 ? `Today` : fmt.format(d) }
+  })
+}
+
+export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
+  const [dayIndex, setDayIndex] = useState(0)
   const { event, marketsWithBooks, loading, error } = usePolymarketEvent(
     city.id,
     city.timezone,
     dayIndex
   )
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const dayOptions = buildDayOptions(city.timezone)
 
   const activeMarkets = marketsWithBooks.filter((m) => m.active || !m.closed)
 
   const cardClass =
     'rounded-2xl bg-white/60 dark:bg-zinc-900/50 backdrop-blur-sm border border-zinc-200/60 dark:border-zinc-700/50 overflow-hidden h-full flex flex-col min-h-0'
 
+  const dateSelector = (
+    <select
+      value={dayIndex}
+      onChange={(e) => { setDayIndex(Number(e.target.value)); setExpandedId(null) }}
+      className="text-xs font-medium rounded-md border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-1 min-h-0 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+    >
+      {dayOptions.map((opt) => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+  )
+
   if (loading) {
     return (
       <div className={cardClass}>
-        <div className="px-5 py-4 border-b border-zinc-200/80 dark:border-zinc-700/80 shrink-0">
+        <div className="px-5 py-4 border-b border-zinc-200/80 dark:border-zinc-700/80 shrink-0 flex items-center justify-between">
           <h4 className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
             Polymarket
           </h4>
+          {dateSelector}
         </div>
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="animate-pulse text-zinc-400 dark:text-zinc-500 text-sm">
@@ -183,10 +206,11 @@ export function PolymarketDashboard({ city, dayIndex = 0 }: PolymarketDashboardP
   if (error || !event) {
     return (
       <div className={cardClass}>
-        <div className="px-5 py-4 border-b border-zinc-200/80 dark:border-zinc-700/80 shrink-0">
+        <div className="px-5 py-4 border-b border-zinc-200/80 dark:border-zinc-700/80 shrink-0 flex items-center justify-between">
           <h4 className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
             Polymarket
           </h4>
+          {dateSelector}
         </div>
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -209,23 +233,24 @@ export function PolymarketDashboard({ city, dayIndex = 0 }: PolymarketDashboardP
     <div className={cardClass + ' shadow-[0_0_0_1px_rgba(0,0,0,0.02)]'}>
       <div className="px-5 py-4 border-b border-zinc-200/80 dark:border-zinc-700/80 shrink-0">
         <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
-              Polymarket
-            </h4>
-            <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 truncate" title={event.slug}>
-              {event.title}
-            </p>
+          <h4 className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
+            Polymarket
+          </h4>
+          <div className="flex items-center gap-2 shrink-0">
+            {dateSelector}
+            <a
+              href={`https://polymarket.com/event/${event.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-violet-600 dark:text-violet-400 hover:underline"
+            >
+              View →
+            </a>
           </div>
-          <a
-            href={`https://polymarket.com/event/${event.slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 text-xs font-medium text-violet-600 dark:text-violet-400 hover:underline"
-          >
-            View →
-          </a>
         </div>
+        <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 truncate" title={event.slug}>
+          {event.title}
+        </p>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto">
         {activeMarkets.length === 0 ? (

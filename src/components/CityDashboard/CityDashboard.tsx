@@ -333,14 +333,12 @@ export function CityDashboard({
 
       {/* Row 3: MetarHistoryChart | Historical chart */}
       <div className="grid lg:grid-cols-2 gap-4 mb-4">
-        <div className="rounded-xl overflow-hidden shadow-sm">
-          <MetarHistoryChart
-            days={metarHistoryByDays}
-            icao={city.icao}
-            timezone={city.timezone}
-            loading={aviationLoading}
-          />
-        </div>
+        <MetarHistoryChart
+          days={metarHistoryByDays}
+          icao={city.icao}
+          timezone={city.timezone}
+          loading={aviationLoading}
+        />
         <HistoricalMonthChart
           data={historicalData}
           monthName={monthName}

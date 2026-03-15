@@ -84,7 +84,7 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-700/50 p-8 flex items-center justify-center min-h-[280px]"
+        className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-700/50 shadow-sm p-8 flex items-center justify-center min-h-[280px]"
       >
         <div className="animate-pulse text-zinc-500 dark:text-zinc-400 text-sm">Loading...</div>
       </motion.div>
@@ -96,7 +96,7 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-700/50 p-8 text-center min-h-[280px]"
+        className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-700/50 shadow-sm p-8 text-center min-h-[280px]"
       >
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           {error ?? 'No historical data for this month'}
@@ -110,7 +110,7 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-700/50 overflow-hidden"
+      className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-700/50 shadow-sm overflow-hidden"
     >
       <div className="px-5 py-4 border-b border-zinc-200/80 dark:border-zinc-700/80">
         <h4 className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">

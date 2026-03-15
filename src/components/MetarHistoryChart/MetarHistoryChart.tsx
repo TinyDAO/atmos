@@ -114,6 +114,10 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false, compa
   }, [chartData])
 
   const hasData = days.length > 0 && chartData.some((d) => d.temp != null)
+  const cardStyle = compact
+    ? 'bg-white'
+    : 'rounded-2xl bg-zinc-100/60 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-700/50 shadow-sm'
+
   if (loading) {
     return (
       <motion.div
@@ -121,9 +125,7 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false, compa
         animate={{ opacity: 1 }}
         className={`flex items-center justify-center ${
           compact ? 'p-4 min-h-[200px]' : 'p-6 min-h-[280px]'
-        } ${
-          compact ? 'bg-white' : 'rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50'
-        }`}
+        } ${cardStyle}`}
       >
         <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
           <div className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
@@ -137,9 +139,7 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false, compa
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className={`text-center ${
-          compact ? 'p-4 bg-white' : 'p-6 rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50'
-        }`}
+        className={`text-center ${compact ? 'p-4' : 'p-6'} ${cardStyle}`}
       >
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           过去 15 天 METAR 数据不足，无法绘制图表
@@ -153,16 +153,14 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false, compa
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: compact ? 0 : 0.15 }}
-      className={`overflow-hidden ${
-        compact ? 'bg-white' : 'rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-700/50'
-      }`}
+      className={`overflow-hidden ${cardStyle}`}
     >
-      <div className={`border-b flex items-center justify-between gap-3 ${compact ? 'px-3 py-2 border-zinc-200' : 'px-4 py-2.5 border-zinc-200/60 dark:border-zinc-700/50'}`}>
+      <div className={`border-b flex items-center justify-between gap-3 ${compact ? 'px-3 py-2 border-zinc-200' : 'px-5 py-4 border-zinc-200/80 dark:border-zinc-700/80'}`}>
         <div>
-          <h4 className={`text-xs font-medium uppercase tracking-wider ${compact ? 'text-zinc-700' : 'text-zinc-600 dark:text-zinc-400'}`}>
+          <h4 className={`text-xs uppercase ${compact ? 'font-medium tracking-wider text-zinc-700' : 'font-semibold tracking-widest text-zinc-600 dark:text-zinc-400'}`}>
             Aviation Temp · {icao}
           </h4>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <p className={`text-xs text-zinc-500 dark:text-zinc-500 ${compact ? 'mt-0.5' : 'mt-1'}`}>
             METAR observations · Past 15 days
           </p>
         </div>
