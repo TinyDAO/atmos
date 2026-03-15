@@ -67,7 +67,7 @@ const en = {
     thinking: 'Thinking',
     generatingResponse: 'Generating response...',
     analyzingMetar: 'Analyzing METAR data...',
-    disclaimer: 'AI-generated content, for reference only, not for flight decision-making',
+    disclaimer: 'AI-generated content, for reference only, not for decision-making',
     shareTitle: 'Share AI Analysis',
     share: 'Share',
   },
