@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, ReferenceLine, ReferenceArea } from 'recharts'
 import { motion } from 'framer-motion'
 import { useTheme } from '../../hooks/useTheme'
+import { useTranslation } from '../../hooks/useTranslation'
 import type { HistoricalMonthPoint } from '../../hooks/useHistoricalMonth'
 
 interface HistoricalMonthChartProps {
@@ -33,14 +34,15 @@ function CustomTooltip({
   label?: number
   todayDay?: number
 }) {
+  const { t } = useTranslation()
   if (!active || !payload?.length) return null
   const temp = payload[0]?.value
   const isToday = label === todayDay
   return (
     <div className="rounded-lg border border-zinc-300/60 dark:border-zinc-600/60 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm px-3 py-2 shadow-lg text-sm">
       <div className="font-medium text-zinc-700 dark:text-zinc-200">
-        Day {label}
-        {isToday && <span className="ml-1.5 text-amber-600 dark:text-amber-400 font-semibold">· Today</span>}
+        {t('historical.day').replace('{day}', String(label))}
+        {isToday && <span className="ml-1.5 text-amber-600 dark:text-amber-400 font-semibold">{t('historical.todayLabel')}</span>}
       </div>
       {temp != null && !Number.isNaN(temp) && (
         <div className="text-zinc-600 dark:text-zinc-400 mt-0.5">{temp.toFixed(1)}°C</div>
@@ -50,6 +52,7 @@ function CustomTooltip({
 }
 
 export function HistoricalMonthChart({ data, monthName, timezone, loading, error }: HistoricalMonthChartProps) {
+  const { t } = useTranslation()
   const { theme } = useTheme()
   const todayDay = useMemo(() => getTodayDay(timezone), [timezone])
   const highlightRange = useMemo(() => {
@@ -88,7 +91,7 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
       >
         <div className="flex items-center gap-2 text-zinc-400 dark:text-zinc-500">
           <div className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm">Loading...</span>
+          <span className="text-sm">{t('common.loading')}</span>
         </div>
       </motion.div>
     )
@@ -102,7 +105,7 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
         className="rounded-2xl bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 p-8 text-center min-h-[280px]"
       >
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          {error ?? 'No historical data for this month'}
+          {error ?? t('historical.noData')}
         </p>
       </motion.div>
     )
@@ -117,14 +120,14 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
     >
       <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800/60">
         <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-[0.08em]">
-          Historical · {monthName}
+          {t('historical.title')} · {monthName}
         </h4>
         <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">
-          Past {chartData[0]?.years ?? 0} years same-month average max °C
+          {t('historical.pastYearsAvg').replace('{years}', String(chartData[0]?.years ?? 0))}
           {chartData.some((d) => d.day === todayDay) && (
             <span className="ml-2 inline-flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-amber-500" />
-              <span className="font-medium text-amber-600 dark:text-amber-400">Today · Day {todayDay}</span>
+              <span className="font-medium text-amber-600 dark:text-amber-400">{t('historical.todayDay').replace('{day}', String(todayDay))}</span>
             </span>
           )}
         </p>
@@ -178,7 +181,7 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
                   strokeWidth={1.5}
                   strokeDasharray="4 4"
                   label={{
-                    value: `Avg ${monthAvg.toFixed(1)}°`,
+                    value: t('historical.avg').replace('{value}', monthAvg.toFixed(1)),
                     position: 'insideTopRight',
                     fontSize: 10,
                     fill: 'currentColor',

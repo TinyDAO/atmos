@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from '../../hooks/useTranslation'
 
 interface CityCardProps {
   name: string
@@ -15,6 +16,7 @@ export function CityCard({
   localTime,
   gradient,
 }: CityCardProps) {
+  const { t } = useTranslation()
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -50,7 +52,7 @@ export function CityCard({
           transition={{ delay: 0.35 }}
           className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/15 backdrop-blur-md border border-white/10"
         >
-          <span className="text-xs text-white/60 uppercase tracking-widest font-medium">Local</span>
+          <span className="text-xs text-white/60 uppercase tracking-widest font-medium">{t('cityCard.local')}</span>
           <span className="text-base font-mono font-medium text-white tabular-nums">{localTime}</span>
         </motion.div>
       </div>

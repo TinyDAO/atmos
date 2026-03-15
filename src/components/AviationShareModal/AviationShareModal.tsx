@@ -5,6 +5,7 @@ import type { City } from '../../config/cities'
 import type { MetarDayData } from '../../utils/metarParser'
 import type { WindAnalysis } from '../../utils/windAnalysis'
 import { SITE_NAME, SITE_URL, SITE_LOGO } from '../../config/site'
+import { useTranslation } from '../../hooks/useTranslation'
 
 interface AviationShareModalProps {
   city: City
@@ -27,6 +28,7 @@ export function AviationShareModal({
   windAnalysis,
   onClose,
 }: AviationShareModalProps) {
+  const { t } = useTranslation()
   const cardRef = useRef<HTMLDivElement>(null)
   const [copyFeedback, setCopyFeedback] = useState<'copied' | 'downloaded' | null>(null)
   const [loading, setLoading] = useState<'download' | 'copy' | null>(null)
@@ -124,7 +126,7 @@ export function AviationShareModal({
       >
         <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-            Share Aviation Weather
+            {t('share.title')}
           </h3>
           <button
             type="button"
@@ -158,7 +160,7 @@ export function AviationShareModal({
               <div className="flex gap-3 text-xs shrink-0">
                 {metarTemp != null && <span className="font-medium">{metarTemp}°C</span>}
                 {metarHistoryMaxTemp != null && (
-                  <span className="text-zinc-600">Max {metarHistoryMaxTemp.toFixed(1)}°C</span>
+                  <span className="text-zinc-600">{t('share.max')} {metarHistoryMaxTemp.toFixed(1)}°C</span>
                 )}
               </div>
             </div>
@@ -170,7 +172,7 @@ export function AviationShareModal({
             )}
             {windAnalysis && (
               <div className="mb-2 py-1.5 px-2 bg-zinc-50 rounded border border-zinc-100">
-                <p className="text-[10px] text-zinc-500 mb-0.5 font-medium">Wind</p>
+                <p className="text-[10px] text-zinc-500 mb-0.5 font-medium">{t('share.wind')}</p>
                 <div className="text-[10px] text-zinc-600 leading-tight space-y-0.5">
                   {windAnalysis.origin && <p>{windAnalysis.origin}</p>}
                   {windAnalysis.characteristics.length > 0 && (
@@ -194,7 +196,7 @@ export function AviationShareModal({
             </div>
             {metarObservedAt && (
               <p className="text-[10px] text-zinc-500 mt-2">
-                Observed {formatTime(metarObservedAt)} local
+                {t('aviation.observed')} {formatTime(metarObservedAt)} local
               </p>
             )}
           </div>
@@ -208,10 +210,10 @@ export function AviationShareModal({
               {loading === 'download' ? (
                 <>
                   <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0" />
-                  Downloading...
+                  {t('share.downloading')}
                 </>
               ) : (
-                'Download image'
+                t('share.downloadImage')
               )}
             </button>
             <button
@@ -223,14 +225,14 @@ export function AviationShareModal({
               {loading === 'copy' ? (
                 <>
                   <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin shrink-0" />
-                  Copying...
+                  {t('share.copying')}
                 </>
               ) : copyFeedback === 'copied' ? (
-                'Copied!'
+                t('share.copied')
               ) : copyFeedback === 'downloaded' ? (
-                'Downloaded'
+                t('share.downloaded')
               ) : (
-                'Copy image'
+                t('share.copyImage')
               )}
             </button>
           </div>

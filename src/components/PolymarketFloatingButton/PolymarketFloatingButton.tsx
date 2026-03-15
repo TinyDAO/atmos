@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { getPolymarketSlug } from '../../utils/polymarketSlug'
+import { useTranslation } from '../../hooks/useTranslation'
 
 interface City {
   id: string
@@ -24,6 +25,7 @@ function getShortSlugDisplay(cityId: string, dayIndex: number, timezone: string)
 }
 
 export function PolymarketFloatingButton({ city, dayIndex }: PolymarketFloatingButtonProps) {
+  const { t } = useTranslation()
   if (!city) return null
 
   const slug = getPolymarketSlug(city.id, dayIndex, city.timezone)
@@ -43,7 +45,7 @@ export function PolymarketFloatingButton({ city, dayIndex }: PolymarketFloatingB
         text-white dark:text-zinc-900 shadow-lg shadow-black/10 dark:shadow-black/30
         hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]
         transition-all duration-200"
-      title={`Polymarket ${city.name} 最高温预测市场`}
+      title={t('polymarketButton.title').replace('{city}', city.name)}
     >
       <svg className="w-5 h-5 md:w-6 md:h-6 shrink-0" viewBox="0 0 400 400" fill="currentColor" aria-hidden>
         <path d="M200 0C89.5 0 0 89.5 0 200s89.5 200 200 200 200-89.5 200-200S310.5 0 200 0zm-30 300h-40V100h100c44.2 0 80 35.8 80 80s-35.8 80-80 80h-60v40zm0-80h60c22.1 0 40-17.9 40-40s-17.9-40-40-40h-60v80z" />

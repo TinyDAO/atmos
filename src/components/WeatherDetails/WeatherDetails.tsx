@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from '../../hooks/useTranslation'
 
 function windDegToDir(deg: number): string {
   const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']
@@ -26,6 +27,8 @@ export function WeatherDetails({
   cloudBaseM,
   loading,
 }: WeatherDetailsProps) {
+  const { t } = useTranslation()
+
   if (loading) {
     return (
       <motion.div
@@ -51,7 +54,7 @@ export function WeatherDetails({
 
   const items = [
     {
-      label: 'Wind',
+      label: t('weatherDetails.wind'),
       value: windSpeed != null && windDir != null
         ? `${windDegToDir(windDir)} ${windSpeed} km/h`
         : '—',
@@ -62,7 +65,7 @@ export function WeatherDetails({
       ),
     },
     {
-      label: 'Precipitation',
+      label: t('weatherDetails.precipitation'),
       value: precipitation != null ? `${precipitation} mm` : '—',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,7 +74,7 @@ export function WeatherDetails({
       ),
     },
     {
-      label: 'Cloud Cover',
+      label: t('weatherDetails.cloudCover'),
       value: cloudCover != null ? `${cloudCover}%` : '—',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,9 +83,9 @@ export function WeatherDetails({
       ),
     },
     {
-      label: 'Cloud Base',
+      label: t('weatherDetails.cloudBase'),
       value: cloudBaseM != null ? `${cloudBaseM} m` : '—',
-      sub: cloudBaseM != null ? '(from METAR)' : null,
+      sub: cloudBaseM != null ? t('weatherDetails.fromMETAR') : null,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -99,7 +102,7 @@ export function WeatherDetails({
       className={`${cardBase} p-5 h-full flex flex-col min-h-0`}
     >
       <h3 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-[0.08em] mb-4 shrink-0">
-        Wind · Rain · Cloud
+        {t('weatherDetails.title')}
       </h3>
       <div className="flex-1 grid grid-cols-2 gap-2.5 min-h-0">
         {items.map((item) => (

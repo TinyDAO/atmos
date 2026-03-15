@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { City } from '../../config/cities'
 import { formatLocalTime, formatLocalDate } from '../../utils/timezone'
+import { useTranslation } from '../../hooks/useTranslation'
 
 interface CitySelectorProps {
   cities: City[]
@@ -10,6 +11,7 @@ interface CitySelectorProps {
 }
 
 export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorProps) {
+  const { t } = useTranslation()
   const [now, setNow] = useState(() => new Date())
   const [sticky, setSticky] = useState(false)
   const [mobilePickerOpen, setMobilePickerOpen] = useState(false)
@@ -122,7 +124,7 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
               )}
               <div className="text-left min-w-0">
                 <span className="block text-sm font-medium text-zinc-800 dark:text-zinc-100 truncate">
-                  {selectedCity?.name ?? 'Select city'}
+                  {selectedCity?.name ?? t('citySelector.selectCity')}
                 </span>
                 {selectedCity && (
                   <span className="block text-[11px] text-zinc-400 dark:text-zinc-500 truncate">
@@ -163,7 +165,7 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
                 <div className="shrink-0 pt-3 pb-2 px-4">
                   <div className="w-10 h-1 rounded-full bg-zinc-200 dark:bg-zinc-700 mx-auto" />
                   <h3 className="text-center text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.08em] mt-3">
-                    Select city
+                    {t('citySelector.selectCity')}
                   </h3>
                 </div>
                 <div className="flex-1 overflow-y-auto overscroll-contain pb-6 px-4">

@@ -9,6 +9,7 @@ import { WeatherDetails } from '../WeatherDetails'
 import { AviationWeather } from '../AviationWeather'
 import { AviationShareModal } from '../AviationShareModal'
 import { SatelliteMap } from '../SatelliteMap'
+import { useTranslation } from '../../hooks/useTranslation'
 import { useHistoricalMonth } from '../../hooks/useHistoricalMonth'
 import { parseTimestampFromMetar, parseTemperatureFromMetar, parseWindFromMetar } from '../../utils/metarParser'
 import { analyzeWind } from '../../utils/windAnalysis'
@@ -115,6 +116,7 @@ function VideoWebcam({
 }
 
 function WebcamSlot({ item, city, index }: { item: WebcamItem; city: City; index: number }) {
+  const { t } = useTranslation()
   const [error, setError] = useState(false)
   const isImage = typeof item === 'string'
   const isIframe = item && typeof item === 'object' && item.type === 'iframe'
@@ -175,7 +177,7 @@ function WebcamSlot({ item, city, index }: { item: WebcamItem; city: City; index
             <svg className="w-10 h-10 text-white/90" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
             </svg>
-            <span className="text-sm font-medium text-white drop-shadow">观看直播</span>
+            <span className="text-sm font-medium text-white drop-shadow">{t('webcams.watchLive')}</span>
           </div>
         </a>
       ) : null}
@@ -226,6 +228,7 @@ export function CityDashboard({
   aviationLoading,
   aviationError,
 }: CityDashboardProps) {
+  const { t } = useTranslation()
   const [showShareModal, setShowShareModal] = useState(false)
   const metarWind = metar ? parseWindFromMetar(metar) : null
   const shareWindAnalysis =
@@ -289,7 +292,7 @@ export function CityDashboard({
           >
             <div className="px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800/60">
               <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-[0.08em]">
-                Live Webcams
+                {t('webcams.title')}
               </h4>
             </div>
             <div className="p-3">

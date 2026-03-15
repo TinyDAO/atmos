@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePolymarketEvent } from '../../hooks/usePolymarketEvent'
+import { useTranslation } from '../../hooks/useTranslation'
 import type { City } from '../../config/cities'
 import type { PolymarketMarketWithBook } from '../../hooks/usePolymarketEvent'
 
@@ -33,6 +34,7 @@ function MarketRow({
   expanded: boolean
   onToggle: () => void
 }) {
+  const { t } = useTranslation()
   const yesPrice =
     market.lastTradePrice ??
     (() => {
@@ -74,7 +76,7 @@ function MarketRow({
             {formatPrice(yesPrice)}
           </span>
           <span className="text-xs text-zinc-500 dark:text-zinc-400 tabular-nums">
-            Vol {formatVolume(volume)}
+            {t('polymarket.vol')} {formatVolume(volume)}
           </span>
           <svg
             className={`w-4 h-4 text-zinc-400 transition-transform ${expanded ? 'rotate-180' : ''}`}
@@ -99,7 +101,7 @@ function MarketRow({
             <div className="px-5 pb-4 pt-0 grid grid-cols-2 gap-4 border-t border-zinc-50 dark:border-zinc-800/40">
               <div>
                 <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2 uppercase tracking-wider">
-                  Bids
+                  {t('polymarket.bids')}
                 </div>
                 <div className="space-y-1">
                   {topBids.length === 0 ? (
@@ -121,7 +123,7 @@ function MarketRow({
               </div>
               <div>
                 <div className="text-xs font-semibold text-rose-600 dark:text-rose-400 mb-2 uppercase tracking-wider">
-                  Asks
+                  {t('polymarket.asks')}
                 </div>
                 <div className="space-y-1">
                   {topAsks.length === 0 ? (
@@ -149,16 +151,17 @@ function MarketRow({
   )
 }
 
-function buildDayOptions(timezone: string): Array<{ value: number; label: string }> {
+function buildDayOptions(timezone: string, todayLabel: string): Array<{ value: number; label: string }> {
   const fmt = new Intl.DateTimeFormat('en-US', { timeZone: timezone, month: 'short', day: 'numeric' })
   return Array.from({ length: 5 }, (_, i) => {
     const d = new Date()
     d.setTime(d.getTime() + i * 24 * 60 * 60 * 1000)
-    return { value: i, label: i === 0 ? `Today` : fmt.format(d) }
+    return { value: i, label: i === 0 ? todayLabel : fmt.format(d) }
   })
 }
 
 export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
+  const { t } = useTranslation()
   const [dayIndex, setDayIndex] = useState(0)
   const { event, marketsWithBooks, loading, error } = usePolymarketEvent(
     city.id,
@@ -166,7 +169,7 @@ export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
     dayIndex
   )
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const dayOptions = buildDayOptions(city.timezone)
+  const dayOptions = buildDayOptions(city.timezone, t('common.today'))
 
   const activeMarkets = marketsWithBooks.filter((m) => m.active || !m.closed)
 
@@ -197,7 +200,7 @@ export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="flex items-center gap-2 text-zinc-400 dark:text-zinc-500">
             <div className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm">Loading markets…</span>
+            <span className="text-sm">{t('polymarket.loading')}</span>
           </div>
         </div>
       </div>
@@ -215,7 +218,7 @@ export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
         </div>
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {error || 'No markets found for this date'}
+            {error || t('polymarket.noMarkets')}
           </p>
           <a
             href={`https://polymarket.com/event/${event?.slug ?? ''}`}
@@ -223,7 +226,7 @@ export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
             rel="noopener noreferrer"
             className="mt-2 inline-block text-sm text-violet-600 dark:text-violet-400 hover:underline"
           >
-            View on Polymarket →
+            {t('polymarket.viewOnPolymarket')}
           </a>
         </div>
       </div>
@@ -245,7 +248,7 @@ export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
               rel="noopener noreferrer"
               className="text-xs font-medium text-violet-600 dark:text-violet-400 hover:underline"
             >
-              View →
+              {t('polymarket.view')}
             </a>
           </div>
         </div>
@@ -256,7 +259,7 @@ export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
       <div className="flex-1 min-h-0 overflow-y-auto">
         {activeMarkets.length === 0 ? (
           <div className="p-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
-            No active markets
+            {t('polymarket.noActive')}
           </div>
         ) : (
           activeMarkets.map((market) => (

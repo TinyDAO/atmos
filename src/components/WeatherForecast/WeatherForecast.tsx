@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { TempDisplay } from '../TempDisplay'
+import { useTranslation } from '../../hooks/useTranslation'
 
 interface SourceForecast {
   source: string
@@ -17,12 +18,13 @@ interface WeatherForecastProps {
   error: string | null
 }
 
-const DAY_LABELS = ['Today', 'Tomorrow']
-
 const cardBase =
   'rounded-2xl bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50'
 
 export function WeatherForecast({ maxTemp, minTemp, dayIndex, onDayChange, sources = [], loading, error }: WeatherForecastProps) {
+  const { t } = useTranslation()
+  const dayLabels = [t('common.today'), t('common.tomorrow')]
+
   if (loading) {
     return (
       <motion.div
@@ -32,7 +34,7 @@ export function WeatherForecast({ maxTemp, minTemp, dayIndex, onDayChange, sourc
       >
         <div className="flex items-center gap-2 text-zinc-400 dark:text-zinc-500">
           <div className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm">Loading forecast...</span>
+          <span className="text-sm">{t('forecast.loading')}</span>
         </div>
       </motion.div>
     )
@@ -61,10 +63,10 @@ export function WeatherForecast({ maxTemp, minTemp, dayIndex, onDayChange, sourc
     >
       <div className="flex items-center justify-between mb-4 shrink-0">
         <h3 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-[0.08em]">
-          {DAY_LABELS[dayIndex]} Max
+          {dayLabels[dayIndex]} {t('forecast.max')}
         </h3>
         <div className="flex rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
-          {DAY_LABELS.map((label, i) => (
+          {dayLabels.map((label, i) => (
             <button
               key={label}
               type="button"
@@ -86,14 +88,14 @@ export function WeatherForecast({ maxTemp, minTemp, dayIndex, onDayChange, sourc
             <TempDisplay value={maxTemp} className="cursor-help" />
           </span>
           <span className="text-xl text-zinc-400 dark:text-zinc-500">
-            <span className="text-zinc-500 dark:text-zinc-500 text-sm mr-1">Low</span>
+            <span className="text-zinc-500 dark:text-zinc-500 text-sm mr-1">{t('forecast.low')}</span>
             {minTemp != null ? <TempDisplay value={minTemp} className="cursor-help" /> : '—'}
           </span>
         </div>
       </div>
       {sources.length > 1 && (
         <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800/60">
-          <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mb-2 tracking-wide">Multi-source comparison</p>
+          <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mb-2 tracking-wide">{t('forecast.multiSource')}</p>
           <div className="flex flex-wrap gap-1.5">
             {sources.map((s) => (
               <span
@@ -108,10 +110,10 @@ export function WeatherForecast({ maxTemp, minTemp, dayIndex, onDayChange, sourc
       )}
       <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800/60 flex flex-col gap-0.5">
         <span className="text-[10px] font-medium text-amber-600 dark:text-amber-500">
-          Primary: Open-Meteo
+          {t('forecast.primarySource')}
         </span>
         <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
-          Data display only, not analysis
+          {t('common.dataDisclaimer')}
         </span>
       </div>
     </motion.div>

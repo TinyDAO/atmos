@@ -8,6 +8,8 @@ import { CityDashboard } from './components/CityDashboard/CityDashboard'
 import { WeatherLinks } from './components/WeatherLinks'
 import { PolymarketFloatingButton } from './components/PolymarketFloatingButton/PolymarketFloatingButton'
 import { CITIES } from './config/cities'
+import { useLanguage } from './hooks/useLanguage'
+import { useTranslation } from './hooks/useTranslation'
 import { useForecast } from './hooks/useForecast'
 import { useLocalTime } from './hooks/useLocalTime'
 import { useAviationWeather } from './hooks/useAviationWeather'
@@ -25,6 +27,8 @@ function App() {
   const [selectedCity, setSelectedCity] = useState<typeof CITIES[0] | null>(() => getCityFromUrl())
   const [dayIndex, setDayIndex] = useState(0)
   const { theme, toggleTheme } = useTheme()
+  const { lang, setLang } = useLanguage()
+  const { t } = useTranslation()
 
   const handleSelectCity = (city: typeof CITIES[0]) => {
     setSelectedCity(city)
@@ -75,27 +79,36 @@ function App() {
           transition={{ duration: 0.5 }}
           className="text-center mb-10 relative"
         >
-          <button
-            onClick={toggleTheme}
-            className="absolute right-0 top-1 p-2 rounded-full text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-all"
-            title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
-          >
-            {theme === 'dark' ? (
-              <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </button>
+          <div className="absolute right-0 top-1 flex items-center gap-1">
+            <button
+              onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
+              className="px-2 py-1.5 rounded-full text-[11px] font-medium text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-all"
+              title={lang === 'en' ? t('header.switchToChinese') : t('header.switchToEnglish')}
+            >
+              {lang === 'en' ? '中文' : 'EN'}
+            </button>
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-all"
+              title={theme === 'dark' ? t('header.switchToLight') : t('header.switchToDark')}
+            >
+              {theme === 'dark' ? (
+                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+          </div>
           <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight text-zinc-800 dark:text-white flex items-center justify-center gap-2.5">
             <img src="/favicon.svg" alt="" className="w-9 h-9 md:w-10 md:h-10" aria-hidden />
             Atmos
           </h1>
           <p className="mt-1.5 text-[13px] text-zinc-400 dark:text-zinc-500 font-normal tracking-wide">
-            Weather forecast & aviation data
+            {t('header.subtitle')}
           </p>
         </motion.header>
 
@@ -155,7 +168,7 @@ function App() {
               exit={{ opacity: 0 }}
               className="text-center py-32 text-zinc-400 dark:text-zinc-600 text-sm"
             >
-              Select a city above to see weather data
+              {t('emptyState.selectCity')}
             </motion.div>
           )}
         </AnimatePresence>

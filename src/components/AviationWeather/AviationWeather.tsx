@@ -4,7 +4,8 @@ import { decodeMetarToPlain, decodeTafToPlain, filterTafForTomorrow } from '../.
 import { TempDisplay } from '../TempDisplay'
 import { parseTemperatureFromMetar, parseTimestampFromMetar, parseWindFromMetar, parseTafIssuanceTime } from '../../utils/metarParser'
 import { analyzeWind } from '../../utils/windAnalysis'
-import { useLanguage } from '../../hooks/useLanguage'
+import { useTranslation } from '../../hooks/useTranslation'
+import { AiAnalysisPanel } from '../AiAnalysisPanel'
 
 interface AviationWeatherProps {
   metar: string | null
@@ -33,8 +34,9 @@ export function AviationWeather({
   error,
   onShare,
 }: AviationWeatherProps) {
-  const { lang, setLang } = useLanguage()
+  const { t, lang } = useTranslation()
   const [showPlain, setShowPlain] = useState(false)
+  const [showAi, setShowAi] = useState(false)
   const metarPlain = metar ? decodeMetarToPlain(metar, timezone, undefined, lang) : ''
   const tafFiltered = dayIndex === 1 && taf ? filterTafForTomorrow(taf) : taf
   const tafPlain = tafFiltered ? decodeTafToPlain(tafFiltered, timezone, lang) : ''
@@ -51,7 +53,7 @@ export function AviationWeather({
           gustKt: metarWind.gustKt,
           timezone,
           latitude,
-          lang: showPlain ? lang : 'en',
+          lang,
         })
       : null
 
@@ -64,7 +66,7 @@ export function AviationWeather({
       >
         <div className="flex items-center gap-2 text-zinc-400 dark:text-zinc-500">
           <div className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm">Loading aviation weather...</span>
+          <span className="text-sm">{t('aviation.loading')}</span>
         </div>
       </motion.div>
     )
@@ -83,6 +85,7 @@ export function AviationWeather({
   }
 
   return (
+    <>
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -92,36 +95,34 @@ export function AviationWeather({
       <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between gap-2">
         <div>
           <h3 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-[0.08em]">
-            Aviation Weather ({icao})
+            {t('aviation.title')} ({icao})
           </h3>
           <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">
-            METAR & TAF from Aviation Weather Center
+            {t('aviation.metarSubtitle')}
           </p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          {showPlain && (
-            <div className="flex rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
-              {(['en', 'zh'] as const).map((l) => (
-                <button
-                  key={l}
-                  type="button"
-                  onClick={() => setLang(l)}
-                  className={`px-2.5 py-1 text-xs font-medium transition-all ${
-                    lang === l
-                      ? 'bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900'
-                      : 'bg-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                  }`}
-                >
-                  {l === 'zh' ? '中文' : 'EN'}
-                </button>
-              ))}
-            </div>
+          {metar && (
+            <button
+              type="button"
+              onClick={() => setShowAi(!showAi)}
+              title={t('aviation.aiAnalysis')}
+              className={`p-1.5 rounded-lg transition-all ${
+                showAi
+                  ? 'text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40'
+                  : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+              </svg>
+            </button>
           )}
           {onShare && (
             <button
               type="button"
               onClick={onShare}
-              title="Share Aviation Weather"
+              title={t('aviation.shareTitle')}
               className="p-1.5 rounded-lg text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +133,7 @@ export function AviationWeather({
           <button
             type="button"
             onClick={() => setShowPlain(!showPlain)}
-            title={showPlain ? 'Show raw' : 'Show plain'}
+            title={showPlain ? t('aviation.showRaw') : t('aviation.showPlain')}
             className="p-1.5 rounded-lg text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
           >
             {showPlain ? (
@@ -152,11 +153,11 @@ export function AviationWeather({
           <div className="flex items-start justify-between gap-3 mb-2">
             <div>
               <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-wide">
-                METAR {dayIndex === 1 && '(当前实况)'}
+                METAR {dayIndex === 1 && t('aviation.currentConditions')}
               </h4>
               {metarObservedAt && (
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                  Observed {new Intl.DateTimeFormat('en-US', {
+                  {t('aviation.observed')} {new Intl.DateTimeFormat('en-US', {
                     timeZone: timezone,
                     month: 'numeric',
                     day: 'numeric',
@@ -174,33 +175,33 @@ export function AviationWeather({
                 </p>
               )}
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                Airport weather stations typically report every 30 minutes.
+                {t('aviation.reportFrequency')}
               </p>
             </div>
             {(metarTemp != null || forecastMaxTemp != null || (dayIndex === 0 && metarHistoryMaxTemp != null)) && (
               <div className="flex flex-col items-end gap-0.5">
                 <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                   {metarTemp != null && (
-                    <TempDisplay value={metarTemp} prefix="Current " className="cursor-help" />
+                    <TempDisplay value={metarTemp} prefix={t('aviation.currentTemp') + ' '} className="cursor-help" />
                   )}
                   {(metarTemp != null && (forecastMaxTemp != null || (dayIndex === 0 && metarHistoryMaxTemp != null))) && ' · '}
                   {dayIndex === 0 && metarHistoryMaxTemp != null && (
-                    <TempDisplay value={metarHistoryMaxTemp} prefix="Today max so far " suffix="" className="cursor-help" />
+                    <TempDisplay value={metarHistoryMaxTemp} prefix={t('aviation.todayMaxSoFar') + ' '} suffix="" className="cursor-help" />
                   )}
                   {dayIndex === 0 && metarHistoryMaxTemp == null && forecastMaxTemp != null && (
-                    <TempDisplay value={forecastMaxTemp} prefix="Today max " suffix="" className="cursor-help" />
+                    <TempDisplay value={forecastMaxTemp} prefix={t('aviation.todayMax') + ' '} suffix="" className="cursor-help" />
                   )}
                   {dayIndex === 1 && forecastMaxTemp != null && (
-                    <TempDisplay value={forecastMaxTemp} prefix="Tomorrow max " className="cursor-help" />
+                    <TempDisplay value={forecastMaxTemp} prefix={t('aviation.tomorrowMax') + ' '} className="cursor-help" />
                   )}
                 </span>
                 {((dayIndex === 0 && (metarHistoryMaxTemp != null || forecastMaxTemp != null)) || (dayIndex === 1 && forecastMaxTemp != null)) && (
                   <>
                     <span className="text-[10px] text-amber-600 dark:text-amber-500 font-medium">
-                      {dayIndex === 0 && metarHistoryMaxTemp != null ? 'Source: METAR' : 'Source: TAF forecast'}
+                      {dayIndex === 0 && metarHistoryMaxTemp != null ? t('aviation.sourceMETAR') : t('aviation.sourceTAF')}
                     </span>
                     <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
-                      Data display only, not analysis
+                      {t('common.dataDisclaimer')}
                     </span>
                   </>
                 )}
@@ -246,17 +247,17 @@ export function AviationWeather({
             </div>
           )}
           {dayIndex === 1 && (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">METAR is real-time; no tomorrow data</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{t('aviation.metarNoTomorrow')}</p>
           )}
         </div>
         <div>
           <div className="mb-2">
             <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-wide">
-              TAF {dayIndex === 1 && '(tomorrow)'}
+              TAF {dayIndex === 1 && t('aviation.tafTomorrow')}
             </h4>
             {tafIssuedAt && (
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                Issued {new Intl.DateTimeFormat('en-US', {
+                {t('aviation.issued')} {new Intl.DateTimeFormat('en-US', {
                   timeZone: timezone,
                   month: 'numeric',
                   day: 'numeric',
@@ -282,10 +283,19 @@ export function AviationWeather({
             {showPlain ? (tafPlain || tafFiltered || '—') : (tafFiltered ?? '—')}
           </pre>
           {dayIndex === 1 && (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Filtered to tomorrow period</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{t('aviation.filteredTomorrow')}</p>
           )}
         </div>
       </div>
     </motion.div>
+    {showAi && metar && (
+      <AiAnalysisPanel
+        metar={metar}
+        icao={icao}
+        lang={lang}
+        onClose={() => setShowAi(false)}
+      />
+    )}
+    </>
   )
 }

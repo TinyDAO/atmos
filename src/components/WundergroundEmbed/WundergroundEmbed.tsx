@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from '../../hooks/useTranslation'
 
 interface City {
   latitude: number
@@ -19,6 +20,7 @@ function getWundergroundUrl(city: City): string {
 }
 
 export function WundergroundEmbed({ city, open, onClose }: WundergroundEmbedProps) {
+  const { t } = useTranslation()
   if (!city) return null
 
   const url = getWundergroundUrl(city)
@@ -62,13 +64,13 @@ export function WundergroundEmbed({ city, open, onClose }: WundergroundEmbedProp
                   rel="noopener noreferrer"
                   className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
                 >
-                  新窗口打开
+                  {t('wunderground.openNewWindow')}
                 </a>
                 <button
                   type="button"
                   onClick={onClose}
                   className="p-2 rounded-lg text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-                  aria-label="关闭"
+                  aria-label={t('common.close')}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

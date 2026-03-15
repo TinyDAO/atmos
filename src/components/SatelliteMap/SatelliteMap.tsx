@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { fetchRainViewerMaps } from '../../services/rainViewer'
+import { useTranslation } from '../../hooks/useTranslation'
 
 interface SatelliteMapProps {
   lat: number
@@ -53,6 +54,7 @@ function SatelliteCloudOverlay({ date }: { date: string }) {
 }
 
 export function SatelliteMap({ lat, lon }: SatelliteMapProps) {
+  const { t } = useTranslation()
   const [radarUrl, setRadarUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [layerMode, setLayerMode] = useState<'radar' | 'satellite' | 'both'>('both')
@@ -76,7 +78,7 @@ export function SatelliteMap({ lat, lon }: SatelliteMapProps) {
     <div className="rounded-2xl overflow-hidden border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md">
       <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between flex-wrap gap-2">
         <h3 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-[0.08em]">
-          Radar & Satellite
+          {t('satellite.title')}
         </h3>
         <div className="flex gap-1">
           {(['both', 'radar', 'satellite'] as const).map((m) => (
@@ -89,7 +91,7 @@ export function SatelliteMap({ lat, lon }: SatelliteMapProps) {
                   : 'bg-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
               }`}
             >
-              {m === 'both' ? 'Both' : m === 'radar' ? 'Radar' : 'Cloud'}
+              {m === 'both' ? t('satellite.both') : m === 'radar' ? t('satellite.radar') : t('satellite.cloud')}
             </button>
           ))}
         </div>
@@ -118,9 +120,9 @@ export function SatelliteMap({ lat, lon }: SatelliteMapProps) {
       </div>
       <div className="px-5 py-2 text-[11px] text-zinc-400 dark:text-zinc-500 border-t border-zinc-100 dark:border-zinc-800/60">
         <p>
-          Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">RainViewer</a>
+          {t('satellite.radarSource')} <a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">RainViewer</a>
           {' · '}
-          Satellite: <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">NASA GIBS</a>
+          {t('satellite.satelliteSource')} <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">NASA GIBS</a>
         </p>
       </div>
     </div>

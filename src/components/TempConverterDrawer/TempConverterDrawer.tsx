@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
+import { useTranslation } from '../../hooks/useTranslation'
 
 interface TempConverterDrawerProps {
   open: boolean
@@ -7,6 +8,7 @@ interface TempConverterDrawerProps {
 }
 
 export function TempConverterDrawer({ open, onClose }: TempConverterDrawerProps) {
+  const { t } = useTranslation()
   const [celsius, setCelsius] = useState<number | null>(null)
   const constraintsRef = useRef<HTMLDivElement>(null)
   const dragControls = useDragControls()
@@ -73,7 +75,7 @@ export function TempConverterDrawer({ open, onClose }: TempConverterDrawerProps)
                   </svg>
                 </div>
                 <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Temperature
+                  {t('tempConverter.title')}
                 </span>
               </div>
               <button
@@ -82,7 +84,7 @@ export function TempConverterDrawer({ open, onClose }: TempConverterDrawerProps)
                 onPointerDown={(e) => e.stopPropagation()}
                 className="p-2 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300
                   hover:bg-zinc-200/60 dark:hover:bg-zinc-700/60 cursor-pointer transition-colors"
-                aria-label="Close"
+                aria-label={t('common.close')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -91,7 +93,7 @@ export function TempConverterDrawer({ open, onClose }: TempConverterDrawerProps)
             </div>
             <div className="p-4 space-y-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Celsius</label>
+                <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t('tempConverter.celsius')}</label>
                 <input
                   type="number"
                   value={c != null ? fmt(c, 2) : ''}
@@ -106,7 +108,7 @@ export function TempConverterDrawer({ open, onClose }: TempConverterDrawerProps)
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Fahrenheit</label>
+                <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t('tempConverter.fahrenheit')}</label>
                 <input
                   type="number"
                   value={f != null ? fmt(f, 2) : ''}
@@ -121,7 +123,7 @@ export function TempConverterDrawer({ open, onClose }: TempConverterDrawerProps)
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Kelvin</label>
+                <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t('tempConverter.kelvin')}</label>
                 <input
                   type="number"
                   value={k != null ? fmt(k, 2) : ''}

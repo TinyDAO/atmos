@@ -3,7 +3,8 @@
  * Supports multi-language via getAviationStrings(lang)
  */
 
-import { getAviationStrings, type Lang } from '../i18n/aviation'
+import { getAviationStrings } from '../i18n/aviation'
+import type { Lang } from '../hooks/useLanguage'
 
 /** Get report/validity date from METAR/TAF for TX/TN 4-digit time context */
 function getReportDateFromText(text: string): Date {

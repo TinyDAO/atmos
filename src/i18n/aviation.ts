@@ -2,7 +2,7 @@
  * Aviation weather (METAR/TAF) translations for plain-language decoding
  */
 
-export type Lang = 'zh' | 'en'
+import type { Lang } from '../hooks/useLanguage'
 
 export interface AviationStrings {
   cloudCover: Record<string, string>

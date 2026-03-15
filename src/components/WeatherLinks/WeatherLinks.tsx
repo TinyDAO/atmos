@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { WundergroundEmbed } from '../WundergroundEmbed/WundergroundEmbed'
 import { TempConverterDrawer } from '../TempConverterDrawer/TempConverterDrawer'
+import { useTranslation } from '../../hooks/useTranslation'
 
 interface City {
   id: string
@@ -60,9 +61,18 @@ const LINKS = [
 ]
 
 export function WeatherLinks({ city }: WeatherLinksProps) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [wundergroundEmbedOpen, setWundergroundEmbedOpen] = useState(false)
   const [tempConverterOpen, setTempConverterOpen] = useState(false)
+
+  const descMap: Record<string, string> = {
+    windy: t('tools.windWeather'),
+    ventusky: t('tools.weatherMap'),
+    rainviewer: t('tools.radarDesc'),
+    aviation: t('tools.metarTaf'),
+    meteoblue: t('tools.weatherMap'),
+  }
 
   return (
     <>
@@ -96,13 +106,13 @@ export function WeatherLinks({ city }: WeatherLinksProps) {
           >
             <div className="flex items-center justify-between mb-2 px-1">
               <span className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.08em]">
-                Tools
+                {t('tools.title')}
               </span>
               <button
                 type="button"
                 onClick={() => setExpanded(false)}
                 className="p-1 rounded-lg text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-700/60"
-                aria-label="Close"
+                aria-label={t('common.close')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -117,14 +127,14 @@ export function WeatherLinks({ city }: WeatherLinksProps) {
                   bg-sky-100/80 dark:bg-sky-900/30 hover:bg-sky-200/80 dark:hover:bg-sky-800/40
                   text-sky-800 dark:text-sky-200 border border-sky-300/50 dark:border-sky-600/50
                   transition-colors"
-                title="Temperature converter"
+                title={t('tools.tempConverterTitle')}
               >
                 <svg className="w-6 h-6 flex-shrink-0 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 <div className="min-w-0 text-left">
-                  <span className="font-medium block">Temperature</span>
-                  <span className="text-xs text-sky-600 dark:text-sky-400 block">°C / °F / K converter</span>
+                  <span className="font-medium block">{t('tools.temperature')}</span>
+                  <span className="text-xs text-sky-600 dark:text-sky-400 block">{t('tools.tempConverter')}</span>
                 </div>
               </button>
               {city && LINKS.map((link) => (
@@ -137,7 +147,7 @@ export function WeatherLinks({ city }: WeatherLinksProps) {
                     bg-zinc-200/60 dark:bg-zinc-800/60 hover:bg-zinc-300/60 dark:hover:bg-zinc-700/60
                     text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100
                     transition-colors border border-transparent hover:border-zinc-300/50 dark:hover:border-zinc-600/50"
-                  title={city ? `View ${city.name} on ${link.name}` : link.desc}
+                  title={city ? t('tools.viewCityOn').replace('{city}', city.name).replace('{link}', link.name) : descMap[link.id] ?? link.desc}
                 >
                   <img
                     src={link.logo}
@@ -147,7 +157,7 @@ export function WeatherLinks({ city }: WeatherLinksProps) {
                   />
                   <div className="min-w-0">
                     <span className="font-medium block truncate">{link.name}</span>
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate block">{link.desc}</span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate block">{descMap[link.id] ?? link.desc}</span>
                   </div>
                 </a>
               ))}
@@ -159,7 +169,7 @@ export function WeatherLinks({ city }: WeatherLinksProps) {
                   bg-amber-100/80 dark:bg-amber-900/30 hover:bg-amber-200/80 dark:hover:bg-amber-800/40
                   text-amber-800 dark:text-amber-200 border border-amber-300/50 dark:border-amber-600/50
                   transition-colors"
-                title="Embed Wunderground"
+                title={t('tools.embedWunderground')}
               >
                 <img
                   src="https://www.wunderground.com/favicon.ico"
@@ -169,7 +179,7 @@ export function WeatherLinks({ city }: WeatherLinksProps) {
                 />
                 <div className="min-w-0 text-left">
                   <span className="font-medium block">Wunderground</span>
-                  <span className="text-xs text-amber-600 dark:text-amber-400 block">Embed</span>
+                  <span className="text-xs text-amber-600 dark:text-amber-400 block">{t('tools.embed')}</span>
                 </div>
                 <svg className="w-4 h-4 ml-auto opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
@@ -188,12 +198,12 @@ export function WeatherLinks({ city }: WeatherLinksProps) {
           shadow-lg shadow-black/10 dark:shadow-black/30 hover:shadow-xl
           text-white dark:text-zinc-900
           transition-all hover:scale-[1.02] active:scale-[0.98]"
-        aria-label={expanded ? 'Close tools' : 'Open tools'}
+        aria-label={expanded ? t('tools.closeTools') : t('tools.openTools')}
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
         </svg>
-        <span className="font-medium text-sm">Tools</span>
+        <span className="font-medium text-sm">{t('tools.title')}</span>
       </button>
     </motion.div>
     </>
