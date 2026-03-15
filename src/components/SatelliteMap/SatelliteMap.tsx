@@ -73,9 +73,9 @@ export function SatelliteMap({ lat, lon }: SatelliteMapProps) {
   }, [])
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-zinc-300/50 dark:border-zinc-700/50 bg-zinc-100 dark:bg-zinc-900">
-      <div className="px-4 py-3 border-b border-zinc-300/50 dark:border-zinc-700/50 flex items-center justify-between flex-wrap gap-2">
-        <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+    <div className="rounded-2xl overflow-hidden border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md">
+      <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between flex-wrap gap-2">
+        <h3 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-[0.08em]">
           Radar & Satellite
         </h3>
         <div className="flex gap-1">
@@ -83,10 +83,10 @@ export function SatelliteMap({ lat, lon }: SatelliteMapProps) {
             <button
               key={m}
               onClick={() => setLayerMode(m)}
-              className={`px-2 py-1 text-xs rounded-md transition-colors ${
+              className={`px-2.5 py-1 text-xs rounded-lg transition-all ${
                 layerMode === m
-                  ? 'bg-zinc-600 dark:bg-zinc-600 text-white'
-                  : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                  ? 'bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900'
+                  : 'bg-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
               }`}
             >
               {m === 'both' ? 'Both' : m === 'radar' ? 'Radar' : 'Cloud'}
@@ -116,11 +116,11 @@ export function SatelliteMap({ lat, lon }: SatelliteMapProps) {
           )}
         </MapContainer>
       </div>
-      <div className="px-4 py-2 text-xs text-zinc-600 dark:text-zinc-500 border-t border-zinc-300/50 dark:border-zinc-700/50 space-y-0.5">
+      <div className="px-5 py-2 text-[11px] text-zinc-400 dark:text-zinc-500 border-t border-zinc-100 dark:border-zinc-800/60">
         <p>
-          Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer" className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white underline">RainViewer</a>
+          Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">RainViewer</a>
           {' · '}
-          Satellite: <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener noreferrer" className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white underline">NASA GIBS</a>
+          Satellite: <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">NASA GIBS</a>
         </p>
       </div>
     </div>

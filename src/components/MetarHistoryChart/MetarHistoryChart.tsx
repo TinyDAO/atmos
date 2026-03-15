@@ -116,7 +116,7 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false, compa
   const hasData = days.length > 0 && chartData.some((d) => d.temp != null)
   const cardStyle = compact
     ? 'bg-white'
-    : 'rounded-2xl bg-zinc-100/60 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-700/50 shadow-sm'
+    : 'rounded-2xl bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50'
 
   if (loading) {
     return (
@@ -155,12 +155,12 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false, compa
       transition={{ delay: compact ? 0 : 0.15 }}
       className={`overflow-hidden ${cardStyle}`}
     >
-      <div className={`border-b flex items-center justify-between gap-3 ${compact ? 'px-3 py-2 border-zinc-200' : 'px-5 py-4 border-zinc-200/80 dark:border-zinc-700/80'}`}>
+      <div className={`border-b flex items-center justify-between gap-3 ${compact ? 'px-3 py-2 border-zinc-200' : 'px-5 py-3.5 border-zinc-100 dark:border-zinc-800/60'}`}>
         <div>
-          <h4 className={`text-xs uppercase ${compact ? 'font-medium tracking-wider text-zinc-700' : 'font-semibold tracking-widest text-zinc-600 dark:text-zinc-400'}`}>
+          <h4 className={`uppercase ${compact ? 'text-xs font-medium tracking-wider text-zinc-700' : 'text-[11px] font-semibold tracking-[0.08em] text-zinc-500 dark:text-zinc-500'}`}>
             Aviation Temp · {icao}
           </h4>
-          <p className={`text-xs text-zinc-500 dark:text-zinc-500 ${compact ? 'mt-0.5' : 'mt-1'}`}>
+          <p className={`text-zinc-400 dark:text-zinc-500 ${compact ? 'text-xs mt-0.5' : 'text-[11px] mt-0.5'}`}>
             METAR observations · Past 15 days
           </p>
         </div>
@@ -181,7 +181,7 @@ export function MetarHistoryChart({ days, icao, timezone, loading = false, compa
             <select
               value={dayIndex}
               onChange={(e) => setDayIndex(Number(e.target.value))}
-              className="text-xs font-medium rounded-md border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-1 min-h-0 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              className="text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 px-2 py-1 min-h-0 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
             >
               {days.map((d, i) => (
                 <option key={d.dateStr} value={i}>

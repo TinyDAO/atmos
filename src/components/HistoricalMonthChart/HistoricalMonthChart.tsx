@@ -84,9 +84,12 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-700/50 shadow-sm p-8 flex items-center justify-center min-h-[280px]"
+        className="rounded-2xl bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 p-8 flex items-center justify-center min-h-[280px]"
       >
-        <div className="animate-pulse text-zinc-500 dark:text-zinc-400 text-sm">Loading...</div>
+        <div className="flex items-center gap-2 text-zinc-400 dark:text-zinc-500">
+          <div className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Loading...</span>
+        </div>
       </motion.div>
     )
   }
@@ -96,7 +99,7 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-700/50 shadow-sm p-8 text-center min-h-[280px]"
+        className="rounded-2xl bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 p-8 text-center min-h-[280px]"
       >
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           {error ?? 'No historical data for this month'}
@@ -110,13 +113,13 @@ export function HistoricalMonthChart({ data, monthName, timezone, loading, error
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-700/50 shadow-sm overflow-hidden"
+      className="rounded-2xl bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden"
     >
-      <div className="px-5 py-4 border-b border-zinc-200/80 dark:border-zinc-700/80">
-        <h4 className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
+      <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800/60">
+        <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-[0.08em]">
           Historical · {monthName}
         </h4>
-        <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+        <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">
           Past {chartData[0]?.years ?? 0} years same-month average max °C
           {chartData.some((d) => d.day === todayDay) && (
             <span className="ml-2 inline-flex items-center gap-1">

@@ -57,11 +57,11 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
             exit={{ y: -100, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed top-0 left-0 right-0 z-30 py-2.5 px-4
-              bg-white/98 dark:bg-zinc-950/98 backdrop-blur-xl
-              border-b border-zinc-200 dark:border-zinc-800
-              shadow-[0_4px_20px_-4px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]"
+              bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-xl
+              border-b border-zinc-200/60 dark:border-zinc-800/60
+              shadow-[0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
           >
-            <div className="max-w-[90rem] mx-auto flex items-center gap-2 overflow-x-auto pb-1 scroll-smooth">
+            <div className="max-w-[90rem] mx-auto flex items-center gap-1.5 overflow-x-auto pb-1 scroll-smooth">
               {sortedCities.map((city) => (
                 <button
                   key={city.id}
@@ -74,11 +74,11 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
                     wrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                   }}
                   className={`
-                    flex-shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium
+                    flex-shrink-0 px-3 py-1.5 rounded-lg text-[13px] font-medium
                     transition-all duration-200
                     ${selectedCity?.id === city.id
-                      ? 'bg-amber-500 dark:bg-amber-500 text-white shadow-md shadow-amber-500/25'
-                      : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-700'
+                      ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                     }
                   `}
                 >
@@ -100,14 +100,14 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
           <button
             type="button"
             onClick={() => setMobilePickerOpen(true)}
-            className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl
-              bg-zinc-100 dark:bg-zinc-800/80 border-2 border-zinc-200 dark:border-zinc-700
-              hover:border-amber-500/50 dark:hover:border-amber-500/50
+            className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl
+              bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md
+              border border-zinc-200/50 dark:border-zinc-800/50
               active:scale-[0.99] transition-all duration-200"
           >
             <div className="flex items-center gap-3 min-w-0">
               {selectedCity && (
-                <div className="shrink-0 w-8 h-8 rounded-lg overflow-hidden ring-2 ring-amber-500/30">
+                <div className="shrink-0 w-8 h-8 rounded-lg overflow-hidden">
                   <img
                     src={selectedCity.image}
                     alt=""
@@ -121,18 +121,18 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
                 </div>
               )}
               <div className="text-left min-w-0">
-                <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                <span className="block text-sm font-medium text-zinc-800 dark:text-zinc-100 truncate">
                   {selectedCity?.name ?? 'Select city'}
                 </span>
                 {selectedCity && (
-                  <span className="block text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                  <span className="block text-[11px] text-zinc-400 dark:text-zinc-500 truncate">
                     {selectedCity.country} · {formatLocalTime(selectedCity.timezone, now)}
                   </span>
                 )}
               </div>
             </div>
-            <svg className="w-5 h-5 shrink-0 text-zinc-400 dark:text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <svg className="w-4 h-4 shrink-0 text-zinc-400 dark:text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
@@ -144,7 +144,7 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
                 onClick={() => setMobilePickerOpen(false)}
                 aria-hidden
               />
@@ -158,16 +158,16 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
                 transition={{ type: 'spring', damping: 30, stiffness: 400 }}
                 className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] flex flex-col
                   bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl
-                  border-t border-zinc-200 dark:border-zinc-800"
+                  border-t border-zinc-200/60 dark:border-zinc-800/60"
               >
                 <div className="shrink-0 pt-3 pb-2 px-4">
-                  <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-600 mx-auto" />
-                  <h3 className="text-center text-sm font-medium text-zinc-500 dark:text-zinc-400 mt-3">
+                  <div className="w-10 h-1 rounded-full bg-zinc-200 dark:bg-zinc-700 mx-auto" />
+                  <h3 className="text-center text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.08em] mt-3">
                     Select city
                   </h3>
                 </div>
                 <div className="flex-1 overflow-y-auto overscroll-contain pb-6 px-4">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2.5">
                     {sortedCities.map((city) => (
                       <button
                         key={city.id}
@@ -180,7 +180,7 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
                           relative overflow-hidden rounded-xl aspect-[4/3] text-left
                           transition-all duration-200 active:scale-[0.98]
                           ${selectedCity?.id === city.id
-                            ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900'
+                            ? 'ring-2 ring-zinc-900 dark:ring-zinc-100 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900'
                             : ''
                           }
                         `}
@@ -196,16 +196,16 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
                           }}
                         />
                         <div className={`absolute inset-0 bg-gradient-to-br ${city.gradient} opacity-90 opacity-0`} aria-hidden />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                         <div className="absolute inset-0 flex flex-col justify-end p-3">
-                          <span className="block text-sm font-semibold text-white drop-shadow-lg truncate">
+                          <span className="block text-sm font-medium text-white drop-shadow-lg truncate">
                             {city.name}
                           </span>
-                          <span className="block text-xs text-white/90 truncate">{city.country}</span>
+                          <span className="block text-[11px] text-white/80 truncate">{city.country}</span>
                         </div>
                         {selectedCity?.id === city.id && (
-                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center">
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-zinc-900 dark:bg-white flex items-center justify-center">
+                            <svg className="w-3 h-3 text-white dark:text-zinc-900" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
                           </div>
@@ -224,21 +224,21 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="hidden md:grid grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"
+          className="hidden md:grid grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-1.5"
         >
         {sortedCities.map((city, i) => (
           <motion.button
             key={city.id}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.03 * Math.min(i, 8) }}
+            transition={{ delay: 0.02 * Math.min(i, 8) }}
             onClick={() => onSelect(city)}
             className={`
               group relative overflow-hidden rounded-xl aspect-[3/2]
-              transition-all duration-300 ease-out border-2
+              transition-all duration-300 ease-out
               ${selectedCity?.id === city.id
-                ? 'border-amber-500/80 dark:border-amber-400/80 shadow-xl shadow-amber-500/20 dark:shadow-amber-400/20 ring-2 ring-amber-500/30 dark:ring-amber-400/30'
-                : 'border-zinc-300/50 dark:border-zinc-700/50 hover:border-zinc-400/70 dark:hover:border-zinc-500/70 hover:shadow-lg'
+                ? 'ring-2 ring-zinc-900 dark:ring-zinc-100 ring-offset-2 ring-offset-[#f8f8f7] dark:ring-offset-[#0c0c0c] shadow-lg'
+                : 'hover:shadow-md'
               }
             `}
           >
@@ -253,19 +253,19 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
               }}
             />
             <div className={`absolute inset-0 bg-gradient-to-br ${city.gradient} opacity-90 opacity-0`} aria-hidden />
-            <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent`} />
-            <div className="absolute inset-0 flex flex-col justify-center p-3 text-left">
-              <span className="block text-sm font-semibold text-white drop-shadow-md truncate">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+            <div className="absolute inset-0 flex flex-col justify-center p-2.5 text-left">
+              <span className="block text-[13px] font-medium text-white drop-shadow-md truncate">
                 {city.name}
               </span>
-              <span className="block text-xs text-white/90 truncate">{city.country}</span>
-              <span className="block text-xs text-white/80 mt-0.5 truncate">
+              <span className="block text-[11px] text-white/80 truncate">{city.country}</span>
+              <span className="block text-[10px] text-white/60 mt-0.5 truncate tabular-nums">
                 {formatLocalDate(city.timezone, now)} {formatLocalTime(city.timezone, now)}
               </span>
             </div>
             {selectedCity?.id === city.id && (
-              <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center">
-                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm">
+                <svg className="w-2.5 h-2.5 text-zinc-900" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </div>

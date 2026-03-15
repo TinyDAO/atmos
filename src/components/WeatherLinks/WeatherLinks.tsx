@@ -90,12 +90,12 @@ export function WeatherLinks({ city }: WeatherLinksProps) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="rounded-2xl bg-zinc-100/95 dark:bg-zinc-900/95 backdrop-blur-md
-              border border-zinc-200/80 dark:border-zinc-700/80 shadow-xl shadow-zinc-900/10
+            className="rounded-xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl
+              border border-zinc-200/50 dark:border-zinc-800/50 shadow-xl shadow-black/5
               p-3 mb-2"
           >
             <div className="flex items-center justify-between mb-2 px-1">
-              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.08em]">
                 Tools
               </span>
               <button
@@ -183,11 +183,10 @@ export function WeatherLinks({ city }: WeatherLinksProps) {
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-2 px-4 py-3 rounded-2xl
-          bg-zinc-200/90 dark:bg-zinc-800/90 backdrop-blur-md
-          border border-zinc-300/60 dark:border-zinc-600/60
-          shadow-lg shadow-zinc-900/10 hover:shadow-xl
-          text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100
+        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl
+          bg-zinc-900 dark:bg-zinc-100
+          shadow-lg shadow-black/10 dark:shadow-black/30 hover:shadow-xl
+          text-white dark:text-zinc-900
           transition-all hover:scale-[1.02] active:scale-[0.98]"
         aria-label={expanded ? 'Close tools' : 'Open tools'}
       >

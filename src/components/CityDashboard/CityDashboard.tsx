@@ -255,10 +255,8 @@ export function CityDashboard({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
       className="rounded-2xl p-4 md:p-5
-        bg-gradient-to-br from-zinc-100/90 to-zinc-50/90 dark:from-zinc-900/90 dark:to-zinc-950/90
-        border border-zinc-200/60 dark:border-zinc-700/60
-        shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.04)]
-        dark:shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_4px_24px_rgba(0,0,0,0.3)]"
+        bg-white/40 dark:bg-zinc-900/30
+        border border-zinc-200/40 dark:border-zinc-800/40"
     >
       {/* Row 1: Forecast, Details, Webcams (when configured) */}
       <div
@@ -286,12 +284,11 @@ export function CityDashboard({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="rounded-xl bg-white/60 dark:bg-zinc-900/50 backdrop-blur-sm
-              border border-zinc-200/60 dark:border-zinc-700/50 overflow-hidden
-              shadow-[0_0_0_1px_rgba(0,0,0,0.02)]"
+            className="rounded-2xl bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md
+              border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden"
           >
-            <div className="px-4 py-3 border-b border-zinc-200/80 dark:border-zinc-700/80">
-              <h4 className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
+            <div className="px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800/60">
+              <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-[0.08em]">
                 Live Webcams
               </h4>
             </div>

@@ -58,11 +58,11 @@ function MarketRow({
       .slice(0, ORDER_BOOK_DEPTH) ?? []
 
   return (
-    <div className="border-b border-zinc-200/80 dark:border-zinc-700/80 last:border-0">
+    <div className="border-b border-zinc-100 dark:border-zinc-800/60 last:border-0">
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between gap-3 py-3 px-4 text-left hover:bg-zinc-50/80 dark:hover:bg-zinc-800/60 transition-colors"
+        className="w-full flex items-center justify-between gap-3 py-3 px-5 text-left hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40 transition-all"
       >
         <div className="min-w-0 flex-1">
           <span className="font-medium text-zinc-900 dark:text-zinc-100 text-sm">
@@ -96,7 +96,7 @@ function MarketRow({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 pt-0 grid grid-cols-2 gap-4 border-t border-zinc-100 dark:border-zinc-800">
+            <div className="px-5 pb-4 pt-0 grid grid-cols-2 gap-4 border-t border-zinc-50 dark:border-zinc-800/40">
               <div>
                 <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2 uppercase tracking-wider">
                   Bids
@@ -171,13 +171,13 @@ export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
   const activeMarkets = marketsWithBooks.filter((m) => m.active || !m.closed)
 
   const cardClass =
-    'rounded-2xl bg-white/60 dark:bg-zinc-900/50 backdrop-blur-sm border border-zinc-200/60 dark:border-zinc-700/50 overflow-hidden h-full flex flex-col min-h-0'
+    'rounded-2xl bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden h-full flex flex-col min-h-0'
 
   const dateSelector = (
     <select
       value={dayIndex}
       onChange={(e) => { setDayIndex(Number(e.target.value)); setExpandedId(null) }}
-      className="text-xs font-medium rounded-md border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-1 min-h-0 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+      className="text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 px-2 py-1 min-h-0 focus:outline-none focus:ring-2 focus:ring-violet-500/30"
     >
       {dayOptions.map((opt) => (
         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -188,15 +188,16 @@ export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
   if (loading) {
     return (
       <div className={cardClass}>
-        <div className="px-5 py-4 border-b border-zinc-200/80 dark:border-zinc-700/80 shrink-0 flex items-center justify-between">
-          <h4 className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
+        <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800/60 shrink-0 flex items-center justify-between">
+          <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-[0.08em]">
             Polymarket
           </h4>
           {dateSelector}
         </div>
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="animate-pulse text-zinc-400 dark:text-zinc-500 text-sm">
-            Loading markets…
+          <div className="flex items-center gap-2 text-zinc-400 dark:text-zinc-500">
+            <div className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm">Loading markets…</span>
           </div>
         </div>
       </div>
@@ -206,8 +207,8 @@ export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
   if (error || !event) {
     return (
       <div className={cardClass}>
-        <div className="px-5 py-4 border-b border-zinc-200/80 dark:border-zinc-700/80 shrink-0 flex items-center justify-between">
-          <h4 className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
+        <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800/60 shrink-0 flex items-center justify-between">
+          <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-[0.08em]">
             Polymarket
           </h4>
           {dateSelector}
@@ -230,10 +231,10 @@ export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
   }
 
   return (
-    <div className={cardClass + ' shadow-[0_0_0_1px_rgba(0,0,0,0.02)]'}>
-      <div className="px-5 py-4 border-b border-zinc-200/80 dark:border-zinc-700/80 shrink-0">
+    <div className={cardClass}>
+      <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800/60 shrink-0">
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
+          <h4 className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-500 uppercase tracking-[0.08em]">
             Polymarket
           </h4>
           <div className="flex items-center gap-2 shrink-0">
@@ -248,7 +249,7 @@ export function PolymarketDashboard({ city }: PolymarketDashboardProps) {
             </a>
           </div>
         </div>
-        <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 truncate" title={event.slug}>
+        <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5 truncate" title={event.slug}>
           {event.title}
         </p>
       </div>

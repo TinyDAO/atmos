@@ -67,34 +67,35 @@ function App() {
   const cloudBaseM = parseCloudBase(metar)
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 transition-colors">
-      <div className="max-w-[90rem] mx-auto px-4 py-8 md:py-10">
+    <div className="min-h-screen bg-[#f8f8f7] text-zinc-900 dark:bg-[#0c0c0c] dark:text-zinc-100 transition-colors">
+      <div className="max-w-[90rem] mx-auto px-4 sm:px-6 py-8 md:py-12">
         <motion.header
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center mb-8 relative"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-10 relative"
         >
           <button
             onClick={toggleTheme}
-            className="absolute right-0 top-0 p-2 rounded-lg text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
+            className="absolute right-0 top-1 p-2 rounded-full text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-all"
             title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
           >
             {theme === 'dark' ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             )}
           </button>
-          <h1 className="text-3xl md:text-4xl font-light tracking-tight text-zinc-900 dark:text-white flex items-center justify-center gap-3">
-            <img src="/favicon.svg" alt="" className="w-10 h-10 md:w-12 md:h-12" aria-hidden />
+          <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight text-zinc-800 dark:text-white flex items-center justify-center gap-2.5">
+            <img src="/favicon.svg" alt="" className="w-9 h-9 md:w-10 md:h-10" aria-hidden />
             Atmos
           </h1>
-          <p className="mt-2 text-sm md:text-base text-zinc-500 dark:text-zinc-400 font-normal">
-            Your one-stop weather forecast platform
+          <p className="mt-1.5 text-[13px] text-zinc-400 dark:text-zinc-500 font-normal tracking-wide">
+            Weather forecast & aviation data
           </p>
         </motion.header>
 
@@ -152,20 +153,20 @@ function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-center py-24 text-zinc-600 dark:text-zinc-500"
+              className="text-center py-32 text-zinc-400 dark:text-zinc-600 text-sm"
             >
               Select a city above to see weather data
             </motion.div>
           )}
         </AnimatePresence>
 
-        <footer className="mt-12 pt-6 border-t border-zinc-200 dark:border-zinc-800 text-center text-sm text-zinc-600 dark:text-zinc-600">
-          <p>
-            Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-400 underline">RainViewer</a>
-            {' · '}
-            Forecast: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-400 underline">Open-Meteo</a>
-            {' · '}
-            Aviation: <a href="https://aviationweather.gov/" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-400 underline">Aviation Weather Center</a>
+        <footer className="mt-16 pb-2 text-center text-[11px] text-zinc-400 dark:text-zinc-600 tracking-wide">
+          <p className="flex items-center justify-center gap-1.5 flex-wrap">
+            <a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors">RainViewer</a>
+            <span className="text-zinc-300 dark:text-zinc-700">/</span>
+            <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors">Open-Meteo</a>
+            <span className="text-zinc-300 dark:text-zinc-700">/</span>
+            <a href="https://aviationweather.gov/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors">Aviation Weather Center</a>
           </p>
         </footer>
         </>
