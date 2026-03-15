@@ -43,6 +43,30 @@ function corsHeaders(req: Request): Record<string, string> {
   }
 }
 
+const ICAO_RE = /^[A-Z]{4}$/
+const METAR_MAX_LEN = 600
+
+function validateIcao(icao: unknown): icao is string {
+  return typeof icao === 'string' && ICAO_RE.test(icao)
+}
+
+function validateMetar(metar: unknown): metar is string {
+  if (typeof metar !== 'string') return false
+  const trimmed = metar.trim()
+  if (trimmed.length < 10 || trimmed.length > METAR_MAX_LEN) return false
+  // ASCII printable characters only (no control chars, no unicode tricks)
+  if (!/^[\x20-\x7E]+$/.test(trimmed)) return false
+  // Must contain a date/time group (6 digits followed by Z)
+  if (!/\d{6}Z/.test(trimmed)) return false
+  // Must contain wind or CALM indicator
+  if (!/(\d{3}\d{2,3}(G\d{2,3})?(KT|MPS)|VRB\d{2,3}(KT|MPS)|00000KT)/.test(trimmed)) return false
+  return true
+}
+
+function validateLang(lang: unknown): lang is 'en' | 'zh' {
+  return lang === 'en' || lang === 'zh'
+}
+
 async function sha256(text: string): Promise<string> {
   const buf = await crypto.subtle.digest(
     'SHA-256',
@@ -80,13 +104,22 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const { metar, icao, lang = 'en' } = await req.json()
-
+    const body = await req.json()
     const cors = corsHeaders(req)
+    const metar = typeof body.metar === 'string' ? body.metar.trim() : ''
+    const icao = typeof body.icao === 'string' ? body.icao.trim().toUpperCase() : ''
+    const lang = validateLang(body.lang) ? body.lang : 'en'
 
-    if (!metar || !icao) {
+    if (!validateIcao(icao)) {
       return new Response(
-        JSON.stringify({ error: 'Missing metar or icao' }),
+        JSON.stringify({ error: 'Invalid ICAO code' }),
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    if (!validateMetar(metar)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid METAR format' }),
         { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
       )
     }
