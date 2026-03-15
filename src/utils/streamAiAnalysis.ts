@@ -2,11 +2,12 @@ export async function* streamAiAnalysis(
   metar: string,
   icao: string,
   lang: 'en' | 'zh',
+  taf?: string | null,
 ): AsyncGenerator<string, void, unknown> {
   const res = await fetch('/api/ai-analysis', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ metar, icao, lang }),
+    body: JSON.stringify({ metar, icao, lang, ...(taf ? { taf } : {}) }),
   })
 
   if (!res.ok) {

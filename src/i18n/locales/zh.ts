@@ -68,6 +68,8 @@ const zh: TranslationShape = {
     generatingResponse: '正在生成回答...',
     analyzingMetar: '正在分析 METAR 数据...',
     disclaimer: 'AI 生成内容，仅供参考，不构成飞行决策依据',
+    shareTitle: '分享 AI 分析',
+    share: '分享',
   },
   metarChart: {
     temp: '气温',

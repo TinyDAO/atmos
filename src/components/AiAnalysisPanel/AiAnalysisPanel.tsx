@@ -3,11 +3,14 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import html2canvas from 'html2canvas-pro'
 import { streamAiAnalysis } from '../../utils/streamAiAnalysis'
 import { useTranslation } from '../../hooks/useTranslation'
+import { SITE_NAME, SITE_URL, SITE_LOGO } from '../../config/site'
 
 interface AiAnalysisPanelProps {
   metar: string
+  taf?: string | null
   icao: string
   lang: 'en' | 'zh'
   onClose: () => void
@@ -38,14 +41,18 @@ function parseThinkBlocks(raw: string): { thinking: string; body: string; thinki
   }
 }
 
-export function AiAnalysisPanel({ metar, icao, lang, onClose }: AiAnalysisPanelProps) {
+export function AiAnalysisPanel({ metar, taf, icao, lang, onClose }: AiAnalysisPanelProps) {
   const { t } = useTranslation()
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [thinkOpen, setThinkOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [shareLoading, setShareLoading] = useState<'download' | 'copy' | null>(null)
+  const [copyFeedback, setCopyFeedback] = useState<'copied' | 'downloaded' | null>(null)
   const abortRef = useRef(false)
   const contentRef = useRef<HTMLDivElement>(null)
+  const shareCardRef = useRef<HTMLDivElement>(null)
 
   const fetchAnalysis = useCallback(async () => {
     setContent('')
@@ -55,7 +62,7 @@ export function AiAnalysisPanel({ metar, icao, lang, onClose }: AiAnalysisPanelP
     abortRef.current = false
 
     try {
-      for await (const chunk of streamAiAnalysis(metar, icao, lang)) {
+      for await (const chunk of streamAiAnalysis(metar, icao, lang, taf)) {
         if (abortRef.current) break
         setContent((prev) => prev + chunk)
       }
@@ -66,7 +73,58 @@ export function AiAnalysisPanel({ metar, icao, lang, onClose }: AiAnalysisPanelP
     } finally {
       setLoading(false)
     }
-  }, [metar, icao, lang])
+  }, [metar, taf, icao, lang])
+
+  const handleShareDownload = useCallback(async () => {
+    if (!shareCardRef.current) return
+    setShareLoading('download')
+    try {
+      const canvas = await html2canvas(shareCardRef.current, {
+        scale: 2, useCORS: false, backgroundColor: '#ffffff', logging: false,
+      })
+      const link = document.createElement('a')
+      link.download = `ai-analysis-${icao}-${Date.now()}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    } catch (e) {
+      console.error('Failed to capture image:', e)
+    } finally {
+      setShareLoading(null)
+    }
+  }, [icao])
+
+  const handleShareCopy = useCallback(async () => {
+    if (!shareCardRef.current) return
+    setCopyFeedback(null)
+    setShareLoading('copy')
+    try {
+      const canvas = await html2canvas(shareCardRef.current, {
+        scale: 2, useCORS: false, backgroundColor: '#ffffff', logging: false,
+      })
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
+      if (!blob) return
+      if (navigator.clipboard?.write) {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+          setCopyFeedback('copied')
+          setTimeout(() => setCopyFeedback(null), 2000)
+          return
+        } catch { /* fallback to download */ }
+      }
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.download = `ai-analysis-${icao}-${Date.now()}.png`
+      link.href = url
+      link.click()
+      URL.revokeObjectURL(url)
+      setCopyFeedback('downloaded')
+      setTimeout(() => setCopyFeedback(null), 2000)
+    } catch (e) {
+      console.error('Failed to copy image:', e)
+    } finally {
+      setShareLoading(null)
+    }
+  }, [icao])
 
   useEffect(() => {
     fetchAnalysis()
@@ -123,6 +181,18 @@ export function AiAnalysisPanel({ metar, icao, lang, onClose }: AiAnalysisPanelP
               </div>
             </div>
             <div className="flex items-center gap-1">
+              {!loading && body && (
+                <button
+                  type="button"
+                  onClick={() => setShareOpen(true)}
+                  title={t('aiPanel.share')}
+                  className="p-2 rounded-lg text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+                  </svg>
+                </button>
+              )}
               {!loading && (
                 <button
                   type="button"
@@ -148,11 +218,18 @@ export function AiAnalysisPanel({ metar, icao, lang, onClose }: AiAnalysisPanelP
             </div>
           </div>
 
-          {/* METAR source */}
-          <div className="px-6 py-3 border-b border-zinc-100 dark:border-zinc-800/60 shrink-0">
-            <pre className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 whitespace-pre-wrap break-words leading-relaxed">
-              {metar}
-            </pre>
+          {/* METAR & TAF source */}
+          <div className="px-6 py-3 border-b border-zinc-100 dark:border-zinc-800/60 shrink-0 space-y-2 max-h-32 overflow-y-auto">
+            <div>
+              <p className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500 mb-0.5">METAR</p>
+              <pre className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 whitespace-pre-wrap break-words leading-relaxed">{metar}</pre>
+            </div>
+            {taf && (
+              <div>
+                <p className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500 mb-0.5">TAF</p>
+                <pre className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 whitespace-pre-wrap break-words leading-relaxed">{taf}</pre>
+              </div>
+            )}
           </div>
 
           {/* Content */}
@@ -242,6 +319,111 @@ export function AiAnalysisPanel({ metar, icao, lang, onClose }: AiAnalysisPanelP
               {t('aiPanel.disclaimer')}
             </p>
           </div>
+
+          {/* Share modal overlay */}
+          <AnimatePresence>
+            {shareOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+                onClick={() => setShareOpen(false)}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="bg-zinc-100 dark:bg-zinc-900 rounded-2xl shadow-xl w-[min(520px,100%-2rem)] max-h-[85%] overflow-hidden flex flex-col"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between shrink-0">
+                    <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                      {t('aiPanel.shareTitle')}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setShareOpen(false)}
+                      className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2">
+                    <div
+                      ref={shareCardRef}
+                      className="w-full bg-white p-4 text-zinc-800"
+                    >
+                      <div className="flex items-center justify-between mb-3 pb-2 border-b border-zinc-200">
+                        <div className="flex items-center gap-1.5">
+                          <img src={SITE_LOGO} alt="" className="w-6 h-6 shrink-0" />
+                          <span className="text-base font-semibold text-zinc-900">{SITE_NAME}</span>
+                        </div>
+                        <span className="text-[10px] text-zinc-500">{SITE_URL.replace(/^https?:\/\//, '')}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-5 h-5 rounded-md bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center shrink-0">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                          </svg>
+                        </div>
+                        <span className="text-sm font-semibold text-zinc-900">{t('aiPanel.title')} · {icao}</span>
+                      </div>
+                      <div className="mb-3 py-1.5 px-2 bg-zinc-50 rounded border border-zinc-100">
+                        <p className="text-[10px] text-zinc-500 mb-0.5 font-medium">METAR</p>
+                        <p className="text-[11px] font-mono text-zinc-700 leading-tight break-all">{metar}</p>
+                      </div>
+                      <div className="prose prose-sm prose-zinc max-w-none text-[12px] leading-relaxed prose-p:my-1.5 prose-table:text-[11px] prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-table:border prose-table:border-zinc-200 prose-th:bg-zinc-50 prose-thead:border-b prose-thead:border-zinc-200 prose-tr:border-b prose-tr:border-zinc-100">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-zinc-100">
+                        <p className="text-[9px] text-zinc-400">{t('aiPanel.disclaimer')}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 pt-2 flex gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleShareDownload}
+                      disabled={!!shareLoading}
+                      className="flex-1 px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {shareLoading === 'download' ? (
+                        <>
+                          <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0" />
+                          {t('share.downloading')}
+                        </>
+                      ) : (
+                        t('share.downloadImage')
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleShareCopy}
+                      disabled={!!shareLoading}
+                      className="flex-1 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {shareLoading === 'copy' ? (
+                        <>
+                          <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin shrink-0" />
+                          {t('share.copying')}
+                        </>
+                      ) : copyFeedback === 'copied' ? (
+                        t('share.copied')
+                      ) : copyFeedback === 'downloaded' ? (
+                        t('share.downloaded')
+                      ) : (
+                        t('share.copyImage')
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </div>
     </AnimatePresence>,

@@ -45,6 +45,7 @@ function corsHeaders(req: Request): Record<string, string> {
 
 const ICAO_RE = /^[A-Z]{4}$/
 const METAR_MAX_LEN = 600
+const TAF_MAX_LEN = 2000
 
 function validateIcao(icao: unknown): icao is string {
   return typeof icao === 'string' && ICAO_RE.test(icao)
@@ -54,12 +55,19 @@ function validateMetar(metar: unknown): metar is string {
   if (typeof metar !== 'string') return false
   const trimmed = metar.trim()
   if (trimmed.length < 10 || trimmed.length > METAR_MAX_LEN) return false
-  // ASCII printable characters only (no control chars, no unicode tricks)
   if (!/^[\x20-\x7E]+$/.test(trimmed)) return false
-  // Must contain a date/time group (6 digits followed by Z)
   if (!/\d{6}Z/.test(trimmed)) return false
-  // Must contain wind or CALM indicator
   if (!/(\d{3}\d{2,3}(G\d{2,3})?(KT|MPS)|VRB\d{2,3}(KT|MPS)|00000KT)/.test(trimmed)) return false
+  return true
+}
+
+function validateTaf(taf: unknown): taf is string {
+  if (typeof taf !== 'string') return false
+  const trimmed = taf.trim()
+  if (trimmed.length === 0) return true
+  if (trimmed.length > TAF_MAX_LEN) return false
+  if (!/^[\x20-\x7E\n\r]+$/.test(trimmed)) return false
+  if (!/\d{6}Z/.test(trimmed)) return false
   return true
 }
 
@@ -77,15 +85,17 @@ async function sha256(text: string): Promise<string> {
     .join('')
 }
 
-const SYSTEM_PROMPT_EN = `You are a professional aviation meteorologist. Analyze the provided METAR report and give a concise, professional weather briefing. Cover:
-Max temperature probability analysis
+const SYSTEM_PROMPT_EN = `You are a professional aviation meteorologist. Analyze the provided METAR report (and TAF forecast if available) and give a concise, professional weather briefing. Cover:
+- Max temperature probability analysis
 
-Be concise and professional. Use short paragraphs. Do not use markdown headers.`
+Today is ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+Be concise and professional. Use paragraphs or tables. Do not use markdown headers.`
 
-const SYSTEM_PROMPT_ZH = `你是一位专业的航空气象分析师。根据提供的METAR报文，提供简明、专业的天气分析。包括：
-最高温度的可能性分析
+const SYSTEM_PROMPT_ZH = `你是一位专业的航空气象分析师。根据提供的 METAR 报文（以及 TAF 预报，如果有的话），提供简明、专业的天气分析。包括：
+- 最高温度的可能性分析
 
-保持简洁专业，使用中文回答。使用短段落，不要使用 markdown 标题。`
+今天是${new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' })}
+保持简洁专业，使用中文回答。使用段落或者表格，不要使用 markdown 标题。`
 
 export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
@@ -107,6 +117,7 @@ export default async function handler(req: Request): Promise<Response> {
     const body = await req.json()
     const cors = corsHeaders(req)
     const metar = typeof body.metar === 'string' ? body.metar.trim() : ''
+    const taf = typeof body.taf === 'string' ? body.taf.trim() : ''
     const icao = typeof body.icao === 'string' ? body.icao.trim().toUpperCase() : ''
     const lang = validateLang(body.lang) ? body.lang : 'en'
 
@@ -124,7 +135,14 @@ export default async function handler(req: Request): Promise<Response> {
       )
     }
 
-    const cacheKey = `ai-analysis:${await sha256(metar + lang)}`
+    if (taf && !validateTaf(taf)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid TAF format' }),
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    const cacheKey = `ai-analysis:${await sha256(metar + taf + lang)}`
 
     // Check cache: Redis first, then in-memory fallback
     let redis: Redis | null = null
@@ -178,7 +196,9 @@ export default async function handler(req: Request): Promise<Response> {
           role: 'system',
           content: lang === 'zh' ? SYSTEM_PROMPT_ZH : SYSTEM_PROMPT_EN,
         },
-        { role: 'user', content: `METAR for ${icao}: ${metar}` },
+        { role: 'user', content: taf
+          ? `METAR for ${icao}:\n${metar}\n\nTAF for ${icao}:\n${taf}`
+          : `METAR for ${icao}:\n${metar}` },
       ],
       stream: true,
       max_tokens: 800,

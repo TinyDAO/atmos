@@ -291,6 +291,7 @@ export function AviationWeather({
     {showAi && metar && (
       <AiAnalysisPanel
         metar={metar}
+        taf={taf}
         icao={icao}
         lang={lang}
         onClose={() => setShowAi(false)}
