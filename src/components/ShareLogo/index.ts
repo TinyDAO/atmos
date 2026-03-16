@@ -1,0 +1,1 @@
+export { ShareLogo } from './ShareLogo'

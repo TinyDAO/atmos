@@ -6,7 +6,8 @@ import remarkGfm from 'remark-gfm'
 import html2canvas from 'html2canvas-pro'
 import { streamAiAnalysis } from '../../utils/streamAiAnalysis'
 import { useTranslation } from '../../hooks/useTranslation'
-import { SITE_NAME, SITE_URL, SITE_LOGO } from '../../config/site'
+import { SITE_NAME, SITE_URL } from '../../config/site'
+import { ShareLogo } from '../ShareLogo'
 
 interface AiAnalysisPanelProps {
   metar: string
@@ -359,7 +360,7 @@ export function AiAnalysisPanel({ metar, taf, icao, lang, onClose }: AiAnalysisP
                     >
                       <div className="flex items-center justify-between mb-3 pb-2 border-b border-zinc-200">
                         <div className="flex items-center gap-1.5">
-                          <img src={SITE_LOGO} alt="" className="w-6 h-6 shrink-0" />
+                          <ShareLogo className="w-6 h-6 shrink-0" />
                           <span className="text-base font-semibold text-zinc-900">{SITE_NAME}</span>
                         </div>
                         <span className="text-[10px] text-zinc-500">{SITE_URL.replace(/^https?:\/\//, '')}</span>

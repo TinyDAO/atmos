@@ -4,7 +4,8 @@ import { MetarHistoryChart } from '../MetarHistoryChart'
 import type { City } from '../../config/cities'
 import type { MetarDayData } from '../../utils/metarParser'
 import type { WindAnalysis } from '../../utils/windAnalysis'
-import { SITE_NAME, SITE_URL, SITE_LOGO } from '../../config/site'
+import { SITE_NAME, SITE_URL } from '../../config/site'
+import { ShareLogo } from '../ShareLogo'
 import { useTranslation } from '../../hooks/useTranslation'
 
 interface AviationShareModalProps {
@@ -146,7 +147,7 @@ export function AviationShareModal({
           >
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-zinc-200">
               <div className="flex items-center gap-1.5">
-                <img src={SITE_LOGO} alt="" className="w-6 h-6 shrink-0" />
+                <ShareLogo className="w-6 h-6 shrink-0" />
                 <span className="text-base font-semibold text-zinc-900">{SITE_NAME}</span>
               </div>
               <span className="text-[10px] text-zinc-500">{SITE_URL.replace(/^https?:\/\//, '')}</span>
