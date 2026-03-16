@@ -86,16 +86,16 @@ async function sha256(text: string): Promise<string> {
 }
 
 const SYSTEM_PROMPT_EN = `You are a professional aviation meteorologist. Analyze the provided METAR report (and TAF forecast if available) and give a concise, professional weather briefing. Cover:
-- Max temperature probability analysis
+- Today's Max temperature probability analysis，temperature probability distribution, temperature appearance time range
 
 Today is ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
-Be concise and professional. Use paragraphs or tables. Do not use markdown headers.`
+Be professional. Use paragraphs or tables. Do not use markdown headers.`
 
 const SYSTEM_PROMPT_ZH = `你是一位专业的航空气象分析师。根据提供的 METAR 报文（以及 TAF 预报，如果有的话），提供简明、专业的天气分析。包括：
-- 最高温度的可能性分析
+- 今日最高温度的可能性分析，温度的概率分布，温度出现的时间段
 
 今天是${new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' })}
-保持简洁专业，使用中文回答。使用段落或者表格，不要使用 markdown 标题。`
+保持专业，使用中文回答。使用段落或者表格，不要使用 markdown 标题。`
 
 export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
