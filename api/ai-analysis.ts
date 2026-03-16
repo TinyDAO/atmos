@@ -209,7 +209,7 @@ export default async function handler(req: Request): Promise<Response> {
           : `METAR for ${icao}:\n${metar}` },
       ],
       stream: true,
-      max_tokens: 800,
+      max_tokens: 100*1024,
     })
 
     let fullText = ''
