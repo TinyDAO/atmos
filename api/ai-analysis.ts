@@ -90,7 +90,8 @@ const SYSTEM_PROMPT_EN = `You are a professional aviation meteorologist. Analyze
   - Max temperature probability distribution
   - Max temperature appearance time range
 
-If you need to output time, please use the time in the airport's timezone.
+Should consider the influence of wind, precipitation, cloud cover, etc. on the temperature.
+The output time should be in the airport's timezone.
 Today is ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
 Be professional. Use paragraphs or tables. Do not use markdown headers.`
 
@@ -99,7 +100,8 @@ const SYSTEM_PROMPT_ZH = `你是一位专业的航空气象分析师。根据提
   - 最高温度的概率分布
   - 最高温度出现的时间段
 
-如果需要输出时间，请使用机场所在时区时间。
+需要考虑风, 雨, 云等因素对温度的影响
+输出的时间应该使用机场所在时区时间。
 今天是${new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' })}
 保持专业，使用中文回答。使用段落或者表格，不要使用 markdown 标题。`
 
