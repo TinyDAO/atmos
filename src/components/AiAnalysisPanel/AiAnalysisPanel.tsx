@@ -28,44 +28,16 @@ function parseThinkBlocks(raw: string): { thinking: string; body: string; thinki
   const closeIdx = raw.indexOf(closeTag, afterOpen)
 
   if (closeIdx === -1) {
-    const thinking = raw.slice(afterOpen).trim()
-    // Model likely put main response in think without closing tag. Promote to body if substantial.
-    const thinkingSubstantial = thinking.length > 80
-    const looksLikeAnalysis =
-      /\|.*\|/.test(thinking) ||
-      /^[\s]*[-*]\s/m.test(thinking) ||
-      /^\d+\.\s/m.test(thinking) ||
-      thinking.length > 200
-    if (thinkingSubstantial && looksLikeAnalysis) {
-      return { thinking: '', body: thinking, thinkingComplete: true }
-    }
     return {
-      thinking,
+      thinking: raw.slice(afterOpen).trim(),
       body: '',
       thinkingComplete: false,
     }
   }
 
-  const thinking = raw.slice(afterOpen, closeIdx).trim()
-  const body = (raw.slice(0, openIdx) + raw.slice(closeIdx + closeTag.length)).trim()
-
-  // Heuristic: if body is empty/short but thinking has substantial content, the model likely
-  // put the main response inside think tags. Promote thinking to body so users see the analysis.
-  const bodyEmptyOrShort = body.length < 80
-  const thinkingSubstantial = thinking.length > 80
-  const thinkingLooksLikeAnalysis =
-    /\|.*\|/.test(thinking) || // markdown table
-    /^[\s]*[-*]\s/m.test(thinking) || // bullets
-    /^\d+\.\s/m.test(thinking) || // numbered list
-    thinking.length > 200 // long prose (likely main response, not brief internal thought)
-
-  if (bodyEmptyOrShort && thinkingSubstantial && thinkingLooksLikeAnalysis) {
-    return { thinking: '', body: thinking, thinkingComplete: true }
-  }
-
   return {
-    thinking,
-    body,
+    thinking: raw.slice(afterOpen, closeIdx).trim(),
+    body: (raw.slice(0, openIdx) + raw.slice(closeIdx + closeTag.length)).trim(),
     thinkingComplete: true,
   }
 }
