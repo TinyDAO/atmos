@@ -87,16 +87,19 @@ export async function fetchOrderBooks(
   if (!res.ok) throw new Error('Failed to fetch Polymarket order books')
   const arr = await res.json()
   const map = new Map<string, OrderBookSummary>()
-  for (let i = 0; i < arr.length && i < tokenIds.length; i++) {
-    const b = arr[i]
+  const resArr = Array.isArray(arr) ? arr : []
+  for (let i = 0; i < resArr.length && i < tokenIds.length; i++) {
+    const b = resArr[i]
     const tokenId = tokenIds[i]
     if (b && tokenId) {
-      map.set(tokenId, {
+      const book: OrderBookSummary = {
         asset_id: b.asset_id ?? tokenId,
         bids: Array.isArray(b.bids) ? b.bids : [],
         asks: Array.isArray(b.asks) ? b.asks : [],
         last_trade_price: String(b.last_trade_price ?? '0'),
-      })
+      }
+      map.set(tokenId, book)
+      if (b.asset_id && b.asset_id !== tokenId) map.set(b.asset_id, book)
     }
   }
   return map

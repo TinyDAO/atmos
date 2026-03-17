@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePolymarketEvent } from '../../hooks/usePolymarketEvent'
+import { useMarketOrderBook } from '../../hooks/useMarketOrderBook'
 import { useTranslation } from '../../hooks/useTranslation'
 import type { City } from '../../config/cities'
 import type { PolymarketMarketWithBook } from '../../hooks/usePolymarketEvent'
@@ -35,6 +36,11 @@ function MarketRow({
   onToggle: () => void
 }) {
   const { t } = useTranslation()
+  const [tab, setTab] = useState<'yes' | 'no'>('yes')
+  const { orderBookYes: obYes, orderBookNo: obNo, loading: obLoading } = useMarketOrderBook(
+    market.clobTokenIds,
+    expanded
+  )
   const yesPrice =
     market.lastTradePrice ??
     (() => {
@@ -47,14 +53,23 @@ function MarketRow({
     })()
 
   const volume = market.volumeNum ?? (market.volume ? parseFloat(market.volume) : 0)
-  const ob = market.orderBook
-  const topBids =
-    ob?.bids
+  const topBidsYes =
+    obYes?.bids
       ?.slice()
       .sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
       .slice(0, ORDER_BOOK_DEPTH) ?? []
-  const topAsks =
-    ob?.asks
+  const topAsksYes =
+    obYes?.asks
+      ?.slice()
+      .sort((a, b) => parseFloat(a.price) - parseFloat(b.price))
+      .slice(0, ORDER_BOOK_DEPTH) ?? []
+  const topBidsNo =
+    obNo?.bids
+      ?.slice()
+      .sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
+      .slice(0, ORDER_BOOK_DEPTH) ?? []
+  const topAsksNo =
+    obNo?.asks
       ?.slice()
       .sort((a, b) => parseFloat(a.price) - parseFloat(b.price))
       .slice(0, ORDER_BOOK_DEPTH) ?? []
@@ -98,51 +113,135 @@ function MarketRow({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-5 pb-4 pt-0 grid grid-cols-2 gap-4 border-t border-zinc-50 dark:border-zinc-800/40">
-              <div>
-                <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2 uppercase tracking-wider">
-                  {t('polymarket.bids')}
-                </div>
-                <div className="space-y-1">
-                  {topBids.length === 0 ? (
-                    <span className="text-xs text-zinc-400">—</span>
-                  ) : (
-                    topBids.map((b, i) => (
-                      <div
-                        key={i}
-                        className="flex justify-between text-xs font-mono tabular-nums"
-                      >
-                        <span className="text-emerald-600 dark:text-emerald-400">
-                          {formatPrice(b.price)}
-                        </span>
-                        <span className="text-zinc-500 dark:text-zinc-400">{b.size}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
+            <div className="px-5 pb-4 pt-0 border-t border-zinc-50 dark:border-zinc-800/40">
+              <div className="flex justify-center gap-2 py-3 mb-1.5">
+                <button
+                  type="button"
+                  onClick={() => setTab('yes')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    tab === 'yes'
+                      ? 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
+                  }`}
+                >
+                  {t('polymarket.yes')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTab('no')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    tab === 'no'
+                      ? 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
+                  }`}
+                >
+                  {t('polymarket.no')}
+                </button>
               </div>
-              <div>
-                <div className="text-xs font-semibold text-rose-600 dark:text-rose-400 mb-2 uppercase tracking-wider">
-                  {t('polymarket.asks')}
+              {obLoading ? (
+                <div className="flex items-center justify-center py-6 gap-2 text-zinc-400 dark:text-zinc-500">
+                  <div className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs">{t('polymarket.loadingOrderBook')}</span>
                 </div>
-                <div className="space-y-1">
-                  {topAsks.length === 0 ? (
-                    <span className="text-xs text-zinc-400">—</span>
-                  ) : (
-                    topAsks.map((a, i) => (
-                      <div
-                        key={i}
-                        className="flex justify-between text-xs font-mono tabular-nums"
-                      >
-                        <span className="text-rose-600 dark:text-rose-400">
-                          {formatPrice(a.price)}
-                        </span>
-                        <span className="text-zinc-500 dark:text-zinc-400">{a.size}</span>
+              ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {tab === 'yes' ? (
+                  <>
+                    <div>
+                      <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
+                        {t('polymarket.bids')}
                       </div>
-                    ))
-                  )}
-                </div>
+                      <div className="space-y-1">
+                        {topBidsYes.length === 0 ? (
+                          <span className="text-xs text-zinc-400">—</span>
+                        ) : (
+                          topBidsYes.map((b, i) => (
+                            <div
+                              key={i}
+                              className="flex justify-between text-xs font-mono tabular-nums"
+                            >
+                              <span className="text-emerald-600 dark:text-emerald-400">
+                                {formatPrice(b.price)}
+                              </span>
+                              <span className="text-zinc-500 dark:text-zinc-400">{b.size}</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-rose-600 dark:text-rose-400 mb-2">
+                        {t('polymarket.asks')}
+                      </div>
+                      <div className="space-y-1">
+                        {topAsksYes.length === 0 ? (
+                          <span className="text-xs text-zinc-400">—</span>
+                        ) : (
+                          topAsksYes.map((a, i) => (
+                            <div
+                              key={i}
+                              className="flex justify-between text-xs font-mono tabular-nums"
+                            >
+                              <span className="text-rose-600 dark:text-rose-400">
+                                {formatPrice(a.price)}
+                              </span>
+                              <span className="text-zinc-500 dark:text-zinc-400">{a.size}</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
+                        {t('polymarket.bids')}
+                      </div>
+                      <div className="space-y-1">
+                        {topBidsNo.length === 0 ? (
+                          <span className="text-xs text-zinc-400">—</span>
+                        ) : (
+                          topBidsNo.map((b, i) => (
+                            <div
+                              key={i}
+                              className="flex justify-between text-xs font-mono tabular-nums"
+                            >
+                              <span className="text-emerald-600 dark:text-emerald-400">
+                                {formatPrice(b.price)}
+                              </span>
+                              <span className="text-zinc-500 dark:text-zinc-400">{b.size}</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-rose-600 dark:text-rose-400 mb-2">
+                        {t('polymarket.asks')}
+                      </div>
+                      <div className="space-y-1">
+                        {topAsksNo.length === 0 ? (
+                          <span className="text-xs text-zinc-400">—</span>
+                        ) : (
+                          topAsksNo.map((a, i) => (
+                            <div
+                              key={i}
+                              className="flex justify-between text-xs font-mono tabular-nums"
+                            >
+                              <span className="text-rose-600 dark:text-rose-400">
+                                {formatPrice(a.price)}
+                              </span>
+                              <span className="text-zinc-500 dark:text-zinc-400">{a.size}</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
+              )}
             </div>
           </motion.div>
         )}

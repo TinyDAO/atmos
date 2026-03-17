@@ -1,16 +1,8 @@
 import { useEffect, useState } from 'react'
-import {
-  fetchEventBySlug,
-  fetchOrderBooks,
-  type PolymarketEvent,
-  type PolymarketMarket,
-  type OrderBookSummary,
-} from '../services/polymarket'
+import { fetchEventBySlug, type PolymarketEvent, type PolymarketMarket } from '../services/polymarket'
 import { getPolymarketSlug } from '../utils/polymarketSlug'
 
-export interface PolymarketMarketWithBook extends PolymarketMarket {
-  orderBook: OrderBookSummary | null
-}
+export type PolymarketMarketWithBook = PolymarketMarket
 
 export interface PolymarketEventWithBooks {
   event: PolymarketEvent | null
@@ -25,7 +17,6 @@ export function usePolymarketEvent(
   dayIndex: number
 ): PolymarketEventWithBooks {
   const [event, setEvent] = useState<PolymarketEvent | null>(null)
-  const [orderBooks, setOrderBooks] = useState<Map<string, OrderBookSummary>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,35 +31,6 @@ export function usePolymarketEvent(
         const ev = await fetchEventBySlug(slug)
         if (cancelled) return
         setEvent(ev ?? null)
-
-        if (!ev?.markets?.length) {
-          setLoading(false)
-          return
-        }
-
-        const yesTokenIds: string[] = []
-        const marketToToken: Record<string, string> = {}
-        for (const m of ev.markets) {
-          try {
-            const ids = JSON.parse(m.clobTokenIds || '[]') as string[]
-            const yesToken = ids[0]
-            if (yesToken) {
-              yesTokenIds.push(yesToken)
-              marketToToken[m.id] = yesToken
-            }
-          } catch {
-            // ignore
-          }
-        }
-
-        if (yesTokenIds.length > 0) {
-          try {
-            const books = await fetchOrderBooks(yesTokenIds)
-            if (!cancelled) setOrderBooks(books)
-          } catch {
-            // Order book fetch failed (e.g. CORS) - continue with Gamma data only
-          }
-        }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load')
       } finally {
@@ -82,19 +44,10 @@ export function usePolymarketEvent(
     }
   }, [cityId, timezone, dayIndex])
 
-  const marketsWithBooks: PolymarketMarketWithBook[] = (event?.markets ?? []).map((m) => {
-    let tokenId = ''
-    try {
-      const ids = JSON.parse(m.clobTokenIds || '[]') as string[]
-      tokenId = ids[0] ?? ''
-    } catch {
-      // ignore
-    }
-    return {
-      ...m,
-      orderBook: tokenId ? orderBooks.get(tokenId) ?? null : null,
-    }
-  })
-
-  return { event, marketsWithBooks, loading, error }
+  return {
+    event,
+    marketsWithBooks: event?.markets ?? [],
+    loading,
+    error,
+  }
 }

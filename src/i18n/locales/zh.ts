@@ -114,6 +114,7 @@ const zh: TranslationShape = {
   },
   polymarket: {
     loading: '加载市场中…',
+    loadingOrderBook: '加载订单簿…',
     noMarkets: '该日期未找到市场',
     viewOnPolymarket: '在 Polymarket 查看 →',
     view: '查看 →',
@@ -121,6 +122,8 @@ const zh: TranslationShape = {
     bids: '买单',
     asks: '卖单',
     vol: '成交量',
+    yes: '是',
+    no: '否',
   },
   polymarketButton: {
     title: 'Polymarket {city} 最高温预测市场',

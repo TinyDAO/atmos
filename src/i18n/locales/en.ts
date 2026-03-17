@@ -114,6 +114,7 @@ const en = {
   },
   polymarket: {
     loading: 'Loading markets…',
+    loadingOrderBook: 'Loading order book…',
     noMarkets: 'No markets found for this date',
     viewOnPolymarket: 'View on Polymarket →',
     view: 'View →',
@@ -121,6 +122,8 @@ const en = {
     bids: 'Bids',
     asks: 'Asks',
     vol: 'Vol',
+    yes: 'Yes',
+    no: 'No',
   },
   polymarketButton: {
     title: 'Polymarket {city} max temp prediction market',
