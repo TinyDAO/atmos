@@ -116,25 +116,25 @@ export const CITIES: City[] = [
       },
     ]
   },
-  {
-    id: 'hong-kong',
-    name: 'Hong Kong',
-    country: 'China',
-    latitude: 22.32,
-    longitude: 114.17,
-    icao: 'VHHH',
-    timezone: 'Asia/Hong_Kong',
-    utcOffsetMinutes: 480,
-    description: 'A vibrant metropolis where skyscrapers meet traditional temples.',
-    gradient: 'from-amber-500 via-orange-500 to-red-600',
-    image: '/images/cities/hong-kong.jpg',
-    webcams: [
-      'https://imgproxy.windy.com/_/full/plain/current/1166267733/original.jpg',
-      'https://imgproxy.windy.com/_/full/plain/current/1526831849/original.jpg',
-      'https://imgproxy.windy.com/_/full/plain/current/1592304269/original.jpg',
-      'https://imgproxy.windy.com/_/full/plain/current/1627525317/original.jpg'
-    ]
-  },
+  // {
+  //   id: 'hong-kong',
+  //   name: 'Hong Kong',
+  //   country: 'China',
+  //   latitude: 22.32,
+  //   longitude: 114.17,
+  //   icao: 'VHHH',
+  //   timezone: 'Asia/Hong_Kong',
+  //   utcOffsetMinutes: 480,
+  //   description: 'A vibrant metropolis where skyscrapers meet traditional temples.',
+  //   gradient: 'from-amber-500 via-orange-500 to-red-600',
+  //   image: '/images/cities/hong-kong.jpg',
+  //   webcams: [
+  //     'https://imgproxy.windy.com/_/full/plain/current/1166267733/original.jpg',
+  //     'https://imgproxy.windy.com/_/full/plain/current/1526831849/original.jpg',
+  //     'https://imgproxy.windy.com/_/full/plain/current/1592304269/original.jpg',
+  //     'https://imgproxy.windy.com/_/full/plain/current/1627525317/original.jpg'
+  //   ]
+  // },
   {
     id: 'singapore',
     name: 'Singapore',
@@ -270,6 +270,19 @@ export const CITIES: City[] = [
       'https://imgproxy.windy.com/_/full/plain/current/1207755799/original.jpg',
       'https://imgproxy.windy.com/_/full/plain/current/1758303408/original.jpg',
     ],
+  },
+  {
+    id: 'munich',
+    name: 'Munich',
+    country: 'Germany',
+    latitude: 48.14,
+    longitude: 11.58,
+    icao: 'EDDM',
+    timezone: 'Europe/Berlin',
+    utcOffsetMinutes: 60,
+    description: 'Bavarian capital. Beer gardens, Oktoberfest, and Alpine charm at the heart of Europe.',
+    gradient: 'from-amber-600 via-yellow-500 to-amber-500',
+    image: '/images/cities/munich.jpg',
   },
   {
     id: 'miami',
