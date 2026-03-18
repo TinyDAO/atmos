@@ -1,27 +1,11 @@
-import { PrismaNeon } from '@prisma/adapter-neon'
-import { PrismaClient } from '@prisma/client'
+import 'dotenv/config'
+import { verifyMessage } from 'viem'
+import { neon } from '@neondatabase/serverless'
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
-function createPrisma(): PrismaClient {
-  const cs = process.env.DATABASE_URL
-  if (!cs) throw new Error('DATABASE_URL is not configured')
-  return new PrismaClient({ adapter: new PrismaNeon({ connectionString: cs }), log: ['error'] })
-}
-const prisma = globalForPrisma.prisma ?? createPrisma()
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
-
-function getHeader(h: Headers | Record<string, string | string[] | undefined>, name: string): string {
-  if (h && typeof (h as Headers).get === 'function') return (h as Headers).get(name) ?? ''
-  const v = (h as Record<string, string | string[] | undefined>)?.[name.toLowerCase()]
-  return Array.isArray(v) ? v[0] ?? '' : (v ?? '')
-}
-async function getBodyJson(req: { json?: () => Promise<unknown>; [Symbol.asyncIterator]?: () => AsyncIterableIterator<Buffer> }): Promise<unknown> {
-  if (typeof req.json === 'function') return req.json()
-  const chunks: Buffer[] = []
-  if (req[Symbol.asyncIterator]) for await (const c of req as AsyncIterable<Buffer>) chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c))
-  const body = Buffer.concat(chunks).toString('utf-8')
-  return body ? JSON.parse(body) : {}
-}
+const cs = process.env.DATABASE_URL
+if (!cs) throw new Error('DATABASE_URL is not configured')
+const conn = cs.includes('connect_timeout=') ? cs : cs + (cs.includes('?') ? '&' : '?') + 'connect_timeout=30'
+const sql = neon(conn)
 
 function corsHeaders(origin: string): Record<string, string> {
   return {
@@ -36,46 +20,101 @@ function isValidAddress(addr: unknown): addr is string {
   return typeof addr === 'string' && /^0x[a-fA-F0-9]{40}$/.test(addr)
 }
 
-export default async function handler(req: { method?: string; headers: unknown; json?: () => Promise<unknown>; [Symbol.asyncIterator]?: () => AsyncIterableIterator<Buffer> }): Promise<Response> {
-  const origin = getHeader(req.headers as Headers, 'origin') || '*'
+const MESSAGE_PREFIX = 'Connect to Weather App\nTimestamp: '
+const TIMESTAMP_TOLERANCE_MS = 5 * 60 * 1000 // 5 min
 
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders(origin) })
-  }
+function parseMessageTimestamp(message: string): number | null {
+  if (!message.startsWith(MESSAGE_PREFIX)) return null
+  const tsStr = message.slice(MESSAGE_PREFIX.length)
+  const ts = Date.parse(tsStr)
+  return isNaN(ts) ? null : ts
+}
 
-  if (req.method !== 'POST') {
-    return new Response(
-      JSON.stringify({ error: 'Method not allowed' }),
-      { status: 405, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
-    )
-  }
+function isMessageFresh(ts: number): boolean {
+  const now = Date.now()
+  return Math.abs(now - ts) <= TIMESTAMP_TOLERANCE_MS
+}
 
-  try {
-    const body = (await getBodyJson(req)) as { address?: unknown }
-    const address = body?.address
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const origin = request.headers.get('origin') || '*'
 
-    if (!isValidAddress(address)) {
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders(origin) })
+    }
+
+    if (request.method !== 'POST') {
       return new Response(
-        JSON.stringify({ error: 'Invalid wallet address' }),
-        { status: 400, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: 'Method not allowed' }),
+        { status: 405, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
       )
     }
 
-    const user = await prisma.user.upsert({
-      where: { address: address.toLowerCase() },
-      create: { address: address.toLowerCase(), points: 500 },
-      update: {},
-    })
+    try {
+      const body = (await request.json()) as { address?: unknown; signature?: unknown; message?: unknown }
+      const address = body?.address
+      const signature = body?.signature
+      const message = body?.message
 
-    return new Response(
-      JSON.stringify({ userId: user.id, address: user.address, points: user.points }),
-      { status: 200, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
-    )
-  } catch (err) {
-    console.error('Auth connect error:', err)
-    return new Response(
-      JSON.stringify({ error: 'Failed to connect' }),
-      { status: 500, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
-    )
-  }
+      if (!isValidAddress(address)) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid wallet address' }),
+          { status: 400, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
+        )
+      }
+
+      if (typeof signature !== 'string' || typeof message !== 'string' || !signature.startsWith('0x') || message.length < 10) {
+        return new Response(
+          JSON.stringify({ error: 'Signature required', code: 'SIGNATURE_REQUIRED' }),
+          { status: 401, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
+        )
+      }
+
+      const ts = parseMessageTimestamp(message)
+      if (ts === null || !isMessageFresh(ts)) {
+        return new Response(
+          JSON.stringify({ error: 'Message expired, please sign again', code: 'MESSAGE_EXPIRED' }),
+          { status: 401, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
+        )
+      }
+
+      const valid = await verifyMessage({
+        address: address as `0x${string}`,
+        message,
+        signature: signature as `0x${string}`,
+      })
+      if (!valid) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid signature', code: 'INVALID_SIGNATURE' }),
+          { status: 401, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
+        )
+      }
+
+      const addr = address.toLowerCase()
+      const [user] = await sql`
+        INSERT INTO users (id, address, points, "createdAt", "updatedAt")
+        VALUES (gen_random_uuid()::text, ${addr}, 500, now(), now())
+        ON CONFLICT (address) DO UPDATE SET "updatedAt" = now()
+        RETURNING id, address, points
+      `
+
+      if (!user) {
+        return new Response(
+          JSON.stringify({ error: 'Failed to connect' }),
+          { status: 500, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
+        )
+      }
+
+      return new Response(
+        JSON.stringify({ userId: user.id, address: user.address, points: user.points }),
+        { status: 200, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
+      )
+    } catch (err) {
+      console.error('Auth connect error:', err)
+      return new Response(
+        JSON.stringify({ error: 'Failed to connect' }),
+        { status: 500, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
+      )
+    }
+  },
 }

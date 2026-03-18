@@ -1,8 +1,8 @@
 {
   "functions": {
-    "api/**/*.ts": {
-      "maxDuration": 60
-    }
+    "api/ai-analysis.ts": { "maxDuration": 300 },
+    "api/auth/connect.ts": { "maxDuration": 60 },
+    "api/points.ts": { "maxDuration": 60 }
   },
   "rewrites": [
     {

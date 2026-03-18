@@ -32,10 +32,8 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/polymarket-clob/, ''),
       },
-      '/api': {
-        target: SITE_URL,
-        changeOrigin: true,
-      },
+      // 不代理 /api：vercel dev 时由本地 serverless 处理；pnpm run dev 时需用 dev:full 测试 API
+      // '/api': { target: SITE_URL, changeOrigin: true },
     },
   },
 })

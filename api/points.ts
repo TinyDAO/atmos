@@ -1,20 +1,10 @@
-import { PrismaNeon } from '@prisma/adapter-neon'
-import { PrismaClient } from '@prisma/client'
+import 'dotenv/config'
+import { neon } from '@neondatabase/serverless'
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
-function createPrisma(): PrismaClient {
-  const cs = process.env.DATABASE_URL
-  if (!cs) throw new Error('DATABASE_URL is not configured')
-  return new PrismaClient({ adapter: new PrismaNeon({ connectionString: cs }), log: ['error'] })
-}
-const prisma = globalForPrisma.prisma ?? createPrisma()
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
-
-function getHeader(h: Headers | Record<string, string | string[] | undefined>, name: string): string {
-  if (h && typeof (h as Headers).get === 'function') return (h as Headers).get(name) ?? ''
-  const v = (h as Record<string, string | string[] | undefined>)?.[name.toLowerCase()]
-  return Array.isArray(v) ? v[0] ?? '' : (v ?? '')
-}
+const cs = process.env.DATABASE_URL
+if (!cs) throw new Error('DATABASE_URL is not configured')
+const conn = cs.includes('connect_timeout=') ? cs : cs + (cs.includes('?') ? '&' : '?') + 'connect_timeout=30'
+const sql = neon(conn)
 
 function getAllowedOrigins(): string[] {
   const env = process.env.ALLOWED_ORIGINS
@@ -22,9 +12,9 @@ function getAllowedOrigins(): string[] {
   return env.split(',').map((o) => o.trim()).filter(Boolean)
 }
 
-function corsHeaders(req: { headers: unknown }): Record<string, string> {
+function corsHeaders(request: Request): Record<string, string> {
   const allowed = getAllowedOrigins()
-  const origin = getHeader(req.headers as Headers, 'origin')
+  const origin = request.headers.get('origin') ?? ''
   const allowOrigin = allowed.length === 0 ? '*' : allowed.includes(origin) ? origin : allowed[0]
   return {
     'Access-Control-Allow-Origin': allowOrigin,
@@ -38,51 +28,51 @@ function isValidAddress(addr: unknown): addr is string {
   return typeof addr === 'string' && /^0x[a-fA-F0-9]{40}$/.test(addr)
 }
 
-export default async function handler(req: { method?: string; headers: unknown; url?: string }): Promise<Response> {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders(req) })
-  }
+export default {
+  async fetch(request: Request): Promise<Response> {
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders(request) })
+    }
 
-  if (req.method !== 'GET') {
-    return new Response(
-      JSON.stringify({ error: 'Method not allowed' }),
-      { status: 405, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } },
-    )
-  }
-
-  try {
-    const urlStr = req.url ?? ''
-    const url = urlStr.startsWith('http') ? new URL(urlStr) : new URL(urlStr, 'http://localhost')
-    const address = url.searchParams.get('address')
-
-    if (!isValidAddress(address)) {
+    if (request.method !== 'GET') {
       return new Response(
-        JSON.stringify({ error: 'Invalid address' }),
-        { status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: 'Method not allowed' }),
+        { status: 405, headers: { ...corsHeaders(request), 'Content-Type': 'application/json' } },
       )
     }
 
-    const user = await prisma.user.findUnique({
-      where: { address: address.toLowerCase() },
-      select: { points: true },
-    })
+    try {
+      const url = new URL(request.url)
+      const address = url.searchParams.get('address')
 
-    if (!user) {
+      if (!isValidAddress(address)) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid address' }),
+          { status: 400, headers: { ...corsHeaders(request), 'Content-Type': 'application/json' } },
+        )
+      }
+
+      const [user] = await sql`
+        SELECT points FROM users WHERE address = ${address.toLowerCase()}
+      `
+
+      if (!user) {
+        return new Response(
+          JSON.stringify({ error: 'User not found', points: 0 }),
+          { status: 404, headers: { ...corsHeaders(request), 'Content-Type': 'application/json' } },
+        )
+      }
+
       return new Response(
-        JSON.stringify({ error: 'User not found', points: 0 }),
-        { status: 404, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } },
+        JSON.stringify({ points: user.points }),
+        { status: 200, headers: { ...corsHeaders(request), 'Content-Type': 'application/json' } },
+      )
+    } catch (err) {
+      console.error('Points API error:', err)
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch points' }),
+        { status: 500, headers: { ...corsHeaders(request), 'Content-Type': 'application/json' } },
       )
     }
-
-    return new Response(
-      JSON.stringify({ points: user.points }),
-      { status: 200, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } },
-    )
-  } catch (err) {
-    console.error('Points API error:', err)
-    return new Response(
-      JSON.stringify({ error: 'Failed to fetch points' }),
-      { status: 500, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } },
-    )
-  }
+  },
 }

@@ -1,29 +1,12 @@
+import 'dotenv/config'
 import OpenAI from 'openai'
-import { PrismaNeon } from '@prisma/adapter-neon'
-import { PrismaClient } from '@prisma/client'
+import { neon } from '@neondatabase/serverless'
 import { Redis } from '@upstash/redis'
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
-function createPrisma(): PrismaClient {
-  const cs = process.env.DATABASE_URL
-  if (!cs) throw new Error('DATABASE_URL is not configured')
-  return new PrismaClient({ adapter: new PrismaNeon({ connectionString: cs }), log: ['error'] })
-}
-const prisma = globalForPrisma.prisma ?? createPrisma()
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
-
-function getHeader(h: Headers | Record<string, string | string[] | undefined>, name: string): string {
-  if (h && typeof (h as Headers).get === 'function') return (h as Headers).get(name) ?? ''
-  const v = (h as Record<string, string | string[] | undefined>)?.[name.toLowerCase()]
-  return Array.isArray(v) ? v[0] ?? '' : (v ?? '')
-}
-async function getBodyJson(req: { json?: () => Promise<unknown>; [Symbol.asyncIterator]?: () => AsyncIterableIterator<Buffer> }): Promise<unknown> {
-  if (typeof req.json === 'function') return req.json()
-  const chunks: Buffer[] = []
-  if (req[Symbol.asyncIterator]) for await (const c of req as AsyncIterable<Buffer>) chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c))
-  const body = Buffer.concat(chunks).toString('utf-8')
-  return body ? JSON.parse(body) : {}
-}
+const cs = process.env.DATABASE_URL
+if (!cs) throw new Error('DATABASE_URL is not configured')
+const conn = cs.includes('connect_timeout=') ? cs : cs + (cs.includes('?') ? '&' : '?') + 'connect_timeout=30'
+const sql = neon(conn)
 
 const memoryCache = new Map<string, { text: string; ts: number }>()
 const MEMORY_TTL_MS = 3600_000
@@ -34,12 +17,12 @@ function getAllowedOrigins(): string[] {
   return env.split(',').map((o) => o.trim()).filter(Boolean)
 }
 
-function isOriginAllowed(req: { headers: unknown }): boolean {
+function isOriginAllowed(request: Request): boolean {
   const allowed = getAllowedOrigins()
   if (allowed.length === 0) return true
 
-  const origin = getHeader(req.headers as Headers, 'origin')
-  const referer = getHeader(req.headers as Headers, 'referer')
+  const origin = request.headers.get('origin')
+  const referer = request.headers.get('referer')
 
   if (origin && allowed.includes(origin)) return true
   if (referer) {
@@ -51,9 +34,9 @@ function isOriginAllowed(req: { headers: unknown }): boolean {
   return false
 }
 
-function corsHeaders(req: { headers: unknown }): Record<string, string> {
+function corsHeaders(request: Request): Record<string, string> {
   const allowed = getAllowedOrigins()
-  const origin = getHeader(req.headers as Headers, 'origin')
+  const origin = request.headers.get('origin') ?? ''
   const allowOrigin = allowed.length === 0
     ? '*'
     : allowed.includes(origin) ? origin : allowed[0]
@@ -131,30 +114,26 @@ const SYSTEM_PROMPT_ZH = `你是一位专业的航空气象分析师。根据提
 今天是${new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' })}
 保持专业，使用中文回答。使用段落或者表格，不要使用 markdown 标题。`
 
-export default async function handler(req: {
-  method?: string
-  headers: unknown
-  json?: () => Promise<unknown>
-  [Symbol.asyncIterator]?: () => AsyncIterableIterator<Buffer>
-}): Promise<Response> {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders(req) })
-  }
+export default {
+  async fetch(request: Request): Promise<Response> {
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders(request) })
+    }
 
-  if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 })
-  }
+    if (request.method !== 'POST') {
+      return new Response('Method not allowed', { status: 405 })
+    }
 
-  if (!isOriginAllowed(req)) {
-    return new Response(
-      JSON.stringify({ error: 'Forbidden' }),
-      { status: 403, headers: { 'Content-Type': 'application/json' } },
-    )
-  }
+    if (!isOriginAllowed(request)) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } },
+      )
+    }
 
-  try {
-    const body = (await getBodyJson(req)) as Record<string, unknown>
-    const cors = corsHeaders(req)
+    try {
+      const body = (await request.json()) as Record<string, unknown>
+      const cors = corsHeaders(request)
     const metar = typeof body.metar === 'string' ? body.metar.trim() : ''
     const taf = typeof body.taf === 'string' ? body.taf.trim() : ''
     const icao = typeof body.icao === 'string' ? body.icao.trim().toUpperCase() : ''
@@ -169,7 +148,7 @@ export default async function handler(req: {
     }
 
     const addr = address.toLowerCase()
-    const user = await prisma.user.findUnique({ where: { address: addr } })
+    const [user] = await sql`SELECT id, points FROM users WHERE address = ${addr} LIMIT 1`
     if (!user || user.points < 1) {
       return new Response(
         JSON.stringify({ error: 'Insufficient points', code: 'INSUFFICIENT_POINTS', points: user?.points ?? 0 }),
@@ -177,19 +156,9 @@ export default async function handler(req: {
       )
     }
 
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { address: addr },
-        data: { points: { decrement: 1 } },
-      }),
-      prisma.pointRecord.create({
-        data: {
-          userId: user.id,
-          amount: -1,
-          reason: 'ai_analysis',
-          icao: icao || null,
-        },
-      }),
+    await sql.transaction([
+      sql`UPDATE users SET points = points - 1, "updatedAt" = now() WHERE address = ${addr}`,
+      sql`INSERT INTO point_records (id, "userId", amount, reason, icao, "createdAt") VALUES (gen_random_uuid()::text, ${user.id}, -1, 'ai_analysis', ${icao || null}, now())`,
     ])
 
     if (!validateIcao(icao)) {
@@ -321,10 +290,11 @@ export default async function handler(req: {
         Connection: 'keep-alive',
       },
     })
-  } catch (err) {
-    return new Response(
-      JSON.stringify({ error: String(err) }),
-      { status: 500, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } },
-    )
-  }
+} catch (err) {
+      return new Response(
+        JSON.stringify({ error: String(err) }),
+        { status: 500, headers: { ...corsHeaders(request), 'Content-Type': 'application/json' } },
+      )
+    }
+  },
 }

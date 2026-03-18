@@ -1,22 +1,40 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useAccount } from 'wagmi'
+import { useAccount, useSignMessage } from 'wagmi'
 import { useTranslation } from '../../hooks/useTranslation'
 import { usePoints } from '../../hooks/usePoints'
+
+const CONNECT_MESSAGE_PREFIX = 'Connect to Weather App\nTimestamp: '
 
 export function WalletConnectButton() {
   const { t } = useTranslation()
   const { address, isConnected } = useAccount()
   const { points } = usePoints(isConnected ? address : undefined)
+  const { signMessageAsync } = useSignMessage()
+  const connectAttempted = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!isConnected || !address) return
-    fetch('/api/auth/connect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address }),
-    }).catch(console.error)
-  }, [address, isConnected])
+    if (!isConnected || !address) {
+      connectAttempted.current = null
+      return
+    }
+    if (connectAttempted.current === address) return
+    connectAttempted.current = address
+
+    const message = CONNECT_MESSAGE_PREFIX + new Date().toISOString()
+    signMessageAsync({ message })
+      .then((signature) =>
+        fetch('/api/auth/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address, signature, message }),
+        }),
+      )
+      .catch((err) => {
+        console.error(err)
+        connectAttempted.current = null
+      })
+  }, [address, isConnected, signMessageAsync])
 
   return (
     <ConnectButton.Custom>

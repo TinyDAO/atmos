@@ -15,7 +15,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@prisma/adapter-neon": "^7.5.0",
+    "@neondatabase/serverless": "^1.0.0",
     "@prisma/client": "^7.5.0",
     "@rainbow-me/rainbowkit": "^2.2.10",
     "@tailwindcss/typography": "^0.5.19",
