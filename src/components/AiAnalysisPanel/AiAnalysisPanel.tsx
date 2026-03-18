@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import html2canvas from 'html2canvas-pro'
 import { useAccount } from 'wagmi'
+import { toast } from 'sonner'
 import { streamAiAnalysis, AiAnalysisAuthError } from '../../utils/streamAiAnalysis'
 import { dispatchRefetchPoints } from '../../hooks/usePoints'
 import { useTranslation } from '../../hooks/useTranslation'
@@ -71,6 +72,9 @@ export function AiAnalysisPanel({ metar, taf, icao, lang, onClose }: AiAnalysisP
         setContent((prev) => prev + chunk)
       }
       dispatchRefetchPoints()
+      if (!abortRef.current) {
+        toast.success(t('aiPanel.pointDeducted'))
+      }
     } catch (err) {
       if (!abortRef.current) {
         if (err instanceof AiAnalysisAuthError) {

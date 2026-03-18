@@ -76,6 +76,7 @@ const zh: TranslationShape = {
     disclaimer: 'AI 生成内容，仅供参考，不构成决策依据',
     shareTitle: '分享 AI 分析',
     share: '分享',
+    pointDeducted: '已扣除 1 积分',
   },
   metarChart: {
     temp: '气温',

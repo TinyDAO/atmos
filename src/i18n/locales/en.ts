@@ -76,6 +76,7 @@ const en = {
     disclaimer: 'AI-generated content, for reference only, not for decision-making',
     shareTitle: 'Share AI Analysis',
     share: 'Share',
+    pointDeducted: '1 point deducted',
   },
   metarChart: {
     temp: 'Temp',
