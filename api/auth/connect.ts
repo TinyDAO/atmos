@@ -1,5 +1,5 @@
-import { prisma } from '../lib/db'
-import { getBodyJson, getHeader } from '../lib/request'
+import { prisma } from '../_lib/db'
+import { getBodyJson, getHeader } from '../_lib/request'
 
 function corsHeaders(origin: string): Record<string, string> {
   return {
