@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/db'
+import { getBodyJson, getHeader } from '../../lib/request'
 
 function corsHeaders(origin: string): Record<string, string> {
   return {
@@ -13,8 +14,8 @@ function isValidAddress(addr: unknown): addr is string {
   return typeof addr === 'string' && /^0x[a-fA-F0-9]{40}$/.test(addr)
 }
 
-export default async function handler(req: Request): Promise<Response> {
-  const origin = req.headers.get('origin') ?? '*'
+export default async function handler(req: { method?: string; headers: unknown; json?: () => Promise<unknown>; [Symbol.asyncIterator]?: () => AsyncIterableIterator<Buffer> }): Promise<Response> {
+  const origin = getHeader(req.headers as Headers, 'origin') || '*'
 
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders(origin) })
@@ -28,7 +29,7 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const body = await req.json()
+    const body = (await getBodyJson(req)) as { address?: unknown }
     const address = body?.address
 
     if (!isValidAddress(address)) {

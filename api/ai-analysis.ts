@@ -1,6 +1,7 @@
 import OpenAI from 'openai'
 import { Redis } from '@upstash/redis'
 import { prisma } from '../lib/db'
+import { getBodyJson, getHeader } from '../lib/request'
 
 const memoryCache = new Map<string, { text: string; ts: number }>()
 const MEMORY_TTL_MS = 3600_000
@@ -11,12 +12,12 @@ function getAllowedOrigins(): string[] {
   return env.split(',').map((o) => o.trim()).filter(Boolean)
 }
 
-function isOriginAllowed(req: Request): boolean {
+function isOriginAllowed(req: { headers: unknown }): boolean {
   const allowed = getAllowedOrigins()
   if (allowed.length === 0) return true
 
-  const origin = req.headers.get('origin') ?? ''
-  const referer = req.headers.get('referer') ?? ''
+  const origin = getHeader(req.headers as Headers, 'origin')
+  const referer = getHeader(req.headers as Headers, 'referer')
 
   if (origin && allowed.includes(origin)) return true
   if (referer) {
@@ -28,9 +29,9 @@ function isOriginAllowed(req: Request): boolean {
   return false
 }
 
-function corsHeaders(req: Request): Record<string, string> {
+function corsHeaders(req: { headers: unknown }): Record<string, string> {
   const allowed = getAllowedOrigins()
-  const origin = req.headers.get('origin') ?? ''
+  const origin = getHeader(req.headers as Headers, 'origin')
   const allowOrigin = allowed.length === 0
     ? '*'
     : allowed.includes(origin) ? origin : allowed[0]
@@ -108,7 +109,12 @@ const SYSTEM_PROMPT_ZH = `你是一位专业的航空气象分析师。根据提
 今天是${new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' })}
 保持专业，使用中文回答。使用段落或者表格，不要使用 markdown 标题。`
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(req: {
+  method?: string
+  headers: unknown
+  json?: () => Promise<unknown>
+  [Symbol.asyncIterator]?: () => AsyncIterableIterator<Buffer>
+}): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders(req) })
   }
@@ -125,7 +131,7 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const body = await req.json()
+    const body = (await getBodyJson(req)) as Record<string, unknown>
     const cors = corsHeaders(req)
     const metar = typeof body.metar === 'string' ? body.metar.trim() : ''
     const taf = typeof body.taf === 'string' ? body.taf.trim() : ''

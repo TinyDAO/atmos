@@ -1,4 +1,5 @@
 import { prisma } from '../lib/db'
+import { getHeader } from '../lib/request'
 
 function getAllowedOrigins(): string[] {
   const env = process.env.ALLOWED_ORIGINS
@@ -6,9 +7,9 @@ function getAllowedOrigins(): string[] {
   return env.split(',').map((o) => o.trim()).filter(Boolean)
 }
 
-function corsHeaders(req: Request): Record<string, string> {
+function corsHeaders(req: { headers: unknown }): Record<string, string> {
   const allowed = getAllowedOrigins()
-  const origin = req.headers.get('origin') ?? ''
+  const origin = getHeader(req.headers as Headers, 'origin')
   const allowOrigin = allowed.length === 0 ? '*' : allowed.includes(origin) ? origin : allowed[0]
   return {
     'Access-Control-Allow-Origin': allowOrigin,
@@ -22,7 +23,7 @@ function isValidAddress(addr: unknown): addr is string {
   return typeof addr === 'string' && /^0x[a-fA-F0-9]{40}$/.test(addr)
 }
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(req: { method?: string; headers: unknown; url?: string }): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders(req) })
   }
@@ -35,7 +36,8 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const url = new URL(req.url)
+    const urlStr = req.url ?? ''
+    const url = urlStr.startsWith('http') ? new URL(urlStr) : new URL(urlStr, 'http://localhost')
     const address = url.searchParams.get('address')
 
     if (!isValidAddress(address)) {
