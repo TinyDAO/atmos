@@ -1,4 +1,20 @@
-import { prisma, getHeader } from './_shared'
+import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaClient } from '@prisma/client'
+
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
+function createPrisma(): PrismaClient {
+  const cs = process.env.DATABASE_URL
+  if (!cs) throw new Error('DATABASE_URL is not configured')
+  return new PrismaClient({ adapter: new PrismaNeon({ connectionString: cs }), log: ['error'] })
+}
+const prisma = globalForPrisma.prisma ?? createPrisma()
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+
+function getHeader(h: Headers | Record<string, string | string[] | undefined>, name: string): string {
+  if (h && typeof (h as Headers).get === 'function') return (h as Headers).get(name) ?? ''
+  const v = (h as Record<string, string | string[] | undefined>)?.[name.toLowerCase()]
+  return Array.isArray(v) ? v[0] ?? '' : (v ?? '')
+}
 
 function getAllowedOrigins(): string[] {
   const env = process.env.ALLOWED_ORIGINS
