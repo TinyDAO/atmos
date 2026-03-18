@@ -8,9 +8,10 @@ interface CitySelectorProps {
   cities: City[]
   selectedCity: City | null
   onSelect: (city: City) => void
+  cityCardRef?: React.RefObject<HTMLDivElement | null>
 }
 
-export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorProps) {
+export function CitySelector({ cities, selectedCity, onSelect, cityCardRef }: CitySelectorProps) {
   const { t } = useTranslation()
   const [now, setNow] = useState(() => new Date())
   const [sticky, setSticky] = useState(false)
@@ -73,7 +74,15 @@ export function CitySelector({ cities, selectedCity, onSelect }: CitySelectorPro
                   }}
                   onClick={() => {
                     onSelect(city)
-                    wrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    requestAnimationFrame(() => {
+                      requestAnimationFrame(() => {
+                        const card = cityCardRef?.current
+                        if (card) {
+                          const y = card.getBoundingClientRect().top + window.scrollY  - 50
+                          window.scrollTo({ top: y, behavior: 'smooth' })
+                        }
+                      })
+                    })
                   }}
                   className={`
                     flex-shrink-0 px-3 py-1.5 rounded-lg text-[13px] font-medium

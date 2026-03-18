@@ -309,6 +309,12 @@ export const CITIES: City[] = [
     description: 'Capital of Spain. Royal palaces, tapas, and the soul of Iberian culture.',
     gradient: 'from-amber-600 via-red-500 to-rose-600',
     image: '/images/cities/madrid.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1750252930/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1478182529/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1703440221/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1793896752/original.jpg'
+    ]
   },
   {
     id: 'miami',

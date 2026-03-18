@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Analytics } from '@vercel/analytics/react'
 import { CitySelector } from './components/CitySelector'
@@ -7,6 +7,8 @@ import { CityCard } from './components/CityCard'
 import { CityDashboard } from './components/CityDashboard/CityDashboard'
 import { WeatherLinks } from './components/WeatherLinks'
 import { PolymarketFloatingButton } from './components/PolymarketFloatingButton/PolymarketFloatingButton'
+import { AiAnalysisFloatingButton } from './components/AiAnalysisFloatingButton'
+import { WalletConnectButton } from './components/WalletConnect/WalletConnectButton'
 import { CITIES } from './config/cities'
 import { useLanguage } from './hooks/useLanguage'
 import { useTranslation } from './hooks/useTranslation'
@@ -29,6 +31,8 @@ function App() {
   const { theme, toggleTheme } = useTheme()
   const { lang, setLang } = useLanguage()
   const { t } = useTranslation()
+
+  const cityCardRef = useRef<HTMLDivElement>(null)
 
   const handleSelectCity = (city: typeof CITIES[0]) => {
     setSelectedCity(city)
@@ -80,6 +84,7 @@ function App() {
           className="text-center mb-10 relative"
         >
           <div className="absolute right-0 top-1 flex items-center gap-1">
+            <WalletConnectButton />
             <button
               onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
               className="px-2 py-1.5 rounded-full text-[11px] font-medium text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-all"
@@ -118,6 +123,7 @@ function App() {
             cities={CITIES}
             selectedCity={selectedCity}
             onSelect={handleSelectCity}
+            cityCardRef={cityCardRef}
           />
         </div>
 
@@ -132,6 +138,7 @@ function App() {
               className="space-y-4"
             >
               <CityCard
+                ref={cityCardRef}
                 name={selectedCity.name}
                 country={selectedCity.country}
                 description={selectedCity.description}
@@ -185,6 +192,14 @@ function App() {
         </>
       </div>
       <WeatherLinks city={selectedCity} />
+      <AiAnalysisFloatingButton
+        metar={metar}
+        taf={taf}
+        icao={selectedCity?.icao ?? ''}
+        lang={lang}
+        aviationLoading={aviationLoading}
+        aviationError={aviationError}
+      />
       <PolymarketFloatingButton city={selectedCity} dayIndex={dayIndex} />
       <Analytics />
     </div>

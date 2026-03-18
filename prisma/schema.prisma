@@ -1,0 +1,34 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String   @id @default(cuid())
+  address    String   @unique
+  points     Int      @default(500)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  records PointRecord[]
+
+  @@map("users")
+}
+
+model PointRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Int      // 扣减为负数，如 -1
+  reason    String   @default("ai_analysis") // 消费原因
+  icao      String?  // 机场代码，AI 分析时记录
+  createdAt DateTime @default(now())
+
+  @@map("point_records")
+}

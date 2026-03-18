@@ -1,7 +1,6 @@
 import OpenAI from 'openai'
 import { Redis } from '@upstash/redis'
-
-export const config = { runtime: 'edge' }
+import { prisma } from '../../lib/db'
 
 const memoryCache = new Map<string, { text: string; ts: number }>()
 const MEMORY_TTL_MS = 3600_000
@@ -75,6 +74,10 @@ function validateLang(lang: unknown): lang is 'en' | 'zh' {
   return lang === 'en' || lang === 'zh'
 }
 
+function isValidAddress(addr: unknown): addr is string {
+  return typeof addr === 'string' && /^0x[a-fA-F0-9]{40}$/.test(addr)
+}
+
 async function sha256(text: string): Promise<string> {
   const buf = await crypto.subtle.digest(
     'SHA-256',
@@ -128,6 +131,38 @@ export default async function handler(req: Request): Promise<Response> {
     const taf = typeof body.taf === 'string' ? body.taf.trim() : ''
     const icao = typeof body.icao === 'string' ? body.icao.trim().toUpperCase() : ''
     const lang = validateLang(body.lang) ? body.lang : 'en'
+    const address = body?.address
+
+    if (!isValidAddress(address)) {
+      return new Response(
+        JSON.stringify({ error: 'Login required', code: 'AUTH_REQUIRED' }),
+        { status: 401, headers: { ...cors, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    const addr = address.toLowerCase()
+    const user = await prisma.user.findUnique({ where: { address: addr } })
+    if (!user || user.points < 1) {
+      return new Response(
+        JSON.stringify({ error: 'Insufficient points', code: 'INSUFFICIENT_POINTS', points: user?.points ?? 0 }),
+        { status: 402, headers: { ...cors, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { address: addr },
+        data: { points: { decrement: 1 } },
+      }),
+      prisma.pointRecord.create({
+        data: {
+          userId: user.id,
+          amount: -1,
+          reason: 'ai_analysis',
+          icao: icao || null,
+        },
+      }),
+    ])
 
     if (!validateIcao(icao)) {
       return new Response(

@@ -32,6 +32,10 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/polymarket-clob/, ''),
       },
+      '/api': {
+        target: SITE_URL,
+        changeOrigin: true,
+      },
     },
   },
 })

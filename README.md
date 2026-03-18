@@ -32,6 +32,7 @@
 ### 其他
 - **深色 / 浅色主题** 切换
 - **URL 参数**：`?city=paris` 直接打开指定城市
+- **RainbowKit 钱包连接**：支持 MetaMask、WalletConnect 等，用户存入 Neon
 
 ## 技术栈
 
@@ -40,9 +41,11 @@ Vite 7 · React 19 · TypeScript · Tailwind CSS v4 · Framer Motion · Leaflet
 ## 开发
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
+
+本地调试 API：`pnpm run dev:full`（需 Vercel CLI）。数据库：`pnpm run db:studio` 管理，`pnpm run db:migrate` 部署迁移。
 
 ## 构建
 

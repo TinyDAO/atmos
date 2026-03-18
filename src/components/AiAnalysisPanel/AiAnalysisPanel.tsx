@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import html2canvas from 'html2canvas-pro'
-import { streamAiAnalysis } from '../../utils/streamAiAnalysis'
+import { useAccount } from 'wagmi'
+import { streamAiAnalysis, AiAnalysisAuthError } from '../../utils/streamAiAnalysis'
+import { dispatchRefetchPoints } from '../../hooks/usePoints'
 import { useTranslation } from '../../hooks/useTranslation'
 import { SITE_NAME, SITE_URL } from '../../config/site'
 import { ShareLogo } from '../ShareLogo'
@@ -44,6 +46,7 @@ function parseThinkBlocks(raw: string): { thinking: string; body: string; thinki
 
 export function AiAnalysisPanel({ metar, taf, icao, lang, onClose }: AiAnalysisPanelProps) {
   const { t } = useTranslation()
+  const { address } = useAccount()
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -63,18 +66,27 @@ export function AiAnalysisPanel({ metar, taf, icao, lang, onClose }: AiAnalysisP
     abortRef.current = false
 
     try {
-      for await (const chunk of streamAiAnalysis(metar, icao, lang, taf)) {
+      for await (const chunk of streamAiAnalysis(metar, icao, lang, taf, address ?? null)) {
         if (abortRef.current) break
         setContent((prev) => prev + chunk)
       }
+      dispatchRefetchPoints()
     } catch (err) {
       if (!abortRef.current) {
-        setError(err instanceof Error ? err.message : String(err))
+        if (err instanceof AiAnalysisAuthError) {
+          setError(
+            err.code === 'AUTH_REQUIRED'
+              ? t('aiPanel.loginRequired')
+              : t('aiPanel.insufficientPoints').replace('{{points}}', String(err.points ?? 0)),
+          )
+        } else {
+          setError(err instanceof Error ? err.message : String(err))
+        }
       }
     } finally {
       setLoading(false)
     }
-  }, [metar, taf, icao, lang])
+  }, [metar, taf, icao, lang, address, t])
 
   const handleShareDownload = useCallback(async () => {
     if (!shareCardRef.current) return

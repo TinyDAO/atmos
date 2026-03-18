@@ -1,17 +1,40 @@
+export class AiAnalysisAuthError extends Error {
+  constructor(
+    message: string,
+    public code: 'AUTH_REQUIRED' | 'INSUFFICIENT_POINTS',
+    public points?: number,
+  ) {
+    super(message)
+    this.name = 'AiAnalysisAuthError'
+  }
+}
+
 export async function* streamAiAnalysis(
   metar: string,
   icao: string,
   lang: 'en' | 'zh',
   taf?: string | null,
+  address?: string | null,
 ): AsyncGenerator<string, void, unknown> {
   const res = await fetch('/api/ai-analysis', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ metar, icao, lang, ...(taf ? { taf } : {}) }),
+    body: JSON.stringify({ metar, icao, lang, ...(taf ? { taf } : {}), ...(address ? { address } : {}) }),
   })
 
   if (!res.ok) {
     const text = await res.text()
+    try {
+      const data = JSON.parse(text)
+      if (data.code === 'AUTH_REQUIRED') {
+        throw new AiAnalysisAuthError(data.error ?? 'Login required', 'AUTH_REQUIRED')
+      }
+      if (data.code === 'INSUFFICIENT_POINTS') {
+        throw new AiAnalysisAuthError(data.error ?? 'Insufficient points', 'INSUFFICIENT_POINTS', data.points)
+      }
+    } catch (e) {
+      if (e instanceof AiAnalysisAuthError) throw e
+    }
     throw new Error(`AI analysis request failed (${res.status}): ${text}`)
   }
 

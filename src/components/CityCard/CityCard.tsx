@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from '../../hooks/useTranslation'
 
@@ -9,20 +10,19 @@ interface CityCardProps {
   gradient: string
 }
 
-export function CityCard({
-  name,
-  country,
-  description,
-  localTime,
-  gradient,
-}: CityCardProps) {
+export const CityCard = forwardRef<HTMLDivElement, CityCardProps>(function CityCard(
+  { name, country, description, localTime, gradient },
+  ref
+) {
   const { t } = useTranslation()
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="relative overflow-hidden rounded-2xl p-7 md:p-10 shadow-2xl shadow-black/10 dark:shadow-black/40"
+      className="relative overflow-hidden rounded-2xl p-7 md:p-10 shadow-2xl shadow-black/10 dark:shadow-black/40 mt-24"
+      test-id="city-card"
     >
       <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent" />
@@ -58,4 +58,4 @@ export function CityCard({
       </div>
     </motion.div>
   )
-}
+})

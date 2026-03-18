@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
 import { useTranslation } from '../../hooks/useTranslation'
 
-function windDegToDir(deg: number): string {
-  const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']
+const WIND_DIR_KEYS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'] as const
+
+function windDegToDirKey(deg: number): (typeof WIND_DIR_KEYS)[number] {
   const i = Math.round(deg / 22.5) % 16
-  return dirs[i]
+  return WIND_DIR_KEYS[i]
 }
 
 interface WeatherDetailsProps {
@@ -56,7 +57,7 @@ export function WeatherDetails({
     {
       label: t('weatherDetails.wind'),
       value: windSpeed != null && windDir != null
-        ? `${windDegToDir(windDir)} ${windSpeed} km/h`
+        ? `${t(`weatherDetails.windDir${windDegToDirKey(windDir)}`)} ${windSpeed} km/h`
         : '—',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ transform: `rotate(${(windDir ?? 0) + 90}deg)` }}>
