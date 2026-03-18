@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 import { Redis } from '@upstash/redis'
-import { prisma } from '../../lib/db'
+import { prisma } from '../lib/db'
 
 const memoryCache = new Map<string, { text: string; ts: number }>()
 const MEMORY_TTL_MS = 3600_000
