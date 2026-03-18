@@ -16,7 +16,7 @@ export async function* streamAiAnalysis(
   lang: 'en' | 'zh',
   taf?: string | null,
   address?: string | null,
-): AsyncGenerator<string, void, unknown> {
+): AsyncGenerator<string, boolean, unknown> {
   const res = await fetch('/api/ai-analysis', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -42,6 +42,7 @@ export async function* streamAiAnalysis(
   const reader = res.body?.getReader()
   if (!reader) throw new Error('No response body')
 
+  const fromCache = res.headers.get('X-Cache-Hit') === 'true'
   const decoder = new TextDecoder()
   let buffer = ''
 
@@ -59,7 +60,7 @@ export async function* streamAiAnalysis(
       if (!trimmed || !trimmed.startsWith('data: ')) continue
 
       const payload = trimmed.slice(6)
-      if (payload === '[DONE]') return
+      if (payload === '[DONE]') return fromCache
 
       try {
         const parsed = JSON.parse(payload)
@@ -71,4 +72,5 @@ export async function* streamAiAnalysis(
       }
     }
   }
+  return fromCache
 }

@@ -147,20 +147,6 @@ export default {
       )
     }
 
-    const addr = address.toLowerCase()
-    const [user] = await sql`SELECT id, points FROM users WHERE address = ${addr} LIMIT 1`
-    if (!user || user.points < 1) {
-      return new Response(
-        JSON.stringify({ error: 'Insufficient points', code: 'INSUFFICIENT_POINTS', points: user?.points ?? 0 }),
-        { status: 402, headers: { ...cors, 'Content-Type': 'application/json' } },
-      )
-    }
-
-    await sql.transaction([
-      sql`UPDATE users SET points = points - 1, "updatedAt" = now() WHERE address = ${addr}`,
-      sql`INSERT INTO point_records (id, "userId", amount, reason, icao, "createdAt") VALUES (gen_random_uuid()::text, ${user.id}, -1, 'ai_analysis', ${icao || null}, now())`,
-    ])
-
     if (!validateIcao(icao)) {
       return new Response(
         JSON.stringify({ error: 'Invalid ICAO code' }),
@@ -220,9 +206,24 @@ export default {
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache',
           Connection: 'keep-alive',
+          'X-Cache-Hit': 'true',
         },
       })
     }
+
+    const addr = address.toLowerCase()
+    const [user] = await sql`SELECT id, points FROM users WHERE address = ${addr} LIMIT 1`
+    if (!user || user.points < 1) {
+      return new Response(
+        JSON.stringify({ error: 'Insufficient points', code: 'INSUFFICIENT_POINTS', points: user?.points ?? 0 }),
+        { status: 402, headers: { ...cors, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    await sql.transaction([
+      sql`UPDATE users SET points = points - 1, "updatedAt" = now() WHERE address = ${addr}`,
+      sql`INSERT INTO point_records (id, "userId", amount, reason, icao, "createdAt") VALUES (gen_random_uuid()::text, ${user.id}, -1, 'ai_analysis', ${icao || null}, now())`,
+    ])
 
     const openai = new OpenAI({
       baseURL: process.env.OPENAI_BASE_URL,

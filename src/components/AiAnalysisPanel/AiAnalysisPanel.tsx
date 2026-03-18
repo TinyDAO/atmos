@@ -67,12 +67,19 @@ export function AiAnalysisPanel({ metar, taf, icao, lang, onClose }: AiAnalysisP
     abortRef.current = false
 
     try {
-      for await (const chunk of streamAiAnalysis(metar, icao, lang, taf, address ?? null)) {
+      const gen = streamAiAnalysis(metar, icao, lang, taf, address ?? null)
+      let fromCache = false
+      while (true) {
+        const { value, done } = await gen.next()
+        if (done) {
+          fromCache = value === true
+          break
+        }
         if (abortRef.current) break
-        setContent((prev) => prev + chunk)
+        setContent((prev) => prev + value)
       }
       dispatchRefetchPoints()
-      if (!abortRef.current) {
+      if (!abortRef.current && !fromCache) {
         toast.success(t('aiPanel.pointDeducted'))
       }
     } catch (err) {
