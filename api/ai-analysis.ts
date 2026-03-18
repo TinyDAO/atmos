@@ -1,7 +1,6 @@
 import OpenAI from 'openai'
 import { Redis } from '@upstash/redis'
-import { prisma } from './_lib/db'
-import { getBodyJson, getHeader } from './_lib/request'
+import { prisma, getBodyJson, getHeader } from './_shared'
 
 const memoryCache = new Map<string, { text: string; ts: number }>()
 const MEMORY_TTL_MS = 3600_000

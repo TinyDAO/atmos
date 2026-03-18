@@ -1,5 +1,4 @@
-import { prisma } from './_lib/db'
-import { getHeader } from './_lib/request'
+import { prisma, getHeader } from './_shared'
 
 function getAllowedOrigins(): string[] {
   const env = process.env.ALLOWED_ORIGINS
