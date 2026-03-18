@@ -1,11 +1,12 @@
 export class AiAnalysisAuthError extends Error {
-  constructor(
-    message: string,
-    public code: 'AUTH_REQUIRED' | 'INSUFFICIENT_POINTS',
-    public points?: number,
-  ) {
+  code: 'AUTH_REQUIRED' | 'INSUFFICIENT_POINTS'
+  points?: number
+
+  constructor(message: string, code: 'AUTH_REQUIRED' | 'INSUFFICIENT_POINTS', points?: number) {
     super(message)
     this.name = 'AiAnalysisAuthError'
+    this.code = code
+    this.points = points
   }
 }
 
