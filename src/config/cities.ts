@@ -116,25 +116,6 @@ export const CITIES: City[] = [
       },
     ]
   },
-  // {
-  //   id: 'hong-kong',
-  //   name: 'Hong Kong',
-  //   country: 'China',
-  //   latitude: 22.32,
-  //   longitude: 114.17,
-  //   icao: 'VHHH',
-  //   timezone: 'Asia/Hong_Kong',
-  //   utcOffsetMinutes: 480,
-  //   description: 'A vibrant metropolis where skyscrapers meet traditional temples.',
-  //   gradient: 'from-amber-500 via-orange-500 to-red-600',
-  //   image: '/images/cities/hong-kong.jpg',
-  //   webcams: [
-  //     'https://imgproxy.windy.com/_/full/plain/current/1166267733/original.jpg',
-  //     'https://imgproxy.windy.com/_/full/plain/current/1526831849/original.jpg',
-  //     'https://imgproxy.windy.com/_/full/plain/current/1592304269/original.jpg',
-  //     'https://imgproxy.windy.com/_/full/plain/current/1627525317/original.jpg'
-  //   ]
-  // },
   {
     id: 'singapore',
     name: 'Singapore',
@@ -486,5 +467,37 @@ export const CITIES: City[] = [
     description: 'Northern capital. Imperial heritage, hutongs, and the pulse of modern China.',
     gradient: 'from-red-800 via-rose-700 to-amber-700',
     image: '/images/cities/beijing.jpg',
+  },
+  {
+    id: 'hong-kong',
+    name: 'Hong Kong',
+    country: 'Hong Kong',
+    latitude: 22.32,
+    longitude: 114.17,
+    icao: 'VHHH',
+    timezone: 'Asia/Hong_Kong',
+    utcOffsetMinutes: 480,
+    description: 'Harbor city of peaks and towers. Dim sum, neon alleys, and Victoria Peak views.',
+    gradient: 'from-amber-500 via-orange-500 to-rose-600',
+    image: '/images/cities/hong-kong.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1166267733/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1526831849/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1592304269/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1627525317/original.jpg',
+    ],
+  },
+  {
+    id: 'taipei',
+    name: 'Taipei',
+    country: 'Taiwan',
+    latitude: 25.03,
+    longitude: 121.56,
+    icao: 'RCTP',
+    timezone: 'Asia/Taipei',
+    utcOffsetMinutes: 480,
+    description: 'Basin capital. Night markets, hot springs, and Taipei 101 above subtropical hills.',
+    gradient: 'from-emerald-700 via-teal-600 to-cyan-600',
+    image: '/images/cities/taipei.jpg',
   },
 ]
