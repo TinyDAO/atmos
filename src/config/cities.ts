@@ -499,5 +499,11 @@ export const CITIES: City[] = [
     description: 'Basin capital. Night markets, hot springs, and Taipei 101 above subtropical hills.',
     gradient: 'from-emerald-700 via-teal-600 to-cyan-600',
     image: '/images/cities/taipei.jpg',
+    webcams: [
+      'https://imgproxy.windy.com/_/full/plain/current/1670717172/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1714903358/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1729755408/original.jpg',
+      'https://imgproxy.windy.com/_/full/plain/current/1671974554/original.jpg',
+    ]
   },
 ]
