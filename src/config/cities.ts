@@ -471,7 +471,7 @@ export const CITIES: City[] = [
   {
     id: 'hong-kong',
     name: 'Hong Kong',
-    country: 'Hong Kong',
+    country: 'China',
     latitude: 22.32,
     longitude: 114.17,
     icao: 'VHHH',
@@ -490,7 +490,7 @@ export const CITIES: City[] = [
   {
     id: 'taipei',
     name: 'Taipei',
-    country: 'Taiwan',
+    country: 'China',
     latitude: 25.03,
     longitude: 121.56,
     icao: 'RCTP',
