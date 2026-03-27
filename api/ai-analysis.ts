@@ -114,6 +114,72 @@ const SYSTEM_PROMPT_ZH = `你是一位专业的航空气象分析师。根据提
 今天是${new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' })}
 保持专业，使用中文回答。使用段落或者表格，不要使用 markdown 标题。`
 
+type ChatMessages = OpenAI.Chat.Completions.ChatCompletionMessageParam[]
+
+function getBackupOpenAIConfig(): { baseURL: string; apiKey: string; model: string } | null {
+  const baseURL = process.env.BACKUP_OPENAI_BASE_URL?.trim()
+  const apiKey = process.env.BACKUP_OPENAI_API_KEY?.trim()
+  const model = process.env.BACKUP_OPENAI_MODEL?.trim()
+  if (!baseURL || !apiKey || !model) return null
+  return { baseURL, apiKey, model }
+}
+
+function buildUserContent(icao: string, metar: string, taf: string): string {
+  return taf
+    ? `METAR for ${icao}:\n${metar}\n\nTAF for ${icao}:\n${taf}`
+    : `METAR for ${icao}:\n${metar}`
+}
+
+function buildMessages(lang: 'en' | 'zh', icao: string, metar: string, taf: string): ChatMessages {
+  return [
+    {
+      role: 'system',
+      content: lang === 'zh' ? SYSTEM_PROMPT_ZH : SYSTEM_PROMPT_EN,
+    },
+    { role: 'user', content: buildUserContent(icao, metar, taf) },
+  ]
+}
+
+async function createChatCompletionStream(messages: ChatMessages, useBackup: boolean) {
+  if (useBackup) {
+    const b = getBackupOpenAIConfig()
+    if (!b) throw new Error('Backup OpenAI is not configured')
+    const client = new OpenAI({ baseURL: b.baseURL, apiKey: b.apiKey })
+    return client.chat.completions.create({
+      model: b.model,
+      messages,
+      stream: true,
+      max_tokens: 100 * 1024,
+    })
+  }
+  const client = new OpenAI({
+    baseURL: process.env.OPENAI_BASE_URL,
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+  return client.chat.completions.create({
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    messages,
+    stream: true,
+    max_tokens: 100 * 1024,
+  })
+}
+
+async function createChatCompletionWithFallback(messages: ChatMessages): Promise<{
+  stream: Awaited<ReturnType<typeof createChatCompletionStream>>
+  usedBackupForCreate: boolean
+}> {
+  try {
+    const stream = await createChatCompletionStream(messages, false)
+    return { stream, usedBackupForCreate: false }
+  } catch (err) {
+    const backup = getBackupOpenAIConfig()
+    if (!backup) throw err
+    console.error('Primary OpenAI create failed, using backup:', err)
+    const stream = await createChatCompletionStream(messages, true)
+    return { stream, usedBackupForCreate: true }
+  }
+}
+
 export default {
   async fetch(request: Request): Promise<Response> {
     if (request.method === 'OPTIONS') {
@@ -225,25 +291,7 @@ export default {
       sql`INSERT INTO point_records (id, "userId", amount, reason, icao, "createdAt") VALUES (gen_random_uuid()::text, ${user.id}, -1, 'ai_analysis', ${icao || null}, now())`,
     ])
 
-    const openai = new OpenAI({
-      baseURL: process.env.OPENAI_BASE_URL,
-      apiKey: process.env.OPENAI_API_KEY,
-    })
-
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: lang === 'zh' ? SYSTEM_PROMPT_ZH : SYSTEM_PROMPT_EN,
-        },
-        { role: 'user', content: taf
-          ? `METAR for ${icao}:\n${metar}\n\nTAF for ${icao}:\n${taf}`
-          : `METAR for ${icao}:\n${metar}` },
-      ],
-      stream: true,
-      max_tokens: 100*1024,
-    })
+    const messages = buildMessages(lang, icao, metar, taf)
 
     let fullText = ''
     const encoder = new TextEncoder()
@@ -251,13 +299,29 @@ export default {
     const responseStream = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of completion) {
-            const content = chunk.choices[0]?.delta?.content
-            if (content) {
-              fullText += content
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ content })}\n\n`),
-              )
+          let { stream: completion, usedBackupForCreate } = await createChatCompletionWithFallback(messages)
+          const streamLoop = async () => {
+            for await (const chunk of completion) {
+              const content = chunk.choices[0]?.delta?.content
+              if (content) {
+                fullText += content
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({ content })}\n\n`),
+                )
+              }
+            }
+          }
+
+          try {
+            await streamLoop()
+          } catch (streamErr) {
+            const backup = getBackupOpenAIConfig()
+            if (fullText.length === 0 && backup && !usedBackupForCreate) {
+              console.error('Primary OpenAI stream failed, using backup:', streamErr)
+              completion = await createChatCompletionStream(messages, true)
+              await streamLoop()
+            } else {
+              throw streamErr
             }
           }
 
