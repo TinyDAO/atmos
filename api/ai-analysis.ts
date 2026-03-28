@@ -118,9 +118,10 @@ type ChatMessages = OpenAI.Chat.Completions.ChatCompletionMessageParam[]
 
 function getBackupOpenAIConfig(): { baseURL: string; apiKey: string; model: string } | null {
   const baseURL = process.env.BACKUP_OPENAI_BASE_URL?.trim()
+  if (!baseURL) return null
   const apiKey = process.env.BACKUP_OPENAI_API_KEY?.trim()
   const model = process.env.BACKUP_OPENAI_MODEL?.trim()
-  if (!baseURL || !apiKey || !model) return null
+  if (!apiKey || !model) return null
   return { baseURL, apiKey, model }
 }
 
