@@ -17,6 +17,8 @@ interface AiAnalysisPanelProps {
   taf?: string | null
   icao: string
   lang: 'en' | 'zh'
+  /** For wind/synoptic context in AI prompt */
+  hemisphere?: 'north' | 'south' | null
   onClose: () => void
 }
 
@@ -45,7 +47,7 @@ function parseThinkBlocks(raw: string): { thinking: string; body: string; thinki
   }
 }
 
-export function AiAnalysisPanel({ metar, taf, icao, lang, onClose }: AiAnalysisPanelProps) {
+export function AiAnalysisPanel({ metar, taf, icao, lang, hemisphere, onClose }: AiAnalysisPanelProps) {
   const { t } = useTranslation()
   const { address } = useAccount()
   const [content, setContent] = useState('')
@@ -67,7 +69,7 @@ export function AiAnalysisPanel({ metar, taf, icao, lang, onClose }: AiAnalysisP
     abortRef.current = false
 
     try {
-      const gen = streamAiAnalysis(metar, icao, lang, taf, address ?? null)
+      const gen = streamAiAnalysis(metar, icao, lang, taf, address ?? null, hemisphere ?? null)
       let fromCache = false
       while (true) {
         const { value, done } = await gen.next()
@@ -97,7 +99,7 @@ export function AiAnalysisPanel({ metar, taf, icao, lang, onClose }: AiAnalysisP
     } finally {
       setLoading(false)
     }
-  }, [metar, taf, icao, lang, address, t])
+  }, [metar, taf, icao, lang, address, hemisphere, t])
 
   const handleShareDownload = useCallback(async () => {
     if (!shareCardRef.current) return

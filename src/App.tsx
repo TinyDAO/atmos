@@ -9,7 +9,7 @@ import { WeatherLinks } from './components/WeatherLinks'
 import { PolymarketFloatingButton } from './components/PolymarketFloatingButton/PolymarketFloatingButton'
 import { AiAnalysisFloatingButton } from './components/AiAnalysisFloatingButton'
 import { WalletConnectButton } from './components/WalletConnect/WalletConnectButton'
-import { CITIES } from './config/cities'
+import { CITIES, getCityHemisphere } from './config/cities'
 import { useLanguage } from './hooks/useLanguage'
 import { useTranslation } from './hooks/useTranslation'
 import { useForecast } from './hooks/useForecast'
@@ -144,6 +144,7 @@ function App() {
                 description={selectedCity.description}
                 localTime={localTime}
                 gradient={selectedCity.gradient}
+                hemisphere={getCityHemisphere(selectedCity.latitude)}
               />
 
               <CityDashboard
@@ -197,6 +198,7 @@ function App() {
         taf={taf}
         icao={selectedCity?.icao ?? ''}
         lang={lang}
+        hemisphere={selectedCity ? getCityHemisphere(selectedCity.latitude) : null}
         aviationLoading={aviationLoading}
         aviationError={aviationError}
       />

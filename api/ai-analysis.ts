@@ -131,14 +131,35 @@ function buildUserContent(icao: string, metar: string, taf: string): string {
     : `METAR for ${icao}:\n${metar}`
 }
 
-function buildMessages(lang: 'en' | 'zh', icao: string, metar: string, taf: string): ChatMessages {
+function hemisphereSystemSuffix(lang: 'en' | 'zh', h: 'north' | 'south'): string {
+  if (lang === 'zh') {
+    return h === 'north'
+      ? '\n\n【重要】该机场位于北半球。分析风场与天气系统时须按北半球理解：中纬度西风带、气旋路径、季风与季节对应等与南半球不同；混淆半球会导致风象解读错误。'
+      : '\n\n【重要】该机场位于南半球。分析风场与天气系统时须按南半球理解：季节与北半球相反，气旋旋转与典型路径、副热带高压位置等与北半球不同；混淆半球会导致风象解读错误。'
+  }
+  return h === 'north'
+    ? '\n\n[Important] This airport is in the Northern Hemisphere. Interpret wind and synoptic patterns (mid-latitude westerlies, cyclone tracks, monsoon seasons, etc.) using Northern Hemisphere meteorology; Southern Hemisphere conventions differ and must not be mixed in.'
+    : '\n\n[Important] This airport is in the Southern Hemisphere. Interpret wind and synoptic patterns using Southern Hemisphere meteorology (seasons opposite to Northern Hemisphere, cyclone rotation and tracks, etc.); Northern Hemisphere conventions must not be mixed in.'
+}
+
+function buildMessages(
+  lang: 'en' | 'zh',
+  icao: string,
+  metar: string,
+  taf: string,
+  hemisphere: 'north' | 'south' | null,
+): ChatMessages {
+  const base = lang === 'zh' ? SYSTEM_PROMPT_ZH : SYSTEM_PROMPT_EN
+  const system = hemisphere ? base + hemisphereSystemSuffix(lang, hemisphere) : base
   return [
-    {
-      role: 'system',
-      content: lang === 'zh' ? SYSTEM_PROMPT_ZH : SYSTEM_PROMPT_EN,
-    },
+    { role: 'system', content: system },
     { role: 'user', content: buildUserContent(icao, metar, taf) },
   ]
+}
+
+function parseHemisphere(v: unknown): 'north' | 'south' | null {
+  if (v === 'north' || v === 'south') return v
+  return null
 }
 
 async function createChatCompletionStream(messages: ChatMessages, useBackup: boolean) {
@@ -206,6 +227,7 @@ export default {
     const icao = typeof body.icao === 'string' ? body.icao.trim().toUpperCase() : ''
     const lang = validateLang(body.lang) ? body.lang : 'en'
     const address = body?.address
+    const hemisphere = parseHemisphere(body?.hemisphere)
 
     if (!isValidAddress(address)) {
       return new Response(
@@ -235,7 +257,7 @@ export default {
       )
     }
 
-    const cacheKey = `ai-analysis:${await sha256(metar + taf + lang)}`
+    const cacheKey = `ai-analysis:${await sha256(metar + taf + lang + (hemisphere ?? ''))}`
 
     // Check cache: Redis first, then in-memory fallback
     let redis: Redis | null = null
@@ -292,7 +314,7 @@ export default {
       sql`INSERT INTO point_records (id, "userId", amount, reason, icao, "createdAt") VALUES (gen_random_uuid()::text, ${user.id}, -1, 'ai_analysis', ${icao || null}, now())`,
     ])
 
-    const messages = buildMessages(lang, icao, metar, taf)
+    const messages = buildMessages(lang, icao, metar, taf, hemisphere)
 
     let fullText = ''
     const encoder = new TextEncoder()

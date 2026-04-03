@@ -199,6 +199,9 @@ export function AviationWeather({
           </pre>
           {windAnalysis && (
             <div className="mt-3 p-3.5 rounded-xl bg-zinc-50/80 dark:bg-zinc-800/40 space-y-2 text-xs">
+              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-relaxed border-b border-zinc-200/80 dark:border-zinc-700/50 pb-2 mb-1">
+                {latitude < 0 ? t('aviation.windHemisphereNoteSouth') : t('aviation.windHemisphereNoteNorth')}
+              </p>
               {windAnalysis.origin && (
                 <p className="text-zinc-600 dark:text-zinc-400">
                   <span className="font-medium text-zinc-700 dark:text-zinc-300">{windAnalysis.labels.origin}:</span> {windAnalysis.origin}

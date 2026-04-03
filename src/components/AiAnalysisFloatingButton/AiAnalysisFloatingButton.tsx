@@ -11,6 +11,7 @@ interface AiAnalysisFloatingButtonProps {
   taf: string | null
   icao: string
   lang: 'en' | 'zh'
+  hemisphere?: 'north' | 'south' | null
   aviationLoading: boolean
   aviationError: string | null
 }
@@ -20,6 +21,7 @@ export function AiAnalysisFloatingButton({
   taf,
   icao,
   lang,
+  hemisphere,
   aviationLoading,
   aviationError,
 }: AiAnalysisFloatingButtonProps) {
@@ -79,6 +81,7 @@ export function AiAnalysisFloatingButton({
             taf={taf}
             icao={icao}
             lang={lang}
+            hemisphere={hemisphere ?? null}
             onClose={() => setShowPanel(false)}
           />
         )}

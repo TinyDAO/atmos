@@ -11,6 +11,7 @@ import { AviationShareModal } from '../AviationShareModal'
 import { SatelliteMap } from '../SatelliteMap'
 import { useTranslation } from '../../hooks/useTranslation'
 import { useHistoricalMonth } from '../../hooks/useHistoricalMonth'
+import { useHongKongObservatory } from '../../hooks/useHongKongObservatory'
 import { parseTimestampFromMetar, parseTemperatureFromMetar, parseWindFromMetar } from '../../utils/metarParser'
 import { analyzeWind } from '../../utils/windAnalysis'
 import type { City } from '../../config/cities'
@@ -228,7 +229,17 @@ export function CityDashboard({
   aviationLoading,
   aviationError,
 }: CityDashboardProps) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
+  const isHongKong = city.id === 'hong-kong'
+  const hkoObs = useHongKongObservatory(isHongKong, lang)
+  const hkoForecastExtra = isHongKong
+    ? {
+        temperature: hkoObs.temperature,
+        reportTimeFormatted: hkoObs.reportTimeFormatted,
+        loading: hkoObs.loading,
+        error: hkoObs.error,
+      }
+    : null
   const [showShareModal, setShowShareModal] = useState(false)
   const metarWind = metar ? parseWindFromMetar(metar) : null
   const shareWindAnalysis =
@@ -273,6 +284,7 @@ export function CityDashboard({
           sources={multiSources}
           loading={forecastLoading}
           error={forecastError}
+          hko={hkoForecastExtra}
         />
         <WeatherDetails
           windDir={windDir}

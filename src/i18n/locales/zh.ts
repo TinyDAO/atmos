@@ -26,6 +26,10 @@ const zh: TranslationShape = {
   },
   cityCard: {
     local: '当地',
+    hemisphereNorth: '北半球',
+    hemisphereSouth: '南半球',
+    hemisphereBadgeNorth: '北',
+    hemisphereBadgeSouth: '南',
   },
   webcams: {
     title: '实时摄像头',
@@ -52,6 +56,10 @@ const zh: TranslationShape = {
     tafTomorrow: '(明日)',
     issued: '发布于',
     filteredTomorrow: '已筛选为明日时段',
+    windHemisphereNoteNorth:
+      '风象分析按北半球气象理解（季节、气旋路径、典型天气型与南半球不同）。',
+    windHemisphereNoteSouth:
+      '风象分析按南半球气象理解（季节与北半球相反，气旋路径与典型天气型不同）。',
   },
   share: {
     title: '分享航空气象',
@@ -93,6 +101,11 @@ const zh: TranslationShape = {
     low: '最低',
     multiSource: '多源对比',
     primarySource: '主要来源: Open-Meteo',
+    hkoTitle: '香港天文台',
+    hkoLiveTemp: '实时气温',
+    hkoReportTime: '报告时间',
+    hkoLoading: '正在加载天文台数据…',
+    hkoUnavailable: '无法取得天文台数据',
   },
   weatherDetails: {
     title: '风 · 雨 · 云',

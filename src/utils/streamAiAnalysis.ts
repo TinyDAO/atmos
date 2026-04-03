@@ -16,11 +16,19 @@ export async function* streamAiAnalysis(
   lang: 'en' | 'zh',
   taf?: string | null,
   address?: string | null,
+  hemisphere?: 'north' | 'south' | null,
 ): AsyncGenerator<string, boolean, unknown> {
   const res = await fetch('/api/ai-analysis', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ metar, icao, lang, ...(taf ? { taf } : {}), ...(address ? { address } : {}) }),
+    body: JSON.stringify({
+      metar,
+      icao,
+      lang,
+      ...(taf ? { taf } : {}),
+      ...(address ? { address } : {}),
+      ...(hemisphere ? { hemisphere } : {}),
+    }),
   })
 
   if (!res.ok) {

@@ -26,6 +26,10 @@ const en = {
   },
   cityCard: {
     local: 'Local',
+    hemisphereNorth: 'Northern Hemisphere',
+    hemisphereSouth: 'Southern Hemisphere',
+    hemisphereBadgeNorth: 'N',
+    hemisphereBadgeSouth: 'S',
   },
   webcams: {
     title: 'Live Webcams',
@@ -52,6 +56,10 @@ const en = {
     tafTomorrow: '(tomorrow)',
     issued: 'Issued',
     filteredTomorrow: 'Filtered to tomorrow period',
+    windHemisphereNoteNorth:
+      'Wind analysis uses Northern Hemisphere meteorology (seasons, storm tracks, and typical synoptic patterns differ from the Southern Hemisphere).',
+    windHemisphereNoteSouth:
+      'Wind analysis uses Southern Hemisphere meteorology (seasons, storm tracks, and typical synoptic patterns differ from the Northern Hemisphere).',
   },
   share: {
     title: 'Share Aviation Weather',
@@ -93,6 +101,11 @@ const en = {
     low: 'Low',
     multiSource: 'Multi-source comparison',
     primarySource: 'Primary: Open-Meteo',
+    hkoTitle: 'Hong Kong Observatory',
+    hkoLiveTemp: 'Live temperature',
+    hkoReportTime: 'Report time',
+    hkoLoading: 'Loading HKO data…',
+    hkoUnavailable: 'HKO data unavailable',
   },
   weatherDetails: {
     title: 'Wind · Rain · Cloud',

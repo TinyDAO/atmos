@@ -16,6 +16,10 @@
     {
       "source": "/polymarket-clob/:path*",
       "destination": "https://clob.polymarket.com/:path*"
+    },
+    {
+      "source": "/hko-wxinfo/:path*",
+      "destination": "https://www.weather.gov.hk/wxinfo/:path*"
     }
   ]
 }

@@ -507,3 +507,8 @@ export const CITIES: City[] = [
     ]
   },
 ]
+
+/** Hemisphere for meteorology (wind/synoptic): equator (0°) counts as Northern. */
+export function getCityHemisphere(latitude: number): 'north' | 'south' {
+  return latitude < 0 ? 'south' : 'north'
+}

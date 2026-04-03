@@ -8,13 +8,14 @@ interface CityCardProps {
   description: string
   localTime: string
   gradient: string
+  hemisphere: 'north' | 'south'
 }
 
 export const CityCard = forwardRef<HTMLDivElement, CityCardProps>(function CityCard(
-  { name, country, description, localTime, gradient },
+  { name, country, description, localTime, gradient, hemisphere },
   ref
 ) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   return (
     <motion.div
       ref={ref}
@@ -50,10 +51,24 @@ export const CityCard = forwardRef<HTMLDivElement, CityCardProps>(function CityC
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.35 }}
-          className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/15 backdrop-blur-md border border-white/10"
+          className="flex flex-wrap items-center gap-2"
         >
-          <span className="text-xs text-white/60 uppercase tracking-widest font-medium">{t('cityCard.local')}</span>
-          <span className="text-base font-mono font-medium text-white tabular-nums">{localTime}</span>
+          <span
+            className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/15 text-[11px] font-medium text-white/90"
+            title={hemisphere === 'north' ? t('cityCard.hemisphereNorth') : t('cityCard.hemisphereSouth')}
+          >
+            {lang === 'zh'
+              ? hemisphere === 'north'
+                ? t('cityCard.hemisphereNorth')
+                : t('cityCard.hemisphereSouth')
+              : `${hemisphere === 'north' ? t('cityCard.hemisphereBadgeNorth') : t('cityCard.hemisphereBadgeSouth')} · ${
+                  hemisphere === 'north' ? t('cityCard.hemisphereNorth') : t('cityCard.hemisphereSouth')
+                }`}
+          </span>
+          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/15 backdrop-blur-md border border-white/10">
+            <span className="text-xs text-white/60 uppercase tracking-widest font-medium">{t('cityCard.local')}</span>
+            <span className="text-base font-mono font-medium text-white tabular-nums">{localTime}</span>
+          </div>
         </motion.div>
       </div>
     </motion.div>
