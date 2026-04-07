@@ -289,7 +289,7 @@ export function decodeTafToPlain(taf: string, timezone?: string, lang: Lang = 'e
       } else {
         lines.push(decodeMetarToPlain(afterHeader, timezone, undefined, lang))
       }
-    } else if (!/^(METAR|TAF|KJFK|EGLL|etc)/i.test(trimmed)) {
+    } else if (!/^(METAR|TAF|KJFK|EGLC|etc)/i.test(trimmed)) {
       lines.push(decodeMetarToPlain(trimmed, timezone, undefined, lang))
     }
   }

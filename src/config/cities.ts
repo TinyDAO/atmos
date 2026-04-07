@@ -220,7 +220,7 @@ export const CITIES: City[] = [
     country: 'UK',
     latitude: 51.51,
     longitude: -0.13,
-    icao: 'EGLL',
+    icao: 'EGLC',
     timezone: 'Europe/London',
     utcOffsetMinutes: 0,
     description: 'A historic capital spanning two millennia. Royal palaces, world-class museums, and global finance.',
