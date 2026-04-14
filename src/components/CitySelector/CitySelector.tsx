@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { City } from '../../config/cities'
 import { formatLocalTime, formatLocalDate } from '../../utils/timezone'
 import { useTranslation } from '../../hooks/useTranslation'
+import { CityWorldMap } from './CityWorldMap'
 
 interface CitySelectorProps {
   cities: City[]
@@ -16,6 +17,7 @@ export function CitySelector({ cities, selectedCity, onSelect, cityCardRef }: Ci
   const [now, setNow] = useState(() => new Date())
   const [sticky, setSticky] = useState(false)
   const [mobilePickerOpen, setMobilePickerOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
   const wrapperRef = useRef<HTMLDivElement>(null)
   const stickyButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
   const sortedCities = useMemo(
@@ -101,12 +103,43 @@ export function CitySelector({ cities, selectedCity, onSelect, cityCardRef }: Ci
         )}
       </AnimatePresence>
       <div ref={wrapperRef} className="w-full max-w-[90rem] mx-auto">
+        <div className="mb-3 md:mb-4 flex items-center justify-between gap-3">
+          <div className="inline-flex items-center rounded-xl p-1 bg-zinc-100/80 dark:bg-zinc-900/80 border border-zinc-200/70 dark:border-zinc-800/70">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1.5 text-xs md:text-[13px] rounded-lg transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
+              }`}
+            >
+              {t('citySelector.viewList')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('map')}
+              className={`px-3 py-1.5 text-xs md:text-[13px] rounded-lg transition-colors ${
+                viewMode === 'map'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
+              }`}
+            >
+              {t('citySelector.viewMap')}
+            </button>
+          </div>
+          {viewMode === 'map' && (
+            <p className="text-[11px] md:text-xs text-zinc-400 dark:text-zinc-500">
+              {t('citySelector.mapHint')}
+            </p>
+          )}
+        </div>
         {/* Mobile: custom city picker with bottom sheet */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="md:hidden"
+          className={`md:hidden ${viewMode === 'map' ? 'mb-3' : ''}`}
         >
           <button
             type="button"
@@ -229,61 +262,81 @@ export function CitySelector({ cities, selectedCity, onSelect, cityCardRef }: Ci
             )}
           </AnimatePresence>
         </motion.div>
-
-        {/* Desktop: grid of city cards */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="hidden md:grid grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-1.5"
-        >
-        {sortedCities.map((city, i) => (
-          <motion.button
-            key={city.id}
-            initial={{ opacity: 0, y: 12 }}
+        {viewMode === 'map' && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.02 * Math.min(i, 8) }}
-            onClick={() => onSelect(city)}
-            className={`
-              group relative overflow-hidden rounded-xl aspect-[3/2]
-              transition-all duration-300 ease-out
-              ${selectedCity?.id === city.id
-                ? 'ring-2 ring-zinc-900 dark:ring-zinc-100 ring-offset-2 ring-offset-[#f8f8f7] dark:ring-offset-[#0c0c0c] shadow-lg'
-                : 'hover:shadow-md'
-              }
-            `}
+            transition={{ duration: 0.25 }}
+            className="md:hidden"
           >
-            <img
-              src={city.image}
-              alt={city.name}
-              loading="lazy"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none'
-                e.currentTarget.nextElementSibling?.classList.remove('opacity-0')
-              }}
-            />
-            <div className={`absolute inset-0 bg-gradient-to-br ${city.gradient} opacity-90 opacity-0`} aria-hidden />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-            <div className="absolute inset-0 flex flex-col justify-center p-2.5 text-left">
-              <span className="block text-[13px] font-medium text-white drop-shadow-md truncate">
-                {city.name}
-              </span>
-              <span className="block text-[11px] text-white/80 truncate">{city.country}</span>
-              <span className="block text-[10px] text-white/60 mt-0.5 truncate tabular-nums">
-                {formatLocalDate(city.timezone, now)} {formatLocalTime(city.timezone, now)}
-              </span>
-            </div>
-            {selectedCity?.id === city.id && (
-              <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm">
-                <svg className="w-2.5 h-2.5 text-zinc-900" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </div>
-            )}
-          </motion.button>
-        ))}
-      </motion.div>
+            <CityWorldMap cities={sortedCities} selectedCity={selectedCity} onSelect={onSelect} />
+          </motion.div>
+        )}
+
+        {viewMode === 'list' ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="hidden md:grid grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-1.5"
+          >
+            {sortedCities.map((city, i) => (
+              <motion.button
+                key={city.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.02 * Math.min(i, 8) }}
+                onClick={() => onSelect(city)}
+                className={`
+                  group relative overflow-hidden rounded-xl aspect-[3/2]
+                  transition-all duration-300 ease-out
+                  ${selectedCity?.id === city.id
+                    ? 'ring-2 ring-zinc-900 dark:ring-zinc-100 ring-offset-2 ring-offset-[#f8f8f7] dark:ring-offset-[#0c0c0c] shadow-lg'
+                    : 'hover:shadow-md'
+                  }
+                `}
+              >
+                <img
+                  src={city.image}
+                  alt={city.name}
+                  loading="lazy"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                    e.currentTarget.nextElementSibling?.classList.remove('opacity-0')
+                  }}
+                />
+                <div className={`absolute inset-0 bg-gradient-to-br ${city.gradient} opacity-90 opacity-0`} aria-hidden />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                <div className="absolute inset-0 flex flex-col justify-center p-2.5 text-left">
+                  <span className="block text-[13px] font-medium text-white drop-shadow-md truncate">
+                    {city.name}
+                  </span>
+                  <span className="block text-[11px] text-white/80 truncate">{city.country}</span>
+                  <span className="block text-[10px] text-white/60 mt-0.5 truncate tabular-nums">
+                    {formatLocalDate(city.timezone, now)} {formatLocalTime(city.timezone, now)}
+                  </span>
+                </div>
+                {selectedCity?.id === city.id && (
+                  <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm">
+                    <svg className="w-2.5 h-2.5 text-zinc-900" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </motion.button>
+            ))}
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
+            className="hidden md:block"
+          >
+            <CityWorldMap cities={sortedCities} selectedCity={selectedCity} onSelect={onSelect} />
+          </motion.div>
+        )}
       </div>
     </>
   )

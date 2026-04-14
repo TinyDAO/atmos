@@ -23,6 +23,9 @@ const en = {
   },
   citySelector: {
     selectCity: 'Select city',
+    viewList: 'List',
+    viewMap: 'Map',
+    mapHint: 'Click a marker to select a city',
   },
   cityCard: {
     local: 'Local',

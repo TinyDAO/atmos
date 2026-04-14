@@ -23,6 +23,9 @@ const zh: TranslationShape = {
   },
   citySelector: {
     selectCity: '选择城市',
+    viewList: '列表',
+    viewMap: '地图',
+    mapHint: '点击地图上的标记即可选择城市',
   },
   cityCard: {
     local: '当地',
