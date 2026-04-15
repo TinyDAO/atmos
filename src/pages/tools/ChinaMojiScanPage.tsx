@@ -162,8 +162,13 @@ export default function ChinaMojiScanPage() {
     return () => abortRef.current?.abort()
   }, [])
 
+  const scrollToCity = useCallback((cityId: string) => {
+    const el = document.getElementById(`china-scan-${cityId}`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
+
   return (
-    <div>
+    <div className="relative">
       <nav className="mb-8">
         <Link
           to="/tools"
@@ -173,7 +178,12 @@ export default function ChinaMojiScanPage() {
         </Link>
       </nav>
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+      <div className={results.length > 0 ? 'lg:pr-[9.5rem] xl:pr-44' : undefined}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-amber-500/70">Moji × Polymarket</p>
         <h1 className="mt-2 font-display text-3xl md:text-4xl font-semibold text-white tracking-tight">
           中国城市扫描
@@ -216,10 +226,11 @@ export default function ChinaMojiScanPage() {
             {results.map((cr, ci) => (
               <motion.li
                 key={cr.city.id}
+                id={`china-scan-${cr.city.id}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, delay: ci * 0.03 }}
-                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 md:p-7 backdrop-blur-sm"
+                className="scroll-mt-24 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 md:p-7 backdrop-blur-sm"
               >
                 <div className="flex flex-wrap items-end justify-between gap-3 border-b border-white/[0.06] pb-4 mb-5">
                   <div>
@@ -256,6 +267,33 @@ export default function ChinaMojiScanPage() {
 
       {phase === 'done' && results.length === 0 && !error && (
         <p className="mt-10 text-sm text-zinc-500">没有带墨迹源的城市。</p>
+      )}
+      </div>
+
+      {results.length > 0 && (
+        <aside
+          className="hidden lg:flex lg:flex-col fixed right-3 top-[max(6rem,22vh)] z-30 w-[7.25rem] xl:w-36 max-h-[min(58vh,520px)] overflow-y-auto rounded-2xl border border-white/[0.1] bg-[#0c0f14]/92 backdrop-blur-md py-3 px-2 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.55)] ring-1 ring-white/[0.04]"
+          aria-label="快速定位城市"
+        >
+          <p className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
+            城市
+          </p>
+          <nav>
+            <ul className="flex flex-col gap-0.5">
+              {results.map((cr) => (
+                <li key={`nav-${cr.city.id}`}>
+                  <button
+                    type="button"
+                    onClick={() => scrollToCity(cr.city.id)}
+                    className="w-full rounded-lg px-2 py-1.5 text-left text-[11px] leading-snug text-zinc-400 transition hover:bg-amber-500/12 hover:text-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40"
+                  >
+                    {cr.city.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </aside>
       )}
     </div>
   )
