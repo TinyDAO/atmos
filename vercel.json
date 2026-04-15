@@ -20,6 +20,18 @@
     {
       "source": "/hko-wxinfo/:path*",
       "destination": "https://www.weather.gov.hk/wxinfo/:path*"
+    },
+    {
+      "source": "/moji-fetch/:path*",
+      "destination": "https://tianqi.moji.com/:path*"
+    },
+    {
+      "source": "/tools",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tools/:path*",
+      "destination": "/index.html"
     }
   ]
 }

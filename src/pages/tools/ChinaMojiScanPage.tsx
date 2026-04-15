@@ -1,0 +1,262 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { CITIES } from '../../config/cities'
+import {
+  runChinaMojiScan,
+  YES_MIN_DISPLAY,
+  type CityScanResult,
+  type DayScanResult,
+} from '../../services/chinaMojiScan'
+
+function formatPct(p: number): string {
+  if (!Number.isFinite(p)) return '—'
+  return `${(p * 100).toFixed(1)}%`
+}
+
+function formatVol(v: number): string {
+  if (!Number.isFinite(v)) return '—'
+  if (v >= 1000) return `${(v / 1000).toFixed(1)}k`
+  return String(Math.round(v))
+}
+
+function DayBlock({ day }: { day: DayScanResult }) {
+  return (
+    <div className="rounded-xl border border-white/[0.06] bg-black/20 overflow-hidden">
+      <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
+        <span className="inline-flex items-center rounded-md bg-amber-500/15 px-2.5 py-1 text-[12px] font-semibold tabular-nums text-amber-200/90 ring-1 ring-amber-500/25">
+          {day.mmdd}
+        </span>
+        <span className="text-[13px] text-zinc-400">{day.dayLabel}</span>
+        <a
+          href={day.polEventUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ml-auto text-[12px] text-sky-400/90 hover:text-sky-300 truncate max-w-[min(100%,280px)] underline-offset-2 hover:underline"
+        >
+          Polymarket
+        </a>
+      </div>
+
+      <div className="px-4 py-3 space-y-3">
+        <p className="text-[13px]">
+          <span className="text-zinc-500">墨迹最高温</span>{' '}
+          {day.mojiMax != null && Number.isFinite(day.mojiMax) ? (
+            <span className="font-semibold tabular-nums text-amber-200">{day.mojiMax}°C</span>
+          ) : (
+            <span className="text-zinc-600">—</span>
+          )}
+        </p>
+
+        {day.status === 'gamma_error' && (
+          <p className="text-sm text-rose-400/90">Gamma: {day.errorMessage}</p>
+        )}
+        {day.status === 'no_event' && (
+          <p className="text-sm text-zinc-500">暂无对应 Polymarket 事件</p>
+        )}
+        {day.status === 'no_bins' && (
+          <p className="text-sm text-zinc-500">无法解析温度档位（标题格式或市场为空）</p>
+        )}
+        {day.status === 'filtered_empty' && (
+          <p className="text-sm text-zinc-500">
+            全部档位 YES &lt; {(YES_MIN_DISPLAY * 100).toFixed(0)}%（已隐藏 {day.hiddenCount} 档）
+          </p>
+        )}
+
+        {day.status === 'ok' && day.rows.length > 0 && (
+          <>
+            {day.hiddenCount > 0 && (
+              <p className="text-[11px] text-zinc-600">
+                已隐藏 {day.hiddenCount} 个 YES &lt; {(YES_MIN_DISPLAY * 100).toFixed(0)}% 的档位
+              </p>
+            )}
+            <div className="overflow-x-auto rounded-lg border border-white/[0.06]">
+              <table className="w-full min-w-[520px] text-left text-[12px]">
+                <thead>
+                  <tr className="border-b border-white/[0.06] bg-white/[0.03] text-zinc-500">
+                    <th className="px-3 py-2 font-medium">档位</th>
+                    <th className="px-3 py-2 font-medium tabular-nums w-24">YES</th>
+                    <th className="px-3 py-2 font-medium tabular-nums w-28">Δ(档−墨迹°C)</th>
+                    <th className="px-3 py-2 font-medium tabular-nums w-24">成交量</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {day.rows.map((r, i) => {
+                    const isClosest =
+                      i === day.closestIdx &&
+                      day.mojiMax != null &&
+                      Number.isFinite(day.mojiMax)
+                    return (
+                      <tr
+                        key={`${day.slug}-${r.displayLabel}-${i}`}
+                        className={
+                          isClosest
+                            ? 'border-l-4 border-amber-400 bg-amber-500/[0.12] text-white'
+                            : 'border-l-4 border-transparent odd:bg-white/[0.02]'
+                        }
+                      >
+                        <td className="px-3 py-2 font-mono text-[11px] text-zinc-200">
+                          {isClosest ? <span className="text-amber-300 mr-1">★</span> : null}
+                          {r.displayLabel}
+                        </td>
+                        <td className="px-3 py-2 tabular-nums text-zinc-300">{formatPct(r.yes)}</td>
+                        <td className="px-3 py-2 tabular-nums text-zinc-400">
+                          {r.deltaC != null && Number.isFinite(r.deltaC)
+                            ? `${r.deltaC >= 0 ? '+' : ''}${r.deltaC.toFixed(1)}`
+                            : '—'}
+                        </td>
+                        <td className="px-3 py-2 tabular-nums text-zinc-500">{formatVol(r.vol)}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {day.closestIdx >= 0 && day.mojiMax != null && Number.isFinite(day.mojiMax) && (
+              <p className="text-[11px] text-zinc-600">
+                ★ = 与墨迹最高温 ({day.mojiMax}°C) 最接近的档位
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default function ChinaMojiScanPage() {
+  const cities = CITIES.filter((c) => typeof c.moji === 'string' && c.moji.length > 0)
+  const [results, setResults] = useState<CityScanResult[]>([])
+  const [phase, setPhase] = useState<'idle' | 'scanning' | 'done' | 'error'>('idle')
+  const [error, setError] = useState<string | null>(null)
+  const [progress, setProgress] = useState(0)
+  const abortRef = useRef<AbortController | null>(null)
+
+  const run = useCallback(async () => {
+    abortRef.current?.abort()
+    const ac = new AbortController()
+    abortRef.current = ac
+    setPhase('scanning')
+    setError(null)
+    setResults([])
+    setProgress(0)
+
+    try {
+      await runChinaMojiScan(cities, {
+        signal: ac.signal,
+        onCityComplete: (r) => {
+          setResults((prev) => [...prev, r])
+          setProgress((p) => p + 1)
+        },
+      })
+      if (!ac.signal.aborted) setPhase('done')
+    } catch (e) {
+      if (!ac.signal.aborted) {
+        setPhase('error')
+        setError(e instanceof Error ? e.message : String(e))
+      }
+    }
+  }, [cities])
+
+  useEffect(() => {
+    return () => abortRef.current?.abort()
+  }, [])
+
+  return (
+    <div>
+      <nav className="mb-8">
+        <Link
+          to="/tools"
+          className="text-[13px] font-medium text-amber-400/80 hover:text-amber-300 transition-colors"
+        >
+          ← 工具列表
+        </Link>
+      </nav>
+
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-amber-500/70">Moji × Polymarket</p>
+        <h1 className="mt-2 font-display text-3xl md:text-4xl font-semibold text-white tracking-tight">
+          中国城市扫描
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-500">
+          仅展示 YES ≥ {(YES_MIN_DISPLAY * 100).toFixed(0)}% 的档位。
+        </p>
+
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={run}
+            disabled={phase === 'scanning'}
+            className="inline-flex items-center justify-center rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400 disabled:opacity-50 disabled:pointer-events-none"
+          >
+            {phase === 'scanning' ? '扫描中…' : '开始扫描'}
+          </button>
+          {phase === 'scanning' && (
+            <span className="text-[13px] tabular-nums text-zinc-500">
+              {progress} / {cities.length} 城市
+            </span>
+          )}
+        </div>
+      </motion.div>
+
+      {error && (
+        <p className="mt-6 text-sm text-rose-400" role="alert">
+          {error}
+        </p>
+      )}
+
+      <AnimatePresence mode="popLayout">
+        {results.length > 0 && (
+          <motion.ul
+            key="list"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-12 space-y-10"
+          >
+            {results.map((cr, ci) => (
+              <motion.li
+                key={cr.city.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: ci * 0.03 }}
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 md:p-7 backdrop-blur-sm"
+              >
+                <div className="flex flex-wrap items-end justify-between gap-3 border-b border-white/[0.06] pb-4 mb-5">
+                  <div>
+                    <h2 className="font-display text-xl font-semibold text-white">{cr.city.name}</h2>
+                    <p className="mt-1 text-[12px] text-zinc-500 font-mono">{cr.city.id}</p>
+                    <p className="mt-0.5 text-[11px] text-zinc-600">{cr.city.timezone}</p>
+                  </div>
+                  {cr.weatherError ? (
+                    <p className="text-sm text-rose-400/90 max-w-md">天气: {cr.weatherError}</p>
+                  ) : (
+                    <a
+                      href={cr.city.moji}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[12px] text-sky-400/80 hover:text-sky-300 truncate max-w-xs"
+                    >
+                      墨迹源
+                    </a>
+                  )}
+                </div>
+
+                {cr.weatherError ? null : (
+                  <div className="space-y-6">
+                    {cr.days.map((d) => (
+                      <DayBlock key={`${cr.city.id}-${d.dayIndex}`} day={d} />
+                    ))}
+                  </div>
+                )}
+              </motion.li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+
+      {phase === 'done' && results.length === 0 && !error && (
+        <p className="mt-10 text-sm text-zinc-500">没有带墨迹源的城市。</p>
+      )}
+    </div>
+  )
+}
