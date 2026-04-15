@@ -27,6 +27,11 @@ function formatNwsHigh(day: UsDayScanResult): string {
   return `${day.nwsMaxF}°F（${day.nwsMaxC.toFixed(1)}°C）`
 }
 
+/** NWS 点位预报页（与脚本/接口同一坐标系） */
+function nwsMapClickUrl(lat: number, lon: number): string {
+  return `https://forecast.weather.gov/MapClick.php?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}`
+}
+
 function DayBlock({ day }: { day: UsDayScanResult }) {
   return (
     <div className="rounded-xl border border-white/[0.06] bg-black/20 overflow-hidden">
@@ -246,18 +251,28 @@ export default function UsCityScanPage() {
                       <p className="mt-1 text-[12px] text-zinc-500 font-mono">{cr.city.id}</p>
                       <p className="mt-0.5 text-[11px] text-zinc-600">{cr.city.timezone}</p>
                     </div>
-                    {cr.weatherError ? (
-                      <p className="text-sm text-rose-400/90 max-w-md">NWS: {cr.weatherError}</p>
-                    ) : (
+                    <div className="flex flex-col items-end gap-1.5 text-right max-w-md">
                       <a
-                        href={cr.days[0]?.polEventUrl}
+                        href={nwsMapClickUrl(cr.city.latitude, cr.city.longitude)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[12px] text-sky-400/80 hover:text-sky-300 truncate max-w-xs"
+                        className="text-[12px] text-emerald-400/85 hover:text-emerald-300 underline-offset-2 hover:underline truncate max-w-full"
                       >
-                        Polymarket（首日）
+                        NWS 预报页
                       </a>
-                    )}
+                      {cr.weatherError ? (
+                        <p className="text-sm text-rose-400/90">NWS API: {cr.weatherError}</p>
+                      ) : (
+                        <a
+                          href={cr.days[0]?.polEventUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[12px] text-sky-400/80 hover:text-sky-300 truncate max-w-xs"
+                        >
+                          Polymarket（首日）
+                        </a>
+                      )}
+                    </div>
                   </div>
 
                   {cr.weatherError ? null : (
