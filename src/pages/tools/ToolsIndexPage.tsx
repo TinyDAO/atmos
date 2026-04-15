@@ -33,11 +33,7 @@ export default function ToolsIndexPage() {
                   中国城市扫描
                 </h2>
                 <p className="mt-2 text-[13px] text-zinc-500 leading-relaxed">
-                  墨迹三天最高温 vs Polymarket 温度档位（YES≥2%），与 CLI{' '}
-                  <code className="rounded bg-black/30 px-1.5 py-0.5 text-[11px] text-amber-200/80">
-                    scan.js
-                  </code>{' '}
-                  同源逻辑。
+                  墨迹三天最高温 vs Polymarket 温度档位（YES≥2%）
                 </p>
               </div>
               <span
