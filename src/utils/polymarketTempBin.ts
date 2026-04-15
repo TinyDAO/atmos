@@ -1,9 +1,17 @@
 import type { PolymarketMarket } from '../services/polymarket'
 
+const fToC = (f: number) => ((f - 32) * 5) / 9
+const fmtC = (c: number) => c.toFixed(1)
+
 export interface ParsedTempBin {
   centerC: number
   displayLabel: string
   unit: 'C' | 'F'
+  /**
+   * When `unit` is `F`, a °C line for dual display, e.g. `26.7–27.2°C` or `25.0°C or below`.
+   * Omitted for Celsius bins.
+   */
+  celsiusHint?: string
 }
 
 export function getYesPrice(market: PolymarketMarket): number {
@@ -40,6 +48,8 @@ export function parseTemperatureBin(title: string): ParsedTempBin | null {
       centerC,
       displayLabel: `${low}–${high}°${unit}`,
       unit,
+      celsiusHint:
+        unit === 'F' ? `${fmtC(fToC(low))}–${fmtC(fToC(high))}°C` : undefined,
     }
   }
 
@@ -52,6 +62,7 @@ export function parseTemperatureBin(title: string): ParsedTempBin | null {
       centerC: toCenterC(center, unit),
       displayLabel: `${v}°${unit} or below`,
       unit,
+      celsiusHint: unit === 'F' ? `${fmtC(fToC(v))}°C or below` : undefined,
     }
   }
 
@@ -64,6 +75,7 @@ export function parseTemperatureBin(title: string): ParsedTempBin | null {
       centerC: toCenterC(center, unit),
       displayLabel: `${v}°${unit} or higher`,
       unit,
+      celsiusHint: unit === 'F' ? `${fmtC(fToC(v))}°C or higher` : undefined,
     }
   }
 
@@ -75,6 +87,7 @@ export function parseTemperatureBin(title: string): ParsedTempBin | null {
       centerC: toCenterC(v, unit),
       displayLabel: `${v}°${unit}`,
       unit,
+      celsiusHint: unit === 'F' ? `${fmtC(fToC(v))}°C` : undefined,
     }
   }
 
@@ -83,7 +96,12 @@ export function parseTemperatureBin(title: string): ParsedTempBin | null {
     const v = parseFloat(gte[1]!)
     const unit = gte[2]!.toUpperCase() === 'F' ? 'F' : 'C'
     const centerC = unit === 'F' ? ((v - 32) * 5) / 9 : v
-    return { centerC, displayLabel: `≥${v}°${unit}`, unit }
+    return {
+      centerC,
+      displayLabel: `≥${v}°${unit}`,
+      unit,
+      celsiusHint: unit === 'F' ? `≥${fmtC(fToC(v))}°C` : undefined,
+    }
   }
 
   const lte = s.match(/(?:≤|<=)\s*(\d+(?:\.\d+)?)\s*°?\s*([FC])\b/i)
@@ -91,7 +109,12 @@ export function parseTemperatureBin(title: string): ParsedTempBin | null {
     const v = parseFloat(lte[1]!)
     const unit = lte[2]!.toUpperCase() === 'F' ? 'F' : 'C'
     const centerC = unit === 'F' ? ((v - 32) * 5) / 9 : v
-    return { centerC, displayLabel: `≤${v}°${unit}`, unit }
+    return {
+      centerC,
+      displayLabel: `≤${v}°${unit}`,
+      unit,
+      celsiusHint: unit === 'F' ? `≤${fmtC(fToC(v))}°C` : undefined,
+    }
   }
 
   return null
@@ -100,6 +123,14 @@ export function parseTemperatureBin(title: string): ParsedTempBin | null {
 export function marketBin(market: PolymarketMarket): ParsedTempBin | null {
   const title = market.groupItemTitle?.trim() || market.question?.trim() || ''
   return parseTemperatureBin(title)
+}
+
+/** Polymarket label plus Chinese-style parentheses with °C for °F bins — e.g. `80–81°F（26.7–27.2°C）`. */
+export function formatBinLabelWithCelsius(bin: ParsedTempBin): string {
+  if (bin.unit === 'F' && bin.celsiusHint) {
+    return `${bin.displayLabel}（${bin.celsiusHint}）`
+  }
+  return bin.displayLabel
 }
 
 export function indexOfClosestBin<T extends { centerC: number }>(bins: T[], mojiMaxC: number): number {

@@ -26,6 +26,10 @@
       "destination": "https://tianqi.moji.com/:path*"
     },
     {
+      "source": "/nws-mapclick/:path*",
+      "destination": "https://forecast.weather.gov/:path*"
+    },
+    {
       "source": "/tools",
       "destination": "/index.html"
     },

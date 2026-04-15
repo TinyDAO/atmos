@@ -42,6 +42,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/moji-fetch/, ''),
       },
+      '/nws-mapclick': {
+        target: 'https://forecast.weather.gov',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/nws-mapclick/, ''),
+      },
       // 不代理 /api：vercel dev 时由本地 serverless 处理；pnpm run dev 时需用 dev:full 测试 API
       // '/api': { target: SITE_URL, changeOrigin: true },
     },

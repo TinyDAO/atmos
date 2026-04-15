@@ -13,6 +13,7 @@
     "db:studio": "prisma studio",
     "lint": "eslint .",
     "scan": "node --experimental-strip-types scripts/scan.js",
+    "usa-scan": "node --experimental-strip-types scripts/usa-scan.js",
     "preview": "vite preview"
   },
   "dependencies": {
