@@ -27,9 +27,49 @@ function formatNwsHigh(day: UsDayScanResult): string {
   return `${day.nwsMaxF}°F（${day.nwsMaxC.toFixed(1)}°C）`
 }
 
+function formatCityLocalTime(timeZone: string): string {
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    }).format(new Date())
+  } catch {
+    return '—'
+  }
+}
+
+/** 卡片内：该城市时区当前时间，每秒刷新 */
+function LiveCityClock({ timeZone }: { timeZone: string }) {
+  const [label, setLabel] = useState(() => formatCityLocalTime(timeZone))
+
+  useEffect(() => {
+    const tick = () => setLabel(formatCityLocalTime(timeZone))
+    tick()
+    const id = window.setInterval(tick, 1000)
+    return () => window.clearInterval(id)
+  }, [timeZone])
+
+  return (
+    <span className="font-mono tabular-nums tracking-tight" title={timeZone}>
+      {label}
+    </span>
+  )
+}
+
 /** NWS 点位预报页（与脚本/接口同一坐标系） */
 function nwsMapClickUrl(lat: number, lon: number): string {
   return `https://forecast.weather.gov/MapClick.php?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}`
+}
+
+/** Atmos 主站城市详情（与 HomePage `?city=` 一致；相对路径便于本地与线上同源） */
+function atmosCityDetailHref(cityId: string): string {
+  return `/?city=${encodeURIComponent(cityId)}`
 }
 
 function DayBlock({ day }: { day: UsDayScanResult }) {
@@ -188,7 +228,7 @@ export default function UsCityScanPage() {
         </Link>
       </nav>
 
-      <div className={results.length > 0 ? 'lg:pr-[9.5rem] xl:pr-44' : undefined}>
+      <div className={results.length > 0 ? 'lg:pr-[15rem] xl:pr-[16.5rem]' : undefined}>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -248,8 +288,11 @@ export default function UsCityScanPage() {
                   <div className="flex flex-wrap items-end justify-between gap-3 border-b border-white/[0.06] pb-4 mb-5">
                     <div>
                       <h2 className="font-display text-xl font-semibold text-white">{cr.city.name}</h2>
-                      <p className="mt-1 text-[12px] text-zinc-500 font-mono">{cr.city.id}</p>
-                      <p className="mt-0.5 text-[11px] text-zinc-600">{cr.city.timezone}</p>
+                      <p className="mt-1 text-[11px] text-zinc-600">{cr.city.timezone}</p>
+                      <p className="mt-2 text-[13px] text-emerald-200/90">
+                        <span className="text-zinc-500">当地</span>{' '}
+                        <LiveCityClock timeZone={cr.city.timezone} />
+                      </p>
                     </div>
                     <div className="flex flex-col items-end gap-1.5 text-right max-w-md">
                       <a
@@ -259,6 +302,15 @@ export default function UsCityScanPage() {
                         className="text-[12px] text-emerald-400/85 hover:text-emerald-300 underline-offset-2 hover:underline truncate max-w-full"
                       >
                         NWS 预报页
+                      </a>
+                      <a
+                        href={atmosCityDetailHref(cr.city.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[12px] text-violet-300/90 hover:text-violet-200 underline-offset-2 hover:underline truncate max-w-full"
+                        title="Atmos — city forecast & dashboard"
+                      >
+                        Atmos
                       </a>
                       {cr.weatherError ? (
                         <p className="text-sm text-rose-400/90">NWS API: {cr.weatherError}</p>
@@ -295,22 +347,32 @@ export default function UsCityScanPage() {
 
       {results.length > 0 && (
         <aside
-          className="hidden lg:flex lg:flex-col fixed right-3 top-[max(6rem,22vh)] z-30 w-[7.25rem] xl:w-36 max-h-[min(58vh,520px)] overflow-y-auto rounded-2xl border border-white/[0.1] bg-[#0c0f14]/92 backdrop-blur-md py-3 px-2 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.55)] ring-1 ring-white/[0.04]"
-          aria-label="快速定位城市"
+          className="hidden lg:flex lg:flex-col fixed right-4 top-[max(5.5rem,18vh)] z-30 w-[13rem] xl:w-[14.5rem] max-h-[min(78vh,720px)] overflow-hidden rounded-2xl border border-white/[0.12] bg-[#080a0e]/95 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.65)] ring-1 ring-sky-500/10 backdrop-blur-xl"
+          aria-label="Quick jump to cities"
         >
-          <p className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
-            城市
-          </p>
-          <nav>
-            <ul className="flex flex-col gap-0.5">
-              {results.map((cr) => (
+          <div className="shrink-0 border-b border-white/[0.08] bg-gradient-to-b from-sky-500/8 to-transparent px-3.5 py-3.5">
+            <p className="text-base font-semibold tracking-tight text-zinc-50">Quick jump</p>
+            <p className="mt-1.5 text-[13px] leading-snug text-zinc-400">
+              Tap a city below to smoothly scroll to its card.
+            </p>
+          </div>
+          <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 pb-3 pt-2.5 [scrollbar-width:thin] [scrollbar-color:rgba(56,189,248,0.35)_transparent]">
+            <ul className="flex flex-col gap-1">
+              {results.map((cr, i) => (
                 <li key={`nav-${cr.city.id}`}>
                   <button
                     type="button"
                     onClick={() => scrollToCity(cr.city.id)}
-                    className="w-full rounded-lg px-2 py-1.5 text-left text-[11px] leading-snug text-zinc-400 transition hover:bg-sky-500/12 hover:text-sky-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40"
+                    className="group w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5 text-left transition hover:border-sky-500/35 hover:bg-sky-500/12 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080a0e] active:scale-[0.99]"
                   >
-                    {cr.city.name}
+                    <span className="flex items-center gap-2.5">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-800/90 text-[12px] font-bold tabular-nums text-sky-300 ring-1 ring-white/10 group-hover:bg-sky-500/20 group-hover:text-sky-100 group-hover:ring-sky-400/30">
+                        {i + 1}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-[14px] font-semibold leading-snug text-zinc-100 group-hover:text-white">
+                        {cr.city.name}
+                      </span>
+                    </span>
                   </button>
                 </li>
               ))}
