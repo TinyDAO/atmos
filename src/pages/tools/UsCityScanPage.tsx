@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CITIES } from '../../config/cities'
@@ -8,6 +8,11 @@ import {
   type UsCityScanResult,
   type UsDayScanResult,
 } from '../../services/usCityScan'
+import { useScanScrollSpy } from '../../hooks/useScanScrollSpy'
+import {
+  ScanQuickJumpAside,
+  SCAN_QUICK_JUMP_LAYOUT_PADDING,
+} from '../../components/tools/ScanQuickJumpAside'
 
 function formatPct(p: number): string {
   if (!Number.isFinite(p)) return '—'
@@ -72,7 +77,17 @@ function atmosCityDetailHref(cityId: string): string {
   return `/?city=${encodeURIComponent(cityId)}`
 }
 
-function DayBlock({ day }: { day: UsDayScanResult }) {
+/** 若当日 NWS 预测最高温比「扫描列表中的上一日」低超过该阈值（°F），提示用户留意凌晨最高温等情况 */
+const NWS_MAX_DROP_HINT_THRESHOLD_F = 15
+
+function shouldHintEarlyMorningMax(prevMaxF: number | null, currMaxF: number | null): boolean {
+  if (prevMaxF == null || currMaxF == null) return false
+  if (!Number.isFinite(prevMaxF) || !Number.isFinite(currMaxF)) return false
+  return prevMaxF - currMaxF > NWS_MAX_DROP_HINT_THRESHOLD_F
+}
+
+function DayBlock({ day, previousDayNwsMaxF }: { day: UsDayScanResult; previousDayNwsMaxF: number | null }) {
+  const earlyMorningMaxHint = shouldHintEarlyMorningMax(previousDayNwsMaxF, day.nwsMaxF)
   return (
     <div className="rounded-xl border border-white/[0.06] bg-black/20 overflow-hidden">
       <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
@@ -99,6 +114,16 @@ function DayBlock({ day }: { day: UsDayScanResult }) {
             <span className="text-zinc-600">—</span>
           )}
         </p>
+
+        {earlyMorningMaxHint && (
+          <p
+            className="rounded-lg border border-amber-500/40 bg-amber-500/[0.12] px-3 py-2 text-[12px] leading-snug text-amber-100/95"
+            role="status"
+          >
+            提示：本日 NWS 预测最高温较上一日低超过 {NWS_MAX_DROP_HINT_THRESHOLD_F}°F，实际日最高有时可能出现在当地时间
+            <span className="font-medium text-amber-50">凌晨</span>（日历日前后交界）。对照 Polymarket 档位时请留意市场采用的日界与口径。
+          </p>
+        )}
 
         {day.status === 'gamma_error' && (
           <p className="text-sm text-rose-400/90">Gamma: {day.errorMessage}</p>
@@ -217,6 +242,18 @@ export default function UsCityScanPage() {
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [])
 
+  const cityIds = useMemo(() => results.map((r) => r.city.id), [results])
+  const jumpItems = useMemo(
+    () => results.map((r) => ({ id: r.city.id, name: r.city.name })),
+    [results]
+  )
+  const activeCityId = useScanScrollSpy(cityIds, 'usa-scan')
+
+  useEffect(() => {
+    if (!activeCityId) return
+    document.getElementById(`usa-scan-nav-${activeCityId}`)?.scrollIntoView({ block: 'nearest' })
+  }, [activeCityId])
+
   return (
     <div className="relative">
       <nav className="mb-8">
@@ -228,7 +265,7 @@ export default function UsCityScanPage() {
         </Link>
       </nav>
 
-      <div className={results.length > 0 ? 'lg:pr-[15rem] xl:pr-[16.5rem]' : undefined}>
+      <div className={results.length > 0 ? SCAN_QUICK_JUMP_LAYOUT_PADDING : undefined}>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -329,8 +366,12 @@ export default function UsCityScanPage() {
 
                   {cr.weatherError ? null : (
                     <div className="space-y-6">
-                      {cr.days.map((d) => (
-                        <DayBlock key={`${cr.city.id}-${d.dayIndex}`} day={d} />
+                      {cr.days.map((d, di) => (
+                        <DayBlock
+                          key={`${cr.city.id}-${d.dayIndex}`}
+                          day={d}
+                          previousDayNwsMaxF={di > 0 ? cr.days[di - 1]?.nwsMaxF ?? null : null}
+                        />
                       ))}
                     </div>
                   )}
@@ -345,41 +386,17 @@ export default function UsCityScanPage() {
         )}
       </div>
 
-      {results.length > 0 && (
-        <aside
-          className="hidden lg:flex lg:flex-col fixed right-4 top-[max(5.5rem,18vh)] z-30 w-[13rem] xl:w-[14.5rem] max-h-[min(78vh,720px)] overflow-hidden rounded-2xl border border-white/[0.12] bg-[#080a0e]/95 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.65)] ring-1 ring-sky-500/10 backdrop-blur-xl"
-          aria-label="Quick jump to cities"
-        >
-          <div className="shrink-0 border-b border-white/[0.08] bg-gradient-to-b from-sky-500/8 to-transparent px-3.5 py-3.5">
-            <p className="text-base font-semibold tracking-tight text-zinc-50">Quick jump</p>
-            <p className="mt-1.5 text-[13px] leading-snug text-zinc-400">
-              Tap a city below to smoothly scroll to its card.
-            </p>
-          </div>
-          <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 pb-3 pt-2.5 [scrollbar-width:thin] [scrollbar-color:rgba(56,189,248,0.35)_transparent]">
-            <ul className="flex flex-col gap-1">
-              {results.map((cr, i) => (
-                <li key={`nav-${cr.city.id}`}>
-                  <button
-                    type="button"
-                    onClick={() => scrollToCity(cr.city.id)}
-                    className="group w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5 text-left transition hover:border-sky-500/35 hover:bg-sky-500/12 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080a0e] active:scale-[0.99]"
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-800/90 text-[12px] font-bold tabular-nums text-sky-300 ring-1 ring-white/10 group-hover:bg-sky-500/20 group-hover:text-sky-100 group-hover:ring-sky-400/30">
-                        {i + 1}
-                      </span>
-                      <span className="min-w-0 flex-1 truncate text-[14px] font-semibold leading-snug text-zinc-100 group-hover:text-white">
-                        {cr.city.name}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </aside>
-      )}
+      <ScanQuickJumpAside
+        visible={results.length > 0}
+        ariaLabel="Quick jump to cities"
+        title="Quick jump"
+        description="Tap a city below to smoothly scroll to its card."
+        items={jumpItems}
+        activeId={activeCityId}
+        onSelect={scrollToCity}
+        getNavButtonId={(id) => `usa-scan-nav-${id}`}
+        accent="sky"
+      />
     </div>
   )
 }

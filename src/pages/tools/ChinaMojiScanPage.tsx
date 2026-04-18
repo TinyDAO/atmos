@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CITIES } from '../../config/cities'
@@ -8,6 +8,11 @@ import {
   type CityScanResult,
   type DayScanResult,
 } from '../../services/chinaMojiScan'
+import { useScanScrollSpy } from '../../hooks/useScanScrollSpy'
+import {
+  ScanQuickJumpAside,
+  SCAN_QUICK_JUMP_LAYOUT_PADDING,
+} from '../../components/tools/ScanQuickJumpAside'
 
 function formatPct(p: number): string {
   if (!Number.isFinite(p)) return '—'
@@ -167,6 +172,18 @@ export default function ChinaMojiScanPage() {
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [])
 
+  const cityIds = useMemo(() => results.map((r) => r.city.id), [results])
+  const jumpItems = useMemo(
+    () => results.map((r) => ({ id: r.city.id, name: r.city.name })),
+    [results]
+  )
+  const activeCityId = useScanScrollSpy(cityIds, 'china-scan')
+
+  useEffect(() => {
+    if (!activeCityId) return
+    document.getElementById(`china-scan-nav-${activeCityId}`)?.scrollIntoView({ block: 'nearest' })
+  }, [activeCityId])
+
   return (
     <div className="relative">
       <nav className="mb-8">
@@ -178,7 +195,7 @@ export default function ChinaMojiScanPage() {
         </Link>
       </nav>
 
-      <div className={results.length > 0 ? 'lg:pr-[9.5rem] xl:pr-44' : undefined}>
+      <div className={results.length > 0 ? SCAN_QUICK_JUMP_LAYOUT_PADDING : undefined}>
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -270,31 +287,17 @@ export default function ChinaMojiScanPage() {
       )}
       </div>
 
-      {results.length > 0 && (
-        <aside
-          className="hidden lg:flex lg:flex-col fixed right-3 top-[max(6rem,22vh)] z-30 w-[7.25rem] xl:w-36 max-h-[min(58vh,520px)] overflow-y-auto rounded-2xl border border-white/[0.1] bg-[#0c0f14]/92 backdrop-blur-md py-3 px-2 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.55)] ring-1 ring-white/[0.04]"
-          aria-label="快速定位城市"
-        >
-          <p className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
-            城市
-          </p>
-          <nav>
-            <ul className="flex flex-col gap-0.5">
-              {results.map((cr) => (
-                <li key={`nav-${cr.city.id}`}>
-                  <button
-                    type="button"
-                    onClick={() => scrollToCity(cr.city.id)}
-                    className="w-full rounded-lg px-2 py-1.5 text-left text-[11px] leading-snug text-zinc-400 transition hover:bg-amber-500/12 hover:text-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40"
-                  >
-                    {cr.city.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </aside>
-      )}
+      <ScanQuickJumpAside
+        visible={results.length > 0}
+        ariaLabel="Quick jump to cities"
+        title="Quick jump"
+        description="Tap a city below to smoothly scroll to its card."
+        items={jumpItems}
+        activeId={activeCityId}
+        onSelect={scrollToCity}
+        getNavButtonId={(id) => `china-scan-nav-${id}`}
+        accent="amber"
+      />
     </div>
   )
 }
