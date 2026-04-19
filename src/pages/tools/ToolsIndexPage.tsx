@@ -17,7 +17,7 @@ export default function ToolsIndexPage() {
         </p>
       </motion.div>
 
-      <ul className="mt-10 grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+      <ul className="mt-10 grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <motion.li
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -33,7 +33,7 @@ export default function ToolsIndexPage() {
                   中国城市扫描
                 </h2>
                 <p className="mt-2 text-[13px] text-zinc-500 leading-relaxed">
-                  墨迹三天最高温 vs Polymarket 温度档位（YES≥2%）
+                  中国气象局 GRAPES（Open-Meteo）三天日最高 vs Polymarket 档位
                 </p>
               </div>
               <span
@@ -65,6 +65,33 @@ export default function ToolsIndexPage() {
               </div>
               <span
                 className="shrink-0 text-sky-400/70 group-hover:translate-x-0.5 transition-transform"
+                aria-hidden
+              >
+                →
+              </span>
+            </div>
+          </Link>
+        </motion.li>
+        <motion.li
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          <Link
+            to="/tools/eu-scan"
+            className="group block rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 backdrop-blur-sm transition-all hover:border-violet-500/40 hover:bg-violet-500/[0.06] focus:outline-none focus:ring-2 focus:ring-violet-500/45"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-display text-lg font-semibold text-white group-hover:text-violet-100 transition-colors">
+                  欧洲城市扫描
+                </h2>
+                <p className="mt-2 text-[13px] text-zinc-500 leading-relaxed">
+                  ECMWF（Open-Meteo）三天日最高 vs Polymarket 档位
+                </p>
+              </div>
+              <span
+                className="shrink-0 text-violet-400/75 group-hover:translate-x-0.5 transition-transform"
                 aria-hidden
               >
                 →

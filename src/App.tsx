@@ -4,6 +4,7 @@ import ToolsLayout from './pages/tools/ToolsLayout'
 import ToolsIndexPage from './pages/tools/ToolsIndexPage'
 import ChinaMojiScanPage from './pages/tools/ChinaMojiScanPage'
 import UsCityScanPage from './pages/tools/UsCityScanPage'
+import EuCityScanPage from './pages/tools/EuCityScanPage'
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
           <Route index element={<ToolsIndexPage />} />
           <Route path="china-scan" element={<ChinaMojiScanPage />} />
           <Route path="us-scan" element={<UsCityScanPage />} />
+          <Route path="eu-scan" element={<EuCityScanPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

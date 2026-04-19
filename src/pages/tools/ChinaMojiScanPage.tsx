@@ -45,9 +45,9 @@ function DayBlock({ day }: { day: DayScanResult }) {
 
       <div className="px-4 py-3 space-y-3">
         <p className="text-[13px]">
-          <span className="text-zinc-500">墨迹最高温</span>{' '}
-          {day.mojiMax != null && Number.isFinite(day.mojiMax) ? (
-            <span className="font-semibold tabular-nums text-amber-200">{day.mojiMax}°C</span>
+          <span className="text-zinc-500">CMA 日最高 (2 m)</span>{' '}
+          {day.cmaMaxC != null && Number.isFinite(day.cmaMaxC) ? (
+            <span className="font-semibold tabular-nums text-amber-200">{day.cmaMaxC}°C</span>
           ) : (
             <span className="text-zinc-600">—</span>
           )}
@@ -81,7 +81,7 @@ function DayBlock({ day }: { day: DayScanResult }) {
                   <tr className="border-b border-white/[0.06] bg-white/[0.03] text-zinc-500">
                     <th className="px-3 py-2 font-medium">档位</th>
                     <th className="px-3 py-2 font-medium tabular-nums w-24">YES</th>
-                    <th className="px-3 py-2 font-medium tabular-nums w-28">Δ(档−墨迹°C)</th>
+                    <th className="px-3 py-2 font-medium tabular-nums w-28">Δ(档−CMA°C)</th>
                     <th className="px-3 py-2 font-medium tabular-nums w-24">成交量</th>
                   </tr>
                 </thead>
@@ -89,8 +89,8 @@ function DayBlock({ day }: { day: DayScanResult }) {
                   {day.rows.map((r, i) => {
                     const isClosest =
                       i === day.closestIdx &&
-                      day.mojiMax != null &&
-                      Number.isFinite(day.mojiMax)
+                      day.cmaMaxC != null &&
+                      Number.isFinite(day.cmaMaxC)
                     return (
                       <tr
                         key={`${day.slug}-${r.displayLabel}-${i}`}
@@ -117,9 +117,9 @@ function DayBlock({ day }: { day: DayScanResult }) {
                 </tbody>
               </table>
             </div>
-            {day.closestIdx >= 0 && day.mojiMax != null && Number.isFinite(day.mojiMax) && (
+            {day.closestIdx >= 0 && day.cmaMaxC != null && Number.isFinite(day.cmaMaxC) && (
               <p className="text-[11px] text-zinc-600">
-                ★ = 与墨迹最高温 ({day.mojiMax}°C) 最接近的档位
+                ★ = 与 CMA 日最高 ({day.cmaMaxC}°C) 最接近的档位
               </p>
             )}
           </>
@@ -129,8 +129,10 @@ function DayBlock({ day }: { day: DayScanResult }) {
   )
 }
 
+const OPEN_METEO_CMA_DOCS = 'https://open-meteo.com/en/docs/cma-api'
+
 export default function ChinaMojiScanPage() {
-  const cities = CITIES.filter((c) => typeof c.moji === 'string' && c.moji.length > 0)
+  const cities = CITIES.filter((c) => c.country === 'China')
   const [results, setResults] = useState<CityScanResult[]>([])
   const [phase, setPhase] = useState<'idle' | 'scanning' | 'done' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -201,12 +203,23 @@ export default function ChinaMojiScanPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-amber-500/70">Moji × Polymarket</p>
+        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-amber-500/70">CMA × Polymarket</p>
         <h1 className="mt-2 font-display text-3xl md:text-4xl font-semibold text-white tracking-tight">
           中国城市扫描
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-500">
-          仅展示 YES ≥ {(YES_MIN_DISPLAY * 100).toFixed(0)}% 的档位。
+          预报为{' '}
+          <a
+            href="https://www.cma.gov.cn/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-amber-400/85 hover:text-amber-300 underline-offset-2 hover:underline"
+          >
+            中国气象局
+          </a>{' '}
+          GFS GRAPES 全球模式开放数据，
+          提供三天 2 m 日最高温（°C），与 Polymarket 档位对比。仅展示 YES ≥
+          {(YES_MIN_DISPLAY * 100).toFixed(0)}% 的档位。
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -255,18 +268,33 @@ export default function ChinaMojiScanPage() {
                     <p className="mt-1 text-[12px] text-zinc-500 font-mono">{cr.city.id}</p>
                     <p className="mt-0.5 text-[11px] text-zinc-600">{cr.city.timezone}</p>
                   </div>
-                  {cr.weatherError ? (
-                    <p className="text-sm text-rose-400/90 max-w-md">天气: {cr.weatherError}</p>
-                  ) : (
-                    <a
-                      href={cr.city.moji}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[12px] text-sky-400/80 hover:text-sky-300 truncate max-w-xs"
-                    >
-                      墨迹源
-                    </a>
-                  )}
+                  <div className="flex flex-col items-end gap-1.5 text-right max-w-md">
+                    {cr.weatherError ? (
+                      <p className="text-sm text-rose-400/90">CMA: {cr.weatherError}</p>
+                    ) : (
+                      <>
+                        <a
+                          href={OPEN_METEO_CMA_DOCS}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[12px] text-amber-400/85 hover:text-amber-300 underline-offset-2 hover:underline truncate max-w-full"
+                        >
+                          Open-Meteo CMA 文档
+                        </a>
+                        {cr.cmaSourceUrl ? (
+                          <a
+                            href={cr.cmaSourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[12px] text-zinc-500 hover:text-zinc-400 truncate max-w-xs underline-offset-2 hover:underline"
+                            title="本次扫描使用的 CMA 请求 URL"
+                          >
+                            CMA 请求（本城）
+                          </a>
+                        ) : null}
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 {cr.weatherError ? null : (
@@ -283,7 +311,7 @@ export default function ChinaMojiScanPage() {
       </AnimatePresence>
 
       {phase === 'done' && results.length === 0 && !error && (
-        <p className="mt-10 text-sm text-zinc-500">没有带墨迹源的城市。</p>
+        <p className="mt-10 text-sm text-zinc-500">没有配置的中国城市。</p>
       )}
       </div>
 

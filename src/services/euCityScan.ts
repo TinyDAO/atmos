@@ -1,19 +1,27 @@
 import type { City } from '../config/cities'
+import {
+  DAY_LABELS,
+  formatDateMMDD,
+  POLYMARKET_WEB_EVENT_BASE,
+  YES_MIN_DISPLAY,
+} from './chinaMojiScan'
 import { fetchEventBySlug, type PolymarketMarket } from './polymarket'
-import { getCmaGrapesDaily } from './cmaGrapesWeather'
+import { getEcmwfDaily } from './ecmwfWeather'
 import { getPolymarketSlug } from '../utils/polymarketSlug'
-import { getYesPrice, indexOfClosestBin, marketBin } from '../utils/polymarketTempBin'
+import {
+  getYesPrice,
+  indexOfClosestBin,
+  marketBin,
+  formatBinLabelWithCelsius,
+} from '../utils/polymarketTempBin'
 
-export const YES_MIN_DISPLAY = 0.02
-export const POLYMARKET_WEB_EVENT_BASE = 'https://polymarket.com/event'
+export { YES_MIN_DISPLAY, POLYMARKET_WEB_EVENT_BASE }
 
-export const DAY_LABELS = [
-  { index: 0, key: 'today' as const, label: '今天' },
-  { index: 1, key: 'tomorrow' as const, label: '明天' },
-  { index: 2, key: 'dayAfterTomorrow' as const, label: '后天' },
-]
+export function isEuropeCity(c: City): boolean {
+  return typeof c.timezone === 'string' && c.timezone.startsWith('Europe/')
+}
 
-export interface MarketRow {
+export interface EuMarketRow {
   displayLabel: string
   centerC: number
   yes: number
@@ -21,56 +29,43 @@ export interface MarketRow {
   deltaC: number | null
 }
 
-export type DayScanStatus =
+export type EuDayScanStatus =
   | 'ok'
   | 'gamma_error'
   | 'no_event'
   | 'no_bins'
   | 'filtered_empty'
 
-export interface DayScanResult {
+export interface EuDayScanResult {
   dayIndex: number
   dayKey: string
   dayLabel: string
   mmdd: string
   slug: string
   polEventUrl: string
-  /** CMA GRAPES（Open-Meteo `/v1/cma`）日最高 2 m，°C */
-  cmaMaxC: number | null
-  status: DayScanStatus
+  /** ECMWF / Open-Meteo 日最高 2 m（°C） */
+  ecmwfMaxC: number | null
+  status: EuDayScanStatus
   errorMessage?: string
-  rows: MarketRow[]
+  rows: EuMarketRow[]
   closestIdx: number
   hiddenCount: number
   eventTitle?: string
 }
 
-export interface CityScanResult {
+export interface EuCityScanResult {
   city: City
   weatherError: string | null
-  /** 本次使用的 CMA 请求 URL */
-  cmaSourceUrl: string | null
-  days: DayScanResult[]
-}
-
-export function formatDateMMDD(timezone: string, dayIndex: number): string {
-  const d = new Date()
-  d.setTime(d.getTime() + dayIndex * 24 * 60 * 60 * 1000)
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: timezone,
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(d)
-  const month = parts.find((p) => p.type === 'month')?.value ?? ''
-  const day = parts.find((p) => p.type === 'day')?.value ?? ''
-  return `${month} ${day}`
+  /** 最近一次成功拉取的 ECMWF 请求 URL（便于核对参数） */
+  ecmwfSourceUrl: string | null
+  days: EuDayScanResult[]
 }
 
 function buildRowsFromMarkets(
   pool: PolymarketMarket[],
-  refHighC: number | null
-): { allRows: MarketRow[]; visible: MarketRow[]; hiddenCount: number } {
-  const allRows: MarketRow[] = []
+  refMaxC: number | null
+): { allRows: EuMarketRow[]; visible: EuMarketRow[]; hiddenCount: number } {
+  const allRows: EuMarketRow[] = []
   for (const m of pool) {
     const bin = marketBin(m)
     if (!bin) continue
@@ -78,12 +73,12 @@ function buildRowsFromMarkets(
     const volRaw = m.volumeNum ?? (m.volume ? parseFloat(m.volume) : NaN)
     const vol = Number.isFinite(volRaw) ? volRaw : NaN
     allRows.push({
-      displayLabel: bin.displayLabel,
+      displayLabel: formatBinLabelWithCelsius(bin),
       centerC: bin.centerC,
       yes,
       vol,
       deltaC:
-        refHighC != null && Number.isFinite(refHighC) ? bin.centerC - refHighC : null,
+        refMaxC != null && Number.isFinite(refMaxC) ? bin.centerC - refMaxC : null,
     })
   }
   allRows.sort((a, b) => a.centerC - b.centerC)
@@ -98,12 +93,12 @@ async function scanOneDay(
   dayKey: string,
   dayLabel: string,
   byLabel: Map<string, { maxTemp: number | null } | undefined>
-): Promise<DayScanResult> {
+): Promise<EuDayScanResult> {
   const slug = getPolymarketSlug(city.id, dayIndex, city.timezone)
   const polEventUrl = `${POLYMARKET_WEB_EVENT_BASE}/${slug}`
   const mmdd = formatDateMMDD(city.timezone, dayIndex)
   const dayForecast = byLabel.get(dayKey)
-  const cmaMaxC =
+  const maxC =
     dayForecast?.maxTemp != null && Number.isFinite(dayForecast.maxTemp) ? dayForecast.maxTemp : null
 
   let event
@@ -118,7 +113,7 @@ async function scanOneDay(
       mmdd,
       slug,
       polEventUrl,
-      cmaMaxC,
+      ecmwfMaxC: maxC,
       status: 'gamma_error',
       errorMessage: msg,
       rows: [],
@@ -135,7 +130,7 @@ async function scanOneDay(
       mmdd,
       slug,
       polEventUrl,
-      cmaMaxC,
+      ecmwfMaxC: maxC,
       status: 'no_event',
       rows: [],
       closestIdx: -1,
@@ -146,7 +141,7 @@ async function scanOneDay(
   let pool = event.markets.filter((m) => m.active || !m.closed)
   if (pool.length === 0) pool = event.markets
 
-  const { allRows, visible, hiddenCount } = buildRowsFromMarkets(pool, cmaMaxC)
+  const { allRows, visible, hiddenCount } = buildRowsFromMarkets(pool, maxC)
 
   if (allRows.length === 0) {
     return {
@@ -156,7 +151,7 @@ async function scanOneDay(
       mmdd,
       slug,
       polEventUrl,
-      cmaMaxC,
+      ecmwfMaxC: maxC,
       status: 'no_bins',
       eventTitle: event.title,
       rows: [],
@@ -173,7 +168,7 @@ async function scanOneDay(
       mmdd,
       slug,
       polEventUrl,
-      cmaMaxC,
+      ecmwfMaxC: maxC,
       status: 'filtered_empty',
       eventTitle: event.title,
       rows: [],
@@ -182,7 +177,7 @@ async function scanOneDay(
     }
   }
 
-  const closestIdx = indexOfClosestBin(visible, cmaMaxC ?? Number.NaN)
+  const closestIdx = indexOfClosestBin(visible, maxC ?? Number.NaN)
 
   return {
     dayIndex,
@@ -191,7 +186,7 @@ async function scanOneDay(
     mmdd,
     slug,
     polEventUrl,
-    cmaMaxC,
+    ecmwfMaxC: maxC,
     status: 'ok',
     eventTitle: event.title,
     rows: visible,
@@ -200,49 +195,49 @@ async function scanOneDay(
   }
 }
 
-export interface RunChinaMojiScanOptions {
+export interface RunEuCityScanOptions {
   signal?: AbortSignal
-  onCityComplete?: (result: CityScanResult) => void
+  onCityComplete?: (result: EuCityScanResult) => void
 }
 
-export async function runChinaMojiScan(
+export async function runEuCityScan(
   cities: City[],
-  options?: RunChinaMojiScanOptions
-): Promise<CityScanResult[]> {
-  const china = cities.filter((c) => c.country === 'China')
-  const out: CityScanResult[] = []
+  options?: RunEuCityScanOptions
+): Promise<EuCityScanResult[]> {
+  const euCities = cities.filter(isEuropeCity)
+  const out: EuCityScanResult[] = []
 
-  for (const city of china) {
+  for (const city of euCities) {
     if (options?.signal?.aborted) break
 
     let weatherError: string | null = null
-    let cmaSourceUrl: string | null = null
+    let ecmwfSourceUrl: string | null = null
     const byLabel = new Map<string, { maxTemp: number | null }>()
 
     try {
-      const w = await getCmaGrapesDaily(city.latitude, city.longitude, city.timezone, {
+      const w = await getEcmwfDaily(city.latitude, city.longitude, city.timezone, {
         signal: options?.signal,
       })
-      cmaSourceUrl = w.source
+      ecmwfSourceUrl = w.source
       for (const d of w.forecast) {
         byLabel.set(d.label, { maxTemp: d.maxTemp })
       }
     } catch (e) {
       weatherError = e instanceof Error ? e.message : String(e)
-      const empty: CityScanResult = { city, weatherError, cmaSourceUrl: null, days: [] }
+      const empty: EuCityScanResult = { city, weatherError, ecmwfSourceUrl: null, days: [] }
       out.push(empty)
       options?.onCityComplete?.(empty)
       continue
     }
 
-    const days: DayScanResult[] = []
+    const days: EuDayScanResult[] = []
     for (const { index, key, label } of DAY_LABELS) {
       if (options?.signal?.aborted) break
       const dayRes = await scanOneDay(city, index, key, label, byLabel)
       days.push(dayRes)
     }
 
-    const result: CityScanResult = { city, weatherError: null, cmaSourceUrl, days }
+    const result: EuCityScanResult = { city, weatherError: null, ecmwfSourceUrl, days }
     out.push(result)
     options?.onCityComplete?.(result)
   }
