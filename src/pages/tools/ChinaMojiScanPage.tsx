@@ -210,22 +210,7 @@ export default function ChinaMojiScanPage() {
           中国城市扫描
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-500">
-          与{' '}
-          <code className="text-[12px] text-zinc-400">scripts/scan.js</code>{' '}
-          相同：按{' '}
-          <code className="text-[12px] text-zinc-400">cities.ts</code>{' '}
-          中配置的{' '}
-          <code className="text-[12px] text-zinc-400">cma</code>{' '}
-          链接请求{' '}
-          <a
-            href={CMA_PORTAL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-amber-400/85 hover:text-amber-300 underline-offset-2 hover:underline"
-          >
-            weather.cma.cn
-          </a>{' '}
-          城市预报页，解析七日栏中前三日的白天最高温（°C），与 Polymarket 档位对比。仅展示 YES ≥
+          三日的白天最高温（°C），与 Polymarket 档位对比。仅展示 YES ≥
           {(YES_MIN_DISPLAY * 100).toFixed(0)}% 的档位。
         </p>
 
