@@ -42,6 +42,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/moji-fetch/, ''),
       },
+      '/cma-fetch': {
+        target: 'https://weather.cma.cn',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/cma-fetch/, ''),
+      },
       '/nws-mapclick': {
         target: 'https://forecast.weather.gov',
         changeOrigin: true,

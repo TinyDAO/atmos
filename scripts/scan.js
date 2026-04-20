@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
- * Scan moji-backed cities: compare 3-day high temps vs Polymarket highest-temperature bins (YES odds).
+ * Scan cities with `cma` URLs: compare 3-day high temps vs Polymarket highest-temperature bins (YES odds).
+ * Forecasts from weather.cma.cn via scripts/cma.util.js.
  * Run: node --experimental-strip-types scripts/scan.js
  *   or: pnpm run scan
  */
-import { getWeather } from './moji.util.js'
+import { getWeather } from './cma.util.js'
 import { CITIES } from '../src/config/cities.ts'
 
 const GAMMA_BASE = (process.env.POLYMARKET_GAMMA_BASE || 'https://gamma-api.polymarket.com').replace(
@@ -137,9 +138,9 @@ function formatDateMMDD(timezone, dayIndex) {
  * @param {object} p
  * @param {Array<{ displayLabel: string, yes: number, deltaC: number | null, vol: number }>} p.rows
  * @param {number} p.closestIdx
- * @param {number | null} p.mojiMax
+ * @param {number | null} p.cmaMax
  */
-function printMarketTable({ rows, closestIdx, mojiMax }) {
+function printMarketTable({ rows, closestIdx, cmaMax }) {
   const W = { bin: 24, yes: 8, delta: 16, vol: 8 }
   const seg = (w) => '─'.repeat(w + 2)
   const top = `┌${seg(W.bin)}┬${seg(W.yes)}┬${seg(W.delta)}┬${seg(W.vol)}┐`
@@ -150,14 +151,14 @@ function printMarketTable({ rows, closestIdx, mojiMax }) {
 
   console.log(`    ${dim(top)}`)
   console.log(
-    `    ${dim(cell('档位', 'YES', 'Δ(档−墨迹°C)', '成交量'))}`
+    `    ${dim(cell('档位', 'YES', 'Δ(档−CMA°C)', '成交量'))}`
   )
   console.log(`    ${dim(mid)}`)
 
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i]
-    const isMoji = i === closestIdx && mojiMax != null && Number.isFinite(mojiMax)
-    const binCell = `${isMoji ? '★ ' : '  '}${r.displayLabel}`
+    const isCma = i === closestIdx && cmaMax != null && Number.isFinite(cmaMax)
+    const binCell = `${isCma ? '★ ' : '  '}${r.displayLabel}`
     const yesStr = formatPct(r.yes)
     const dStr =
       r.deltaC != null && Number.isFinite(r.deltaC)
@@ -169,7 +170,7 @@ function printMarketTable({ rows, closestIdx, mojiMax }) {
         : String(Math.round(r.vol))
       : '—'
     const line = `    ${cell(binCell, yesStr, dStr, vStr)}`
-    if (isMoji) console.log(magenta(line))
+    if (isCma) console.log(magenta(line))
     else console.log(line)
   }
   console.log(`    ${dim(bot)}`)
@@ -323,14 +324,14 @@ function marketBin(market) {
 
 /**
  * @param {Array<{ centerC: number }>} bins
- * @param {number} mojiMaxC
+ * @param {number} cmaMaxC
  */
-function indexOfClosestBin(bins, mojiMaxC) {
-  if (bins.length === 0 || mojiMaxC == null || !Number.isFinite(mojiMaxC)) return -1
+function indexOfClosestBin(bins, cmaMaxC) {
+  if (bins.length === 0 || cmaMaxC == null || !Number.isFinite(cmaMaxC)) return -1
   let best = 0
   let bestD = Infinity
   for (let i = 0; i < bins.length; i++) {
-    const d = Math.abs(bins[i].centerC - mojiMaxC)
+    const d = Math.abs(bins[i].centerC - cmaMaxC)
     if (d < bestD) {
       bestD = d
       best = i
@@ -357,12 +358,12 @@ async function main() {
     weatherErrors: 0,
   }
 
-  let cities = CITIES.filter((c) => typeof c.moji === 'string' && c.moji.length > 0)
+  let cities = CITIES.filter((c) => typeof c.cma === 'string' && c.cma.length > 0)
   if (cli.cityFilter) {
     cities = cities.filter((c) => cli.cityFilter.has(c.id))
     const missing = [...cli.cityFilter].filter((id) => !cities.some((c) => c.id === id))
     if (missing.length) {
-      console.warn(yellow(`警告: 以下 id 无 moji 或未找到: ${missing.join(', ')}`))
+      console.warn(yellow(`警告: 以下 id 无 cma 或未找到: ${missing.join(', ')}`))
     }
   }
 
@@ -381,11 +382,11 @@ async function main() {
     console.log(cyan('═'.repeat(76)))
     console.log(`  ${bold(city.name)}  ${dim(`(${city.id})`)}`)
     console.log(dim(`  ${city.timezone}`))
-    console.log(dim(`  moji: ${city.moji}`))
+    console.log(dim(`  cma: ${city.cma}`))
 
     let weather
     try {
-      weather = await getWeather(city.moji)
+      weather = await getWeather(city.cma)
     } catch (e) {
       stats.weatherErrors++
       console.log(`  ${yellow('天气')} ${yellow('失败')}: ${e instanceof Error ? e.message : e}`)
@@ -400,17 +401,17 @@ async function main() {
       if (dayIndex > 0) console.log('')
       const mmdd = formatDateMMDD(city.timezone, dayIndex)
       const dayForecast = byLabel.get(key)
-      const mojiMax = dayForecast?.maxTemp
+      const cmaMax = dayForecast?.maxTemp
       const slug = getPolymarketSlug(city.id, dayIndex, city.timezone)
       const polEventUrl = `${POLYMARKET_WEB_EVENT_BASE}/${slug}`
 
       console.log(`  ${bold(cyan(`${mmdd}  ·  ${dayZh}`))}  ${dim(polEventUrl)}`)
 
-      if (mojiMax == null || !Number.isFinite(mojiMax)) {
-        console.log(`    ${yellow('墨迹最高温')} —`)
+      if (cmaMax == null || !Number.isFinite(cmaMax)) {
+        console.log(`    ${yellow('CMA 最高温')} —`)
       } else {
         console.log(
-          `    ${magenta('★ 墨迹预测最高温')}: ${bold(String(mojiMax))}°C`
+          `    ${magenta('★ CMA 预报最高温')}: ${bold(String(cmaMax))}°C`
         )
       }
 
@@ -449,8 +450,8 @@ async function main() {
           yes,
           vol,
           deltaC:
-            mojiMax != null && Number.isFinite(mojiMax)
-              ? bin.centerC - mojiMax
+            cmaMax != null && Number.isFinite(cmaMax)
+              ? bin.centerC - cmaMax
               : null,
         })
       }
@@ -479,11 +480,11 @@ async function main() {
         )
       }
 
-      const closestIdx = indexOfClosestBin(visible, mojiMax ?? NaN)
-      printMarketTable({ rows: visible, closestIdx, mojiMax })
-      if (closestIdx >= 0 && mojiMax != null && Number.isFinite(mojiMax)) {
+      const closestIdx = indexOfClosestBin(visible, cmaMax ?? NaN)
+      printMarketTable({ rows: visible, closestIdx, cmaMax })
+      if (closestIdx >= 0 && cmaMax != null && Number.isFinite(cmaMax)) {
         console.log(
-          dim(`    ★ = 与墨迹最高温 (${mojiMax}°C) 最接近的档位`)
+          dim(`    ★ = 与 CMA 预报最高温 (${cmaMax}°C) 最接近的档位`)
         )
       }
     }

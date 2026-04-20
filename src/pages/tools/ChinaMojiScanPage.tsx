@@ -45,7 +45,7 @@ function DayBlock({ day }: { day: DayScanResult }) {
 
       <div className="px-4 py-3 space-y-3">
         <p className="text-[13px]">
-          <span className="text-zinc-500">CMA 日最高 (2 m)</span>{' '}
+          <span className="text-zinc-500">CMA 预报最高温（城市页）</span>{' '}
           {day.cmaMaxC != null && Number.isFinite(day.cmaMaxC) ? (
             <span className="font-semibold tabular-nums text-amber-200">{day.cmaMaxC}°C</span>
           ) : (
@@ -119,7 +119,7 @@ function DayBlock({ day }: { day: DayScanResult }) {
             </div>
             {day.closestIdx >= 0 && day.cmaMaxC != null && Number.isFinite(day.cmaMaxC) && (
               <p className="text-[11px] text-zinc-600">
-                ★ = 与 CMA 日最高 ({day.cmaMaxC}°C) 最接近的档位
+                ★ = 与 CMA 预报最高温 ({day.cmaMaxC}°C) 最接近的档位
               </p>
             )}
           </>
@@ -129,10 +129,12 @@ function DayBlock({ day }: { day: DayScanResult }) {
   )
 }
 
-const OPEN_METEO_CMA_DOCS = 'https://open-meteo.com/en/docs/cma-api'
+const CMA_PORTAL = 'https://weather.cma.cn/'
 
 export default function ChinaMojiScanPage() {
-  const cities = CITIES.filter((c) => c.country === 'China')
+  const cities = CITIES.filter(
+    (c) => c.country === 'China' && typeof c.cma === 'string' && c.cma.length > 0
+  )
   const [results, setResults] = useState<CityScanResult[]>([])
   const [phase, setPhase] = useState<'idle' | 'scanning' | 'done' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -208,17 +210,22 @@ export default function ChinaMojiScanPage() {
           中国城市扫描
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-500">
-          预报为{' '}
+          与{' '}
+          <code className="text-[12px] text-zinc-400">scripts/scan.js</code>{' '}
+          相同：按{' '}
+          <code className="text-[12px] text-zinc-400">cities.ts</code>{' '}
+          中配置的{' '}
+          <code className="text-[12px] text-zinc-400">cma</code>{' '}
+          链接请求{' '}
           <a
-            href="https://www.cma.gov.cn/"
+            href={CMA_PORTAL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-amber-400/85 hover:text-amber-300 underline-offset-2 hover:underline"
           >
-            中国气象局
+            weather.cma.cn
           </a>{' '}
-          GFS GRAPES 全球模式开放数据，
-          提供三天 2 m 日最高温（°C），与 Polymarket 档位对比。仅展示 YES ≥
+          城市预报页，解析七日栏中前三日的白天最高温（°C），与 Polymarket 档位对比。仅展示 YES ≥
           {(YES_MIN_DISPLAY * 100).toFixed(0)}% 的档位。
         </p>
 
@@ -274,12 +281,12 @@ export default function ChinaMojiScanPage() {
                     ) : (
                       <>
                         <a
-                          href={OPEN_METEO_CMA_DOCS}
+                          href={CMA_PORTAL}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[12px] text-amber-400/85 hover:text-amber-300 underline-offset-2 hover:underline truncate max-w-full"
                         >
-                          Open-Meteo CMA 文档
+                          中央气象台 · weather.cma.cn
                         </a>
                         {cr.cmaSourceUrl ? (
                           <a
@@ -287,9 +294,9 @@ export default function ChinaMojiScanPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-[12px] text-zinc-500 hover:text-zinc-400 truncate max-w-xs underline-offset-2 hover:underline"
-                            title="本次扫描使用的 CMA 请求 URL"
+                            title="本城 cma 配置（与 scripts/scan.js 相同）"
                           >
-                            CMA 请求（本城）
+                            本城预报页
                           </a>
                         ) : null}
                       </>
@@ -311,7 +318,9 @@ export default function ChinaMojiScanPage() {
       </AnimatePresence>
 
       {phase === 'done' && results.length === 0 && !error && (
-        <p className="mt-10 text-sm text-zinc-500">没有配置的中国城市。</p>
+        <p className="mt-10 text-sm text-zinc-500">
+          没有带 <code className="text-zinc-400">cma</code> 链接的中国城市（请在 cities.ts 中配置）。
+        </p>
       )}
       </div>
 

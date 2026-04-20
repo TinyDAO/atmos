@@ -1,6 +1,6 @@
 import type { City } from '../config/cities'
 import { fetchEventBySlug, type PolymarketMarket } from './polymarket'
-import { getCmaGrapesDaily } from './cmaGrapesWeather'
+import { getWeather as getCmaPageWeather } from './cmaWeatherPage'
 import { getPolymarketSlug } from '../utils/polymarketSlug'
 import { getYesPrice, indexOfClosestBin, marketBin } from '../utils/polymarketTempBin'
 
@@ -35,7 +35,7 @@ export interface DayScanResult {
   mmdd: string
   slug: string
   polEventUrl: string
-  /** CMA GRAPES（Open-Meteo `/v1/cma`）日最高 2 m，°C */
+  /** 中央气象台城市页（weather.cma.cn）七日预报解析得到的白天最高温，°C */
   cmaMaxC: number | null
   status: DayScanStatus
   errorMessage?: string
@@ -48,7 +48,7 @@ export interface DayScanResult {
 export interface CityScanResult {
   city: City
   weatherError: string | null
-  /** 本次使用的 CMA 请求 URL */
+  /** 本次使用的中央气象台城市页 URL（与 scripts/scan.js 一致） */
   cmaSourceUrl: string | null
   days: DayScanResult[]
 }
@@ -209,27 +209,36 @@ export async function runChinaMojiScan(
   cities: City[],
   options?: RunChinaMojiScanOptions
 ): Promise<CityScanResult[]> {
-  const china = cities.filter((c) => c.country === 'China')
+  const china = cities.filter(
+    (c) =>
+      c.country === 'China' &&
+      typeof c.cma === 'string' &&
+      c.cma.length > 0
+  )
   const out: CityScanResult[] = []
 
   for (const city of china) {
     if (options?.signal?.aborted) break
 
     let weatherError: string | null = null
-    let cmaSourceUrl: string | null = null
+    const cmaSourceUrl: string | null = city.cma ?? null
     const byLabel = new Map<string, { maxTemp: number | null }>()
 
     try {
-      const w = await getCmaGrapesDaily(city.latitude, city.longitude, city.timezone, {
+      const w = await getCmaPageWeather(city.cma!, {
         signal: options?.signal,
       })
-      cmaSourceUrl = w.source
       for (const d of w.forecast) {
         byLabel.set(d.label, { maxTemp: d.maxTemp })
       }
     } catch (e) {
       weatherError = e instanceof Error ? e.message : String(e)
-      const empty: CityScanResult = { city, weatherError, cmaSourceUrl: null, days: [] }
+      const empty: CityScanResult = {
+        city,
+        weatherError,
+        cmaSourceUrl: city.cma ?? null,
+        days: [],
+      }
       out.push(empty)
       options?.onCityComplete?.(empty)
       continue

@@ -26,6 +26,10 @@
       "destination": "https://tianqi.moji.com/:path*"
     },
     {
+      "source": "/cma-fetch/:path*",
+      "destination": "https://weather.cma.cn/:path*"
+    },
+    {
       "source": "/nws-mapclick/:path*",
       "destination": "https://forecast.weather.gov/:path*"
     },

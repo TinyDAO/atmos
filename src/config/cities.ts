@@ -19,6 +19,7 @@ export interface City {
     | { type: 'link'; url: string; poster?: string }
   >
   moji?: string
+  cma?: string
 }
 
 export const CITIES: City[] = [
@@ -116,7 +117,8 @@ export const CITIES: City[] = [
         url: 'https://www.skylinewebcams.com/zh/webcam/china/shanghai/shanghai/skyline-of-shanghai.html',
       },
     ],
-    moji: 'https://tianqi.moji.com/weather/china/shanghai/shanghai'
+    moji: 'https://tianqi.moji.com/weather/china/shanghai/shanghai',
+    cma: 'https://weather.cma.cn/web/weather/58370.html'
   },
   {
     id: 'singapore',
@@ -469,7 +471,8 @@ export const CITIES: City[] = [
     description: 'Land of abundance. Spicy Sichuan cuisine, teahouses, and giant pandas.',
     gradient: 'from-rose-700 via-red-600 to-amber-600',
     image: '/images/cities/chengdu.jpg',
-    moji: 'https://tianqi.moji.com/weather/china/sichuan/chengdu'
+    moji: 'https://tianqi.moji.com/weather/china/sichuan/chengdu',
+    cma: 'https://weather.cma.cn/web/weather/S1003.html'
   },
   {
     id: 'chongqing',
@@ -483,7 +486,8 @@ export const CITIES: City[] = [
     description: 'Mountain city. Hot pot, foggy Yangtze gorges, and dramatic night skylines.',
     gradient: 'from-orange-700 via-amber-600 to-yellow-600',
     image: '/images/cities/chongqing.jpg',
-    moji: 'https://tianqi.moji.com/weather/china/chongqing/chongqing'
+    moji: 'https://tianqi.moji.com/weather/china/chongqing/chongqing',
+    cma: 'https://weather.cma.cn/web/weather/57513.html'
   },
   {
     id: 'wuhan',
@@ -497,7 +501,8 @@ export const CITIES: City[] = [
     description: 'Nine provinces thoroughfare. Rivers, bridges, and central China energy.',
     gradient: 'from-cyan-700 via-blue-600 to-indigo-700',
     image: '/images/cities/wuhan.jpg',
-    moji: 'https://tianqi.moji.com/weather/china/hubei/wuhan'
+    moji: 'https://tianqi.moji.com/weather/china/hubei/wuhan',
+    cma: 'https://weather.cma.cn/web/weather/57494.html',
   },
   {
     id: 'shenzhen',
@@ -511,7 +516,8 @@ export const CITIES: City[] = [
     description: 'Innovation hub. Futuristic towers, maker culture, and Pearl River Delta pace.',
     gradient: 'from-violet-700 via-purple-600 to-fuchsia-600',
     image: '/images/cities/shenzhen.jpg',
-    moji: 'https://tianqi.moji.com/weather/china/guangdong/shenzhen'
+    moji: 'https://tianqi.moji.com/weather/china/guangdong/shenzhen',
+    cma: 'https://weather.cma.cn/web/weather/59493.html',
   },
   {
     id: 'beijing',
@@ -525,7 +531,8 @@ export const CITIES: City[] = [
     description: 'Northern capital. Imperial heritage, hutongs, and the pulse of modern China.',
     gradient: 'from-red-800 via-rose-700 to-amber-700',
     image: '/images/cities/beijing.jpg',
-    moji: 'https://tianqi.moji.com/weather/china/beijing/beijing'
+    moji: 'https://tianqi.moji.com/weather/china/beijing/beijing',
+    cma: 'https://weather.cma.cn/web/weather/54511.html'
   },
   {
     id: 'hong-kong',
@@ -546,6 +553,7 @@ export const CITIES: City[] = [
       'https://imgproxy.windy.com/_/full/plain/current/1627525317/original.jpg',
     ],
     moji: 'https://tianqi.moji.com/weather/china/hong-kong/hong-kong-island-',
+    cma: 'https://weather.cma.cn/web/weather/45005.html'
   },
   {
     id: 'taipei',
@@ -565,7 +573,7 @@ export const CITIES: City[] = [
       'https://imgproxy.windy.com/_/full/plain/current/1729755408/original.jpg',
       'https://imgproxy.windy.com/_/full/plain/current/1671974554/original.jpg',
     ],
-
+    cma: 'https://weather.cma.cn/web/weather/58968.html',
   },
   {
     id: 'los-angeles',
