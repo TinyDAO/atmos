@@ -33,6 +33,28 @@ function formatAuxMojiC(c: number): string {
   return Math.abs(r - Math.round(r)) < 1e-6 ? String(Math.round(r)) : r.toFixed(1)
 }
 
+/** 档位上「离 moji 预报最高最近」：实心小灰方块 */
+function ScanAuxMojiMarker({ title }: { title: string }) {
+  return (
+    <span
+      className="mr-1 inline-block size-2 shrink-0 translate-y-px rounded-[2px] bg-zinc-400/55 ring-1 ring-white/10"
+      title={title}
+      aria-hidden
+    />
+  )
+}
+
+/** 档位上「离机场预报最高最近」：绿框浅底小方块 */
+function ScanAuxHbtMarker({ title }: { title: string }) {
+  return (
+    <span
+      className="mr-1 inline-block size-2 shrink-0 translate-y-px rounded-[2px] border border-emerald-400/50 bg-emerald-500/20"
+      title={title}
+      aria-hidden
+    />
+  )
+}
+
 function DayBlock({ day, hbtPageUrl }: { day: DayScanResult; hbtPageUrl?: string }) {
   const cmaOk = day.cmaMaxC != null && Number.isFinite(day.cmaMaxC)
   const mojiOk = day.mojiMaxC != null && Number.isFinite(day.mojiMaxC)
@@ -144,30 +166,18 @@ function DayBlock({ day, hbtPageUrl }: { day: DayScanResult; hbtPageUrl?: string
                         }
                       >
                         <td className="px-3 py-2 font-mono text-[11px] text-zinc-200">
-                          <span className="inline-flex flex-wrap items-baseline gap-x-0.5 gap-y-0.5">
-                            <span className="inline-flex items-baseline">
+                          <span className="inline-flex flex-wrap items-center gap-x-0.5 gap-y-0.5">
+                            <span className="inline-flex items-center">
                               {isClosest ? (
                                 <span className="text-amber-300 mr-0.5" title="与 CMA 预报最高温最接近的档位">
                                   ★
                                 </span>
                               ) : null}
                               {isMojiClosest ? (
-                                <span
-                                  className="mr-0.5 translate-y-[0.5px] text-[11px] leading-none text-zinc-600/45"
-                                  title="与 moji 预报最高温最接近的档位（辅助，不参与 Δ）"
-                                  aria-hidden
-                                >
-                                  ·
-                                </span>
+                                <ScanAuxMojiMarker title="与 moji 预报最高温最接近的档位（辅助，不参与 Δ）" />
                               ) : null}
                               {isHbtClosest ? (
-                                <span
-                                  className="mr-0.5 text-[9px] leading-none text-emerald-800/35"
-                                  title="与机场预报最高温最接近的档位（辅助，不参与 Δ）"
-                                  aria-hidden
-                                >
-                                  ◦
-                                </span>
+                                <ScanAuxHbtMarker title="与机场预报最高温最接近的档位（辅助，不参与 Δ）" />
                               ) : null}
                               {r.displayLabel}
                             </span>
@@ -192,13 +202,19 @@ function DayBlock({ day, hbtPageUrl }: { day: DayScanResult; hbtPageUrl?: string
               </p>
             )}
             {day.mojiClosestIdx >= 0 && mojiOk && (
-              <p className="text-[11px] text-zinc-600/75">
-                · = 与 moji 预报最高温 ({formatAuxMojiC(day.mojiMaxC!)}°C) 最接近的档位
+              <p className="flex flex-wrap items-center gap-x-1.5 text-[11px] text-zinc-600/80">
+                <ScanAuxMojiMarker title="与 moji 预报最高温最接近的档位" />
+                <span>
+                  = 与 moji 预报最高温 ({formatAuxMojiC(day.mojiMaxC!)}°C) 最接近的档位
+                </span>
               </p>
             )}
             {day.hbtClosestIdx >= 0 && hbtTodayOk && (
-              <p className="text-[11px] text-zinc-600/75">
-                ◦ = 与机场预报最高温 ({formatAuxMojiC(day.hbtMaxC!)}°C) 最接近的档位
+              <p className="flex flex-wrap items-center gap-x-1.5 text-[11px] text-zinc-600/80">
+                <ScanAuxHbtMarker title="与机场预报最高温最接近的档位" />
+                <span>
+                  = 与机场预报最高温 ({formatAuxMojiC(day.hbtMaxC!)}°C) 最接近的档位
+                </span>
               </p>
             )}
           </>
