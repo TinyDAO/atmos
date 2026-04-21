@@ -37,6 +37,7 @@ const DAY_LABELS = [
   { index: 0, key: 'today', label: '今天' },
   { index: 1, key: 'tomorrow', label: '明天' },
   { index: 2, key: 'dayAfterTomorrow', label: '后天' },
+  { index: 3, key: 'inThreeDays', label: '大后天' },
 ]
 
 /** @type {{ noColor: boolean, cityFilter: Set<string> | null }} */
@@ -337,7 +338,7 @@ async function main() {
   stats.citiesTotal = cities.length
   console.log(
     dim(
-      `Polymarket Gamma: ${GAMMA_BASE} · USA 城市: ${cities.length} · NWS °F → 对比档位用 °C · 三天`
+      `Polymarket Gamma: ${GAMMA_BASE} · USA 城市: ${cities.length} · NWS °F → 对比档位用 °C · 四天`
     )
   )
   console.log()

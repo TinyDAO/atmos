@@ -2,7 +2,8 @@
  * NOAA NWS MapClick JSON — browser uses `/nws-mapclick` proxy (Vite + Vercel) to avoid CORS.
  */
 
-const DAY_LABELS = ['today', 'tomorrow', 'dayAfterTomorrow'] as const
+/** 与 usCityScan US_DAY_LABELS 顺序一致（含第 4 日 inThreeDays / 大后天） */
+const DAY_LABELS = ['today', 'tomorrow', 'dayAfterTomorrow', 'inThreeDays'] as const
 
 function mapClickUrl(lat: number, lon: number): string {
   const params = new URLSearchParams({
@@ -102,7 +103,7 @@ export async function getUsaWeather(
   }
 
   const sortedKeys = [...byDay.keys()].sort()
-  const keys = sortedKeys.slice(0, 3)
+  const keys = sortedKeys.slice(0, 4)
 
   const daily = keys.map((date) => {
     const periods = byDay.get(date) ?? []
@@ -116,8 +117,8 @@ export async function getUsaWeather(
     }
   })
 
-  if (daily.length < 3) {
-    throw new Error('Unable to find 3 days of forecast data in NWS response')
+  if (daily.length < 4) {
+    throw new Error('Unable to find 4 days of forecast data in NWS response')
   }
 
   const forecast: UsaForecastDay[] = DAY_LABELS.map((label, index) => {

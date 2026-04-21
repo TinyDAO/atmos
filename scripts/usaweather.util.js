@@ -4,8 +4,8 @@
 
 const MAP_CLICK_BASE = 'https://forecast.weather.gov/MapClick.php'
 
-/** Same ordering as scripts/moji.util.js */
-const DAY_LABELS = ['today', 'tomorrow', 'dayAfterTomorrow']
+/** 与美国扫描四天一致（含 inThreeDays / 大后天） */
+const DAY_LABELS = ['today', 'tomorrow', 'dayAfterTomorrow', 'inThreeDays']
 
 const DEFAULT_HEADERS = {
   Accept: 'application/json, text/plain, */*',
@@ -101,7 +101,7 @@ const toMojiForecastRow = (label, day) => ({
 })
 
 /**
- * Today plus two more calendar days (3 days), same shape as moji `getWeather` result.
+ * Today plus three more calendar days (4 days), same shape as moji `getWeather` result.
  * Temperatures are °F from NWS.
  *
  * @param {number} lat
@@ -122,10 +122,10 @@ export async function getUsaWeather(lat, lon, init = {}) {
   }
 
   const raw = await res.json()
-  const daily = buildDailyFromJson(raw, 3)
+  const daily = buildDailyFromJson(raw, 4)
 
-  if (daily.length < 3) {
-    throw new Error('Unable to find 3 days of forecast data in NWS response')
+  if (daily.length < 4) {
+    throw new Error('Unable to find 4 days of forecast data in NWS response')
   }
 
   const forecast = DAY_LABELS.map((label, index) => toMojiForecastRow(label, daily[index]))

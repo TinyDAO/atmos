@@ -1,6 +1,5 @@
 import type { City } from '../config/cities'
 import {
-  DAY_LABELS,
   formatDateMMDD,
   POLYMARKET_WEB_EVENT_BASE,
   YES_MIN_DISPLAY,
@@ -15,7 +14,15 @@ import {
   formatBinLabelWithCelsius,
 } from '../utils/polymarketTempBin'
 
-export { DAY_LABELS, YES_MIN_DISPLAY, POLYMARKET_WEB_EVENT_BASE }
+/** 美国城市扫描：NWS 与 Polymarket 对比四个日历日（今天起算） */
+export const US_DAY_LABELS = [
+  { index: 0, key: 'today', label: '今天' },
+  { index: 1, key: 'tomorrow', label: '明天' },
+  { index: 2, key: 'dayAfterTomorrow', label: '后天' },
+  { index: 3, key: 'inThreeDays', label: '大后天' },
+] as const
+
+export { YES_MIN_DISPLAY, POLYMARKET_WEB_EVENT_BASE }
 
 export interface UsMarketRow {
   /** Polymarket 档位文案；华氏档位后附 `（…°C）` */
@@ -235,7 +242,7 @@ export async function runUsCityScan(
     }
 
     const days: UsDayScanResult[] = []
-    for (const { index, key, label } of DAY_LABELS) {
+    for (const { index, key, label } of US_DAY_LABELS) {
       if (options?.signal?.aborted) break
       const dayRes = await scanOneDay(city, index, key, label, byLabel)
       days.push(dayRes)

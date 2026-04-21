@@ -240,7 +240,7 @@ export default function UsCityScanPage() {
             美国城市扫描
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-500">
-            NOAA 三天最高温（°F）与 Polymarket 档位对比；档位为华氏时在括号内标摄氏度。仅展示 YES ≥
+            NOAA 四天最高温（°F）与 Polymarket 档位对比；档位为华氏时在括号内标摄氏度。仅展示 YES ≥
             {(YES_MIN_DISPLAY * 100).toFixed(0)}% 的档位。
           </p>
 

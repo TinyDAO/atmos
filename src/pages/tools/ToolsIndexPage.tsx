@@ -60,7 +60,7 @@ export default function ToolsIndexPage() {
                   美国城市扫描
                 </h2>
                 <p className="mt-2 text-[13px] text-zinc-500 leading-relaxed">
-                  NOAA 三天最高温 vs Polymarket 温度档位
+                  NOAA 四天最高温 vs Polymarket 温度档位
                 </p>
               </div>
               <span
