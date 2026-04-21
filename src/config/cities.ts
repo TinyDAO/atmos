@@ -20,6 +20,7 @@ export interface City {
   >
   moji?: string
   cma?: string
+  hbt?: string
 }
 
 export const CITIES: City[] = [
@@ -118,7 +119,8 @@ export const CITIES: City[] = [
       },
     ],
     moji: 'https://tianqi.moji.com/weather/china/shanghai/shanghai',
-    cma: 'https://weather.cma.cn/web/weather/58370.html'
+    cma: 'https://weather.cma.cn/web/weather/58370.html',
+    hbt: 'http://wechat.hbt7.com/mhweixin/app/common/airportWeather/searchWeather?city=%E4%B8%8A%E6%B5%B7'
   },
   {
     id: 'singapore',
@@ -472,7 +474,8 @@ export const CITIES: City[] = [
     gradient: 'from-rose-700 via-red-600 to-amber-600',
     image: '/images/cities/chengdu.jpg',
     moji: 'https://tianqi.moji.com/weather/china/sichuan/chengdu',
-    cma: 'https://weather.cma.cn/web/weather/S1003.html'
+    cma: 'https://weather.cma.cn/web/weather/S1003.html',
+    hbt: 'http://wechat.hbt7.com/mhweixin/app/common/airportWeather/searchWeather?city=%E6%88%90%E9%83%BD'
   },
   {
     id: 'chongqing',
@@ -487,7 +490,8 @@ export const CITIES: City[] = [
     gradient: 'from-orange-700 via-amber-600 to-yellow-600',
     image: '/images/cities/chongqing.jpg',
     moji: 'https://tianqi.moji.com/weather/china/chongqing/chongqing',
-    cma: 'https://weather.cma.cn/web/weather/57513.html'
+    cma: 'https://weather.cma.cn/web/weather/57513.html',
+    hbt: 'http://wechat.hbt7.com/mhweixin/app/common/airportWeather/searchWeather?city=%E9%87%8D%E5%BA%86'
   },
   {
     id: 'wuhan',
@@ -503,6 +507,7 @@ export const CITIES: City[] = [
     image: '/images/cities/wuhan.jpg',
     moji: 'https://tianqi.moji.com/weather/china/hubei/wuhan',
     cma: 'https://weather.cma.cn/web/weather/57494.html',
+    hbt: 'http://wechat.hbt7.com/mhweixin/app/common/airportWeather/searchWeather?city=%E6%AD%A6%E6%B1%89'
   },
   {
     id: 'shenzhen',
@@ -518,6 +523,7 @@ export const CITIES: City[] = [
     image: '/images/cities/shenzhen.jpg',
     moji: 'https://tianqi.moji.com/weather/china/guangdong/shenzhen',
     cma: 'https://weather.cma.cn/web/weather/59493.html',
+    hbt: 'http://wechat.hbt7.com/mhweixin/app/common/airportWeather/searchWeather?city=%E6%B7%B1%E5%9C%B3'
   },
   {
     id: 'beijing',
@@ -532,7 +538,8 @@ export const CITIES: City[] = [
     gradient: 'from-red-800 via-rose-700 to-amber-700',
     image: '/images/cities/beijing.jpg',
     moji: 'https://tianqi.moji.com/weather/china/beijing/beijing',
-    cma: 'https://weather.cma.cn/web/weather/54511.html'
+    cma: 'https://weather.cma.cn/web/weather/54511.html',
+    hbt: 'http://wechat.hbt7.com/mhweixin/app/common/airportWeather/searchWeather?city=%E5%8C%97%E4%BA%AC'
   },
   {
     id: 'hong-kong',
@@ -553,7 +560,8 @@ export const CITIES: City[] = [
       'https://imgproxy.windy.com/_/full/plain/current/1627525317/original.jpg',
     ],
     moji: 'https://tianqi.moji.com/weather/china/hong-kong/hong-kong-island-',
-    cma: 'https://weather.cma.cn/web/weather/45005.html'
+    cma: 'https://weather.cma.cn/web/weather/45005.html',
+    hbt: 'http://wechat.hbt7.com/mhweixin/app/common/airportWeather/searchWeather?city=%E9%A6%99%E6%B8%AF'
   },
   {
     id: 'taipei',

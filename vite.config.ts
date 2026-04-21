@@ -47,6 +47,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/cma-fetch/, ''),
       },
+      '/hbt-fetch': {
+        target: 'http://wechat.hbt7.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/hbt-fetch/, ''),
+      },
       '/nws-mapclick': {
         target: 'https://forecast.weather.gov',
         changeOrigin: true,

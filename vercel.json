@@ -30,6 +30,10 @@
       "destination": "https://weather.cma.cn/:path*"
     },
     {
+      "source": "/hbt-fetch/:path*",
+      "destination": "http://wechat.hbt7.com/:path*"
+    },
+    {
       "source": "/nws-mapclick/:path*",
       "destination": "https://forecast.weather.gov/:path*"
     },

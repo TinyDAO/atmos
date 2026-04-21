@@ -27,7 +27,18 @@ function formatVol(v: number): string {
   return String(Math.round(v))
 }
 
-function DayBlock({ day }: { day: DayScanResult }) {
+/** 墨迹辅温：多为整数，非整数保留一位 */
+function formatAuxMojiC(c: number): string {
+  const r = Math.round(c * 10) / 10
+  return Math.abs(r - Math.round(r)) < 1e-6 ? String(Math.round(r)) : r.toFixed(1)
+}
+
+function DayBlock({ day, hbtPageUrl }: { day: DayScanResult; hbtPageUrl?: string }) {
+  const cmaOk = day.cmaMaxC != null && Number.isFinite(day.cmaMaxC)
+  const mojiOk = day.mojiMaxC != null && Number.isFinite(day.mojiMaxC)
+  const hbtTodayOk =
+    day.dayKey === 'today' && day.hbtMaxC != null && Number.isFinite(day.hbtMaxC)
+
   return (
     <div className="rounded-xl border border-white/[0.06] bg-black/20 overflow-hidden">
       <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
@@ -46,13 +57,44 @@ function DayBlock({ day }: { day: DayScanResult }) {
       </div>
 
       <div className="px-4 py-3 space-y-3">
-        <p className="text-[13px]">
-          <span className="text-zinc-500">CMA 预报最高温（城市页）</span>{' '}
-          {day.cmaMaxC != null && Number.isFinite(day.cmaMaxC) ? (
-            <span className="font-semibold tabular-nums text-amber-200">{day.cmaMaxC}°C</span>
+        <p className="text-[13px] leading-relaxed text-zinc-300">
+          <span className="text-zinc-500">CMA 预报最高温</span>{' '}
+          {cmaOk ? (
+            <span className="font-semibold tabular-nums text-amber-200">
+              {formatAuxMojiC(day.cmaMaxC!)}°C
+            </span>
           ) : (
             <span className="text-zinc-600">—</span>
           )}
+          {mojiOk ? (
+            <>
+              ，<span className="text-zinc-500">moji 预报最高温</span>{' '}
+              <span className="font-medium tabular-nums text-zinc-400">
+                {formatAuxMojiC(day.mojiMaxC!)}°C
+              </span>
+            </>
+          ) : null}
+          {hbtTodayOk ? (
+            <>
+              ，<span className="text-zinc-500">机场预报最高温</span>{' '}
+              <span className="font-medium tabular-nums text-emerald-200/80">
+                {formatAuxMojiC(day.hbtMaxC!)}°C
+              </span>
+              {hbtPageUrl ? (
+                <>
+                  {' '}
+                  <a
+                    href={hbtPageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-emerald-500/55 hover:text-emerald-400/90 underline-offset-2 hover:underline"
+                  >
+                    来源
+                  </a>
+                </>
+              ) : null}
+            </>
+          ) : null}
         </p>
 
         {day.status === 'gamma_error' && (
@@ -89,10 +131,9 @@ function DayBlock({ day }: { day: DayScanResult }) {
                 </thead>
                 <tbody>
                   {day.rows.map((r, i) => {
-                    const isClosest =
-                      i === day.closestIdx &&
-                      day.cmaMaxC != null &&
-                      Number.isFinite(day.cmaMaxC)
+                    const isClosest = i === day.closestIdx && cmaOk
+                    const isMojiClosest = i === day.mojiClosestIdx && mojiOk
+                    const isHbtClosest = i === day.hbtClosestIdx && hbtTodayOk
                     return (
                       <tr
                         key={`${day.slug}-${r.displayLabel}-${i}`}
@@ -103,8 +144,34 @@ function DayBlock({ day }: { day: DayScanResult }) {
                         }
                       >
                         <td className="px-3 py-2 font-mono text-[11px] text-zinc-200">
-                          {isClosest ? <span className="text-amber-300 mr-1">★</span> : null}
-                          {r.displayLabel}
+                          <span className="inline-flex flex-wrap items-baseline gap-x-0.5 gap-y-0.5">
+                            <span className="inline-flex items-baseline">
+                              {isClosest ? (
+                                <span className="text-amber-300 mr-0.5" title="与 CMA 预报最高温最接近的档位">
+                                  ★
+                                </span>
+                              ) : null}
+                              {isMojiClosest ? (
+                                <span
+                                  className="mr-0.5 translate-y-[0.5px] text-[11px] leading-none text-zinc-600/45"
+                                  title="与 moji 预报最高温最接近的档位（辅助，不参与 Δ）"
+                                  aria-hidden
+                                >
+                                  ·
+                                </span>
+                              ) : null}
+                              {isHbtClosest ? (
+                                <span
+                                  className="mr-0.5 text-[9px] leading-none text-emerald-800/35"
+                                  title="与机场预报最高温最接近的档位（辅助，不参与 Δ）"
+                                  aria-hidden
+                                >
+                                  ◦
+                                </span>
+                              ) : null}
+                              {r.displayLabel}
+                            </span>
+                          </span>
                         </td>
                         <td className="px-3 py-2 tabular-nums text-zinc-300">{formatPct(r.yes)}</td>
                         <td className="px-3 py-2 tabular-nums text-zinc-400">
@@ -119,9 +186,19 @@ function DayBlock({ day }: { day: DayScanResult }) {
                 </tbody>
               </table>
             </div>
-            {day.closestIdx >= 0 && day.cmaMaxC != null && Number.isFinite(day.cmaMaxC) && (
+            {day.closestIdx >= 0 && cmaOk && (
               <p className="text-[11px] text-zinc-600">
-                ★ = 与 CMA 预报最高温 ({day.cmaMaxC}°C) 最接近的档位
+                ★ = 与 CMA 预报最高温 ({formatAuxMojiC(day.cmaMaxC!)}°C) 最接近的档位
+              </p>
+            )}
+            {day.mojiClosestIdx >= 0 && mojiOk && (
+              <p className="text-[11px] text-zinc-600/75">
+                · = 与 moji 预报最高温 ({formatAuxMojiC(day.mojiMaxC!)}°C) 最接近的档位
+              </p>
+            )}
+            {day.hbtClosestIdx >= 0 && hbtTodayOk && (
+              <p className="text-[11px] text-zinc-600/75">
+                ◦ = 与机场预报最高温 ({formatAuxMojiC(day.hbtMaxC!)}°C) 最接近的档位
               </p>
             )}
           </>
@@ -266,20 +343,6 @@ export default function ChinaMojiScanPage() {
                       <span className="text-zinc-500">当地</span>{' '}
                       <LiveCityClock timeZone={cr.city.timezone} />
                     </p>
-                    {cr.mojiUptimeLabel && typeof cr.city.moji === 'string' && cr.city.moji.length > 0 ? (
-                      <p className="mt-1.5 text-[11px] text-zinc-600 leading-snug">
-                        <a
-                          href={cr.city.moji}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-zinc-500 hover:text-zinc-400 underline-offset-2 hover:underline"
-                        >
-                          墨迹
-                        </a>
-                        <span className="text-zinc-600"> · </span>
-                        <span className="tabular-nums">{cr.mojiUptimeLabel}</span>
-                      </p>
-                    ) : null}
                   </div>
                   <div className="flex flex-col items-end gap-1.5 text-right max-w-md">
                     <a
@@ -300,6 +363,17 @@ export default function ChinaMojiScanPage() {
                         title="本城 cma 配置（与 scripts/scan.js 相同）"
                       >
                         本城预报页
+                      </a>
+                    ) : null}
+                    {cr.city.hbt ? (
+                      <a
+                        href={cr.city.hbt}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[12px] text-emerald-500/80 hover:text-emerald-400 truncate max-w-xs underline-offset-2 hover:underline"
+                        title="湖北机场微信天气页（HBT）"
+                      >
+                        机场天气(HBT)
                       </a>
                     ) : null}
                     {cr.weatherError ? (
@@ -327,10 +401,14 @@ export default function ChinaMojiScanPage() {
                   </p>
                 ) : null}
 
-                {cr.weatherError ? null : (
+                    {cr.weatherError ? null : (
                   <div className="space-y-6">
                     {cr.days.map((d) => (
-                      <DayBlock key={`${cr.city.id}-${d.dayIndex}`} day={d} />
+                      <DayBlock
+                        key={`${cr.city.id}-${d.dayIndex}`}
+                        day={d}
+                        hbtPageUrl={cr.city.hbt}
+                      />
                     ))}
                   </div>
                 )}

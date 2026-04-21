@@ -31,8 +31,6 @@ export interface MojiForecastDay {
 export interface MojiWeatherResult {
   source: string
   forecast: MojiForecastDay[]
-  /** 墨迹 HTML 页顶「今天22:54更新」一类文案；JSON 源尽力解析，可能为 null */
-  pageUptimeText: string | null
 }
 
 const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
@@ -84,14 +82,6 @@ const detectDailyArray = (data: unknown): unknown[] | null => {
   if (Array.isArray((o.weather as Record<string, unknown>)?.daily))
     return (o.weather as { daily: unknown[] }).daily
   return null
-}
-
-/** 墨迹城市页 `<strong class="info_uptime">今天22:54更新</strong>` */
-export function parseMojiPageUptimeFromHtml(html: string): string | null {
-  const m = html.match(/<strong[^>]*\bclass="[^"]*\binfo_uptime\b[^"]*"[^>]*>\s*([^<]+?)\s*<\/strong>/i)
-  if (m?.[1]) return m[1].replace(/\s+/g, ' ').trim()
-  const m2 = html.match(/<strong\s+class="info_uptime"[^>]*>\s*([^<]+?)\s*<\/strong>/i)
-  return m2?.[1] ? m2[1].replace(/\s+/g, ' ').trim() : null
 }
 
 const parseMojiHtmlForecast = (html: string): MojiForecastDay[] | null => {
@@ -220,7 +210,6 @@ export async function getWeather(url: string, init?: GetMojiWeatherInit): Promis
     return {
       source: url,
       forecast: htmlForecast,
-      pageUptimeText: parseMojiPageUptimeFromHtml(html),
     }
   }
 
@@ -245,22 +234,8 @@ export async function getWeather(url: string, init?: GetMojiWeatherInit): Promis
     }
   })
 
-  const root = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : null
-  const pageUptimeText =
-    pickString(root, [
-      'update_time',
-      'updateTime',
-      'uptime',
-      'publish_time',
-      'publishTime',
-      'report_time',
-    ]) ??
-    pickString(root?.data as Record<string, unknown> | undefined, ['update_time', 'updateTime']) ??
-    null
-
   return {
     source: url,
     forecast,
-    pageUptimeText,
   }
 }
