@@ -266,6 +266,20 @@ export default function ChinaMojiScanPage() {
                       <span className="text-zinc-500">当地</span>{' '}
                       <LiveCityClock timeZone={cr.city.timezone} />
                     </p>
+                    {cr.mojiUptimeLabel && typeof cr.city.moji === 'string' && cr.city.moji.length > 0 ? (
+                      <p className="mt-1.5 text-[11px] text-zinc-600 leading-snug">
+                        <a
+                          href={cr.city.moji}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-zinc-500 hover:text-zinc-400 underline-offset-2 hover:underline"
+                        >
+                          墨迹
+                        </a>
+                        <span className="text-zinc-600"> · </span>
+                        <span className="tabular-nums">{cr.mojiUptimeLabel}</span>
+                      </p>
+                    ) : null}
                   </div>
                   <div className="flex flex-col items-end gap-1.5 text-right max-w-md">
                     <a

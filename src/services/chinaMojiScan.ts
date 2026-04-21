@@ -1,6 +1,7 @@
 import type { City } from '../config/cities'
 import { fetchEventBySlug, type PolymarketMarket } from './polymarket'
 import { getWeather as getCmaPageWeather } from './cmaWeatherPage'
+import { getWeather as getMojiPageWeather } from './mojiWeather'
 import { getPolymarketSlug } from '../utils/polymarketSlug'
 import { getYesPrice, indexOfClosestBin, marketBin } from '../utils/polymarketTempBin'
 
@@ -50,6 +51,8 @@ export interface CityScanResult {
   weatherError: string | null
   /** 本次使用的中央气象台城市页 URL（与 scripts/scan.js 一致） */
   cmaSourceUrl: string | null
+  /** 墨迹城市页解析到的更新时间文案（辅）；无 moji 配置或拉取失败时为 null */
+  mojiUptimeLabel: string | null
   days: DayScanResult[]
 }
 
@@ -237,11 +240,22 @@ export async function runChinaMojiScan(
         city,
         weatherError,
         cmaSourceUrl: city.cma ?? null,
+        mojiUptimeLabel: null,
         days: [],
       }
       out.push(empty)
       options?.onCityComplete?.(empty)
       continue
+    }
+
+    let mojiUptimeLabel: string | null = null
+    if (typeof city.moji === 'string' && city.moji.length > 0) {
+      try {
+        const moji = await getMojiPageWeather(city.moji, { signal: options?.signal })
+        mojiUptimeLabel = moji.pageUptimeText
+      } catch {
+        mojiUptimeLabel = null
+      }
     }
 
     const days: DayScanResult[] = []
@@ -251,7 +265,7 @@ export async function runChinaMojiScan(
       days.push(dayRes)
     }
 
-    const result: CityScanResult = { city, weatherError: null, cmaSourceUrl, days }
+    const result: CityScanResult = { city, weatherError: null, cmaSourceUrl, mojiUptimeLabel, days }
     out.push(result)
     options?.onCityComplete?.(result)
   }
