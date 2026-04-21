@@ -13,6 +13,8 @@ import {
   ScanQuickJumpAside,
   SCAN_QUICK_JUMP_LAYOUT_PADDING,
 } from '../../components/tools/ScanQuickJumpAside'
+import { LiveCityClock } from '../../components/tools/LiveCityClock'
+import { atmosCityDetailHref } from '../../utils/atmosCityHref'
 
 function formatPct(p: number): string {
   if (!Number.isFinite(p)) return '—'
@@ -32,49 +34,9 @@ function formatNwsHigh(day: UsDayScanResult): string {
   return `${day.nwsMaxF}°F（${day.nwsMaxC.toFixed(1)}°C）`
 }
 
-function formatCityLocalTime(timeZone: string): string {
-  try {
-    return new Intl.DateTimeFormat('en-US', {
-      timeZone,
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true,
-    }).format(new Date())
-  } catch {
-    return '—'
-  }
-}
-
-/** 卡片内：该城市时区当前时间，每秒刷新 */
-function LiveCityClock({ timeZone }: { timeZone: string }) {
-  const [label, setLabel] = useState(() => formatCityLocalTime(timeZone))
-
-  useEffect(() => {
-    const tick = () => setLabel(formatCityLocalTime(timeZone))
-    tick()
-    const id = window.setInterval(tick, 1000)
-    return () => window.clearInterval(id)
-  }, [timeZone])
-
-  return (
-    <span className="font-mono tabular-nums tracking-tight" title={timeZone}>
-      {label}
-    </span>
-  )
-}
-
 /** NWS 点位预报页（与脚本/接口同一坐标系） */
 function nwsMapClickUrl(lat: number, lon: number): string {
   return `https://forecast.weather.gov/MapClick.php?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}`
-}
-
-/** Atmos 主站城市详情（与 HomePage `?city=` 一致；相对路径便于本地与线上同源） */
-function atmosCityDetailHref(cityId: string): string {
-  return `/?city=${encodeURIComponent(cityId)}`
 }
 
 /** 若当日 NWS 预测最高温比「扫描列表中的上一日」低超过该阈值（°F），提示用户留意凌晨最高温等情况 */

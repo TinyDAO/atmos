@@ -13,6 +13,8 @@ import {
   ScanQuickJumpAside,
   SCAN_QUICK_JUMP_LAYOUT_PADDING,
 } from '../../components/tools/ScanQuickJumpAside'
+import { LiveCityClock } from '../../components/tools/LiveCityClock'
+import { atmosCityDetailHref } from '../../utils/atmosCityHref'
 
 function formatPct(p: number): string {
   if (!Number.isFinite(p)) return '—'
@@ -129,7 +131,8 @@ function DayBlock({ day }: { day: DayScanResult }) {
   )
 }
 
-const CMA_PORTAL = 'https://weather.cma.cn/'
+/** 山地河谷、多中心城区，单站 CMA 页与实况/体感温差常较大 */
+const CHONGQING_CITY_ID = 'chongqing'
 
 export default function ChinaMojiScanPage() {
   const cities = CITIES.filter(
@@ -259,35 +262,56 @@ export default function ChinaMojiScanPage() {
                     <h2 className="font-display text-xl font-semibold text-white">{cr.city.name}</h2>
                     <p className="mt-1 text-[12px] text-zinc-500 font-mono">{cr.city.id}</p>
                     <p className="mt-0.5 text-[11px] text-zinc-600">{cr.city.timezone}</p>
+                    <p className="mt-2 text-[13px] text-amber-200/90">
+                      <span className="text-zinc-500">当地</span>{' '}
+                      <LiveCityClock timeZone={cr.city.timezone} />
+                    </p>
                   </div>
                   <div className="flex flex-col items-end gap-1.5 text-right max-w-md">
+                    <a
+                      href={atmosCityDetailHref(cr.city.id)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[12px] text-violet-300/90 hover:text-violet-200 underline-offset-2 hover:underline truncate max-w-full"
+                      title="Atmos — city forecast & dashboard"
+                    >
+                      Atmos
+                    </a>
+                    {cr.cmaSourceUrl ? (
+                      <a
+                        href={cr.cmaSourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[12px] text-zinc-500 hover:text-zinc-400 truncate max-w-xs underline-offset-2 hover:underline"
+                        title="本城 cma 配置（与 scripts/scan.js 相同）"
+                      >
+                        本城预报页
+                      </a>
+                    ) : null}
                     {cr.weatherError ? (
                       <p className="text-sm text-rose-400/90">CMA: {cr.weatherError}</p>
                     ) : (
-                      <>
-                        <a
-                          href={CMA_PORTAL}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[12px] text-amber-400/85 hover:text-amber-300 underline-offset-2 hover:underline truncate max-w-full"
-                        >
-                          中央气象台 · weather.cma.cn
-                        </a>
-                        {cr.cmaSourceUrl ? (
-                          <a
-                            href={cr.cmaSourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[12px] text-zinc-500 hover:text-zinc-400 truncate max-w-xs underline-offset-2 hover:underline"
-                            title="本城 cma 配置（与 scripts/scan.js 相同）"
-                          >
-                            本城预报页
-                          </a>
-                        ) : null}
-                      </>
+                      <a
+                        href={cr.days[0]?.polEventUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[12px] text-sky-400/80 hover:text-sky-300 truncate max-w-xs"
+                      >
+                        Polymarket（首日）
+                      </a>
                     )}
                   </div>
                 </div>
+
+                {cr.city.id === CHONGQING_CITY_ID ? (
+                  <p
+                    className="mb-5 rounded-lg border border-amber-500/25 bg-amber-500/[0.08] px-3 py-2.5 text-[12px] leading-relaxed text-amber-100/90"
+                    role="note"
+                  >
+                    <span className="font-semibold text-amber-200">重庆</span>
+                    ：山地河谷、城区差异大，中央气象台该站页预报与实况气温、体感经常偏差较大，仅供参考。
+                  </p>
+                ) : null}
 
                 {cr.weatherError ? null : (
                   <div className="space-y-6">

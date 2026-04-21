@@ -14,6 +14,8 @@ import {
   ScanQuickJumpAside,
   SCAN_QUICK_JUMP_LAYOUT_PADDING,
 } from '../../components/tools/ScanQuickJumpAside'
+import { LiveCityClock } from '../../components/tools/LiveCityClock'
+import { atmosCityDetailHref } from '../../utils/atmosCityHref'
 
 function formatPct(p: number): string {
   if (!Number.isFinite(p)) return '—'
@@ -24,44 +26,6 @@ function formatVol(v: number): string {
   if (!Number.isFinite(v)) return '—'
   if (v >= 1000) return `${(v / 1000).toFixed(1)}k`
   return String(Math.round(v))
-}
-
-function formatCityLocalTime(timeZone: string): string {
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      timeZone,
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    }).format(new Date())
-  } catch {
-    return '—'
-  }
-}
-
-function LiveCityClock({ timeZone }: { timeZone: string }) {
-  const [label, setLabel] = useState(() => formatCityLocalTime(timeZone))
-
-  useEffect(() => {
-    const tick = () => setLabel(formatCityLocalTime(timeZone))
-    tick()
-    const id = window.setInterval(tick, 1000)
-    return () => window.clearInterval(id)
-  }, [timeZone])
-
-  return (
-    <span className="font-mono tabular-nums tracking-tight" title={timeZone}>
-      {label}
-    </span>
-  )
-}
-
-function atmosCityDetailHref(cityId: string): string {
-  return `/?city=${encodeURIComponent(cityId)}`
 }
 
 const OPEN_METEO_ECMWF_DOCS = 'https://open-meteo.com/en/docs/ecmwf-api'
@@ -302,7 +266,7 @@ export default function EuCityScanPage() {
                       <p className="mt-1 text-[11px] text-zinc-600">{cr.city.timezone}</p>
                       <p className="mt-2 text-[13px] text-violet-200/90">
                         <span className="text-zinc-500">当地</span>{' '}
-                        <LiveCityClock timeZone={cr.city.timezone} />
+                        <LiveCityClock timeZone={cr.city.timezone} variant="eu" />
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-1.5 text-right max-w-md">
