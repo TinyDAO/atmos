@@ -2,7 +2,8 @@
   "functions": {
     "api/ai-analysis.ts": { "maxDuration": 300 },
     "api/auth/connect.ts": { "maxDuration": 60 },
-    "api/points.ts": { "maxDuration": 60 }
+    "api/points.ts": { "maxDuration": 60 },
+    "api/tenki-html.ts": { "maxDuration": 30 }
   },
   "rewrites": [
     {
@@ -36,6 +37,14 @@
     {
       "source": "/nws-mapclick/:path*",
       "destination": "https://forecast.weather.gov/:path*"
+    },
+    {
+      "source": "/tenki-fetch/:path*",
+      "destination": "https://tenki.jp/:path*"
+    },
+    {
+      "source": "/kma-fetch/:path*",
+      "destination": "https://www.weather.go.kr/:path*"
     },
     {
       "source": "/tools",

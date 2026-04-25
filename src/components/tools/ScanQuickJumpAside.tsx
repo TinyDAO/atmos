@@ -1,10 +1,10 @@
 /**
- * 扫描工具页右侧「快速跳转」侧栏（us-scan / china-scan / eu-scan 共用布局与交互）。
+ * 扫描工具页右侧「快速跳转」侧栏（us-scan / china-scan / eu-scan / jp-scan / kr-scan 共用布局与交互）。
  * 主内容区在 `visible` 为 true 时需预留右侧空间，见 {@link SCAN_QUICK_JUMP_LAYOUT_PADDING}。
  */
 export const SCAN_QUICK_JUMP_LAYOUT_PADDING = 'lg:pr-[15rem] xl:pr-[16.5rem]'
 
-export type ScanQuickJumpAccent = 'sky' | 'amber' | 'violet'
+export type ScanQuickJumpAccent = 'sky' | 'amber' | 'violet' | 'rose'
 
 export interface ScanQuickJumpItem {
   id: string
@@ -42,49 +42,65 @@ export function ScanQuickJumpAside({
       ? 'ring-sky-500/10'
       : accent === 'violet'
         ? 'ring-violet-500/10'
-        : 'ring-amber-500/10'
+        : accent === 'rose'
+          ? 'ring-rose-500/10'
+          : 'ring-amber-500/10'
   const headerGradient =
     accent === 'sky'
       ? 'from-sky-500/8'
       : accent === 'violet'
         ? 'from-violet-500/8'
-        : 'from-amber-500/8'
+        : accent === 'rose'
+          ? 'from-rose-500/8'
+          : 'from-amber-500/8'
   const scrollbar =
     accent === 'sky'
       ? '[scrollbar-color:rgba(56,189,248,0.35)_transparent]'
       : accent === 'violet'
         ? '[scrollbar-color:rgba(167,139,250,0.35)_transparent]'
-        : '[scrollbar-color:rgba(251,191,36,0.35)_transparent]'
+        : accent === 'rose'
+          ? '[scrollbar-color:rgba(251,113,133,0.35)_transparent]'
+          : '[scrollbar-color:rgba(251,191,36,0.35)_transparent]'
   const focusRing =
     accent === 'sky'
       ? 'focus-visible:ring-sky-400/50'
       : accent === 'violet'
         ? 'focus-visible:ring-violet-400/50'
-        : 'focus-visible:ring-amber-400/50'
+        : accent === 'rose'
+          ? 'focus-visible:ring-rose-400/50'
+          : 'focus-visible:ring-amber-400/50'
   const activeBtn =
     accent === 'sky'
       ? 'border-sky-400/50 bg-sky-500/[0.22] shadow-[inset_0_0_0_1px_rgba(56,189,248,0.18)] ring-1 ring-sky-400/35'
       : accent === 'violet'
         ? 'border-violet-400/50 bg-violet-500/[0.22] shadow-[inset_0_0_0_1px_rgba(167,139,250,0.18)] ring-1 ring-violet-400/35'
-        : 'border-amber-400/50 bg-amber-500/[0.22] shadow-[inset_0_0_0_1px_rgba(251,191,36,0.18)] ring-1 ring-amber-400/35'
+        : accent === 'rose'
+          ? 'border-rose-400/50 bg-rose-500/[0.22] shadow-[inset_0_0_0_1px_rgba(251,113,133,0.18)] ring-1 ring-rose-400/35'
+          : 'border-amber-400/50 bg-amber-500/[0.22] shadow-[inset_0_0_0_1px_rgba(251,191,36,0.18)] ring-1 ring-amber-400/35'
   const idleBtn =
     accent === 'sky'
       ? 'border-white/[0.06] bg-white/[0.03] hover:border-sky-500/35 hover:bg-sky-500/12'
       : accent === 'violet'
         ? 'border-white/[0.06] bg-white/[0.03] hover:border-violet-500/35 hover:bg-violet-500/12'
-        : 'border-white/[0.06] bg-white/[0.03] hover:border-amber-500/35 hover:bg-amber-500/12'
+        : accent === 'rose'
+          ? 'border-white/[0.06] bg-white/[0.03] hover:border-rose-500/35 hover:bg-rose-500/12'
+          : 'border-white/[0.06] bg-white/[0.03] hover:border-amber-500/35 hover:bg-amber-500/12'
   const badgeActive =
     accent === 'sky'
       ? 'bg-sky-400/35 text-white ring-sky-300/45'
       : accent === 'violet'
         ? 'bg-violet-400/35 text-white ring-violet-300/45'
-        : 'bg-amber-400/35 text-white ring-amber-300/45'
+        : accent === 'rose'
+          ? 'bg-rose-400/35 text-white ring-rose-300/45'
+          : 'bg-amber-400/35 text-white ring-amber-300/45'
   const badgeIdle =
     accent === 'sky'
       ? 'bg-zinc-800/90 text-sky-300 ring-white/10 group-hover:bg-sky-500/20 group-hover:text-sky-100 group-hover:ring-sky-400/30'
       : accent === 'violet'
         ? 'bg-zinc-800/90 text-violet-300 ring-white/10 group-hover:bg-violet-500/20 group-hover:text-violet-100 group-hover:ring-violet-400/30'
-        : 'bg-zinc-800/90 text-amber-300 ring-white/10 group-hover:bg-amber-500/20 group-hover:text-amber-100 group-hover:ring-amber-400/30'
+        : accent === 'rose'
+          ? 'bg-zinc-800/90 text-rose-300 ring-white/10 group-hover:bg-rose-500/20 group-hover:text-rose-100 group-hover:ring-rose-400/30'
+          : 'bg-zinc-800/90 text-amber-300 ring-white/10 group-hover:bg-amber-500/20 group-hover:text-amber-100 group-hover:ring-amber-400/30'
 
   return (
     <aside

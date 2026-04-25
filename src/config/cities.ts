@@ -21,6 +21,8 @@ export interface City {
   moji?: string
   cma?: string
   hbt?: string
+  tenki?: string
+  kma?: string
 }
 
 export const CITIES: City[] = [
@@ -79,7 +81,8 @@ export const CITIES: City[] = [
       'https://imgproxy.windy.com/_/full/plain/current/1701618298/original.jpg',
       'https://imgproxy.windy.com/_/full/plain/current/1647579305/original.jpg',
       'https://imgproxy.windy.com/_/full/plain/current/1685571630/original.jpg'
-    ]
+    ],
+    kma: 'https://www.weather.go.kr/w/wnuri-chn/main/digital-forecast.do?code=2811064800&lat=37.49369&lon=126.49847&unit=m%2Fs&aws=Y'
   },
   {
     id: 'tokyo',
@@ -98,7 +101,8 @@ export const CITIES: City[] = [
       'https://imgproxy.windy.com/_/full/plain/current/1647579411/original.jpg',
       'https://imgproxy.windy.com/_/full/plain/current/1570808041/original.jpg',
       'https://imgproxy.windy.com/_/full/plain/current/1658398652/original.jpg'
-    ]
+    ],
+    tenki: 'https://tenki.jp/forecast/3/16/4410/13111/10days.html'
   },
   {
     id: 'shanghai',
@@ -686,6 +690,7 @@ export const CITIES: City[] = [
     description: 'Port city on the sea. Beaches, seafood markets, and film festivals.',
     gradient: 'from-blue-600 via-cyan-500 to-teal-600',
     image: '/images/cities/busan.jpg',
+    kma: 'https://www.weather.go.kr/w/wnuri-chn/main/digital-forecast.do?code=2644052000&lat=35.175396&lon=128.9587&unit=m%2Fs&aws=Y'
   },
   {
     id: 'jakarta',
